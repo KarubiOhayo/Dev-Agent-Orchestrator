@@ -2,6 +2,7 @@
 
 Last Updated: 2026-02-11
 Owner: Main Controller Thread
+Primary Reference: `docs/PROJECT_OVERVIEW.md`
 
 ## 현재 스냅샷
 - 목표: A(Context Engineering) 완성 후 C(Spec -> Code -> Doc) 체이닝으로 확장
