@@ -1,0 +1,178 @@
+spring:
+  config:
+    import:
+      - optional:file:./.env[.properties]
+  application:
+    name: mopl-dev-agent
+
+devagent:
+  context:
+    root-dir: "."
+    rules-dir: "docs/rules"
+    examples-dir: "docs/examples"
+    project-rules-dir: ".devagent/rules"
+    project-examples-dir: ".devagent/examples"
+    global-max-files-per-section: 3
+    project-max-files-per-section: 3
+    max-chars-per-file: 2500
+    scoring-sample-chars: 1200
+    include-project-summary: true
+    include-recent-outputs: true
+  prompt:
+    orchestrator-root-dir: "."
+    orchestrator-prompts-dir: "prompts"
+    project-prompts-dir: ".devagent/prompts"
+    global-file: "global.md"
+    agents-dir: "agents"
+    max-chars-per-prompt: 8000
+  model-routing:
+    default-mode: BALANCED
+    agents:
+      router:
+        modes:
+          COST_SAVER:
+            primary: "google:gemini-2.5-flash-lite"
+            fallbacks:
+              - "openai:gpt-5-mini"
+              - "anthropic:claude-sonnet-4.5"
+          BALANCED:
+            primary: "openai:gpt-5-mini"
+            fallbacks:
+              - "google:gemini-2.5-flash"
+              - "anthropic:claude-sonnet-4.5"
+          QUALITY:
+            primary: "openai:gpt-5.2"
+            fallbacks:
+              - "anthropic:claude-sonnet-4.5"
+              - "google:gemini-2.5-pro"
+      spec:
+        modes:
+          COST_SAVER:
+            primary: "openai:gpt-5-mini"
+            fallbacks:
+              - "google:gemini-2.5-flash"
+          BALANCED:
+            primary: "openai:gpt-5.2"
+            fallbacks:
+              - "google:gemini-2.5-pro"
+              - "anthropic:claude-sonnet-4.5"
+          QUALITY:
+            primary: "openai:gpt-5.2"
+            fallbacks:
+              - "anthropic:claude-opus-4.6"
+              - "google:gemini-2.5-pro"
+      code:
+        modes:
+          COST_SAVER:
+            primary: "openai:gpt-5-mini"
+            fallbacks:
+              - "google:gemini-2.5-flash"
+          BALANCED:
+            primary: "openai:gpt-5.2-codex"
+            fallbacks:
+              - "anthropic:claude-sonnet-4.5"
+              - "google:gemini-2.5-pro"
+          QUALITY:
+            primary: "anthropic:claude-opus-4.6"
+            fallbacks:
+              - "openai:gpt-5.2"
+              - "google:gemini-2.5-pro"
+          GEMINI3_CANARY:
+            primary: "google:gemini-3.0-preview"
+            fallbacks:
+              - "openai:gpt-5.2"
+              - "anthropic:claude-sonnet-4.5"
+      doc:
+        modes:
+          COST_SAVER:
+            primary: "google:gemini-2.5-flash-lite"
+            fallbacks:
+              - "openai:gpt-5-mini"
+          BALANCED:
+            primary: "google:gemini-2.5-flash"
+            fallbacks:
+              - "openai:gpt-5-mini"
+              - "anthropic:claude-sonnet-4.5"
+          QUALITY:
+            primary: "google:gemini-2.5-pro"
+            fallbacks:
+              - "openai:gpt-5.2"
+          GEMINI3_CANARY:
+            primary: "google:gemini-3.0-preview"
+            fallbacks:
+              - "google:gemini-2.5-pro"
+              - "openai:gpt-5.2"
+      review:
+        modes:
+          COST_SAVER:
+            primary: "anthropic:claude-sonnet-4.5"
+            fallbacks:
+              - "openai:gpt-5-mini"
+          BALANCED:
+            primary: "anthropic:claude-sonnet-4.5"
+            fallbacks:
+              - "openai:gpt-5.2"
+              - "google:gemini-2.5-pro"
+          QUALITY:
+            primary: "anthropic:claude-opus-4.6"
+            fallbacks:
+              - "anthropic:claude-sonnet-4.5"
+              - "openai:gpt-5.2"
+      refactor:
+        modes:
+          COST_SAVER:
+            primary: "openai:gpt-5-mini"
+            fallbacks:
+              - "anthropic:claude-sonnet-4.5"
+          BALANCED:
+            primary: "openai:gpt-5.2-codex"
+            fallbacks:
+              - "anthropic:claude-sonnet-4.5"
+          QUALITY:
+            primary: "anthropic:claude-opus-4.6"
+            fallbacks:
+              - "openai:gpt-5.2"
+      help:
+        modes:
+          COST_SAVER:
+            primary: "google:gemini-2.5-flash-lite"
+            fallbacks:
+              - "openai:gpt-5-mini"
+          BALANCED:
+            primary: "openai:gpt-5-mini"
+            fallbacks:
+              - "google:gemini-2.5-flash"
+          QUALITY:
+            primary: "openai:gpt-5.2"
+            fallbacks:
+              - "anthropic:claude-sonnet-4.5"
+    escalation:
+      review-high-risk: "anthropic:claude-opus-4.6"
+      huge-context: "google:gemini-2.5-pro"
+      strict-json: "openai:gpt-5.2"
+  llm:
+    request-timeout-seconds: 60
+    generation:
+      max-tokens: 1600
+      temperature: 0.2
+    providers:
+      openai:
+        enabled: true
+        base-url: "https://api.openai.com"
+        api-key: "${OPENAI_API_KEY:}"
+      anthropic:
+        enabled: true
+        base-url: "https://api.anthropic.com"
+        api-key: "${ANTHROPIC_API_KEY:}"
+        api-version: "2023-06-01"
+      google:
+        enabled: true
+        base-url: "https://generativelanguage.googleapis.com"
+        api-key: "${GOOGLE_API_KEY:${GEMINI_API_KEY:}}"
+  run-state:
+    enabled: true
+    jdbc-url: "jdbc:sqlite:storage/devagent.db"
+    fallback-log-file: "storage/run-log.jsonl"
+    fallback-memory-file: "storage/project-memory.properties"
+    output-preview-chars: 3000
+    recent-output-limit: 3
