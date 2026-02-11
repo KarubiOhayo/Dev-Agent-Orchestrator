@@ -1,9 +1,9 @@
-package me.karubidev.devagent.agents.code;
+package me.karubidev.devagent.agents.spec;
 
 import me.karubidev.devagent.orchestration.routing.RiskLevel;
 import me.karubidev.devagent.orchestration.routing.RoutingMode;
 
-public class CodeGenerateRequest {
+public class SpecGenerateRequest {
 
   private String projectId = "default";
   private String targetProjectRoot = ".";
@@ -12,9 +12,12 @@ public class CodeGenerateRequest {
   private RiskLevel riskLevel = RiskLevel.MEDIUM;
   private boolean largeContext;
   private boolean strictJsonRequired = true;
-  private boolean apply;
-  private boolean overwriteExisting;
-  private String specInputPath;
+
+  private boolean chainToCode;
+  private String codeUserRequest;
+  private boolean codeApply;
+  private boolean codeOverwriteExisting;
+  private String specOutputPath;
 
   public String getProjectId() {
     return projectId;
@@ -72,27 +75,43 @@ public class CodeGenerateRequest {
     this.strictJsonRequired = strictJsonRequired;
   }
 
-  public boolean isApply() {
-    return apply;
+  public boolean isChainToCode() {
+    return chainToCode;
   }
 
-  public void setApply(boolean apply) {
-    this.apply = apply;
+  public void setChainToCode(boolean chainToCode) {
+    this.chainToCode = chainToCode;
   }
 
-  public boolean isOverwriteExisting() {
-    return overwriteExisting;
+  public String getCodeUserRequest() {
+    return codeUserRequest;
   }
 
-  public void setOverwriteExisting(boolean overwriteExisting) {
-    this.overwriteExisting = overwriteExisting;
+  public void setCodeUserRequest(String codeUserRequest) {
+    this.codeUserRequest = codeUserRequest;
   }
 
-  public String getSpecInputPath() {
-    return specInputPath;
+  public boolean isCodeApply() {
+    return codeApply;
   }
 
-  public void setSpecInputPath(String specInputPath) {
-    this.specInputPath = specInputPath;
+  public void setCodeApply(boolean codeApply) {
+    this.codeApply = codeApply;
+  }
+
+  public boolean isCodeOverwriteExisting() {
+    return codeOverwriteExisting;
+  }
+
+  public void setCodeOverwriteExisting(boolean codeOverwriteExisting) {
+    this.codeOverwriteExisting = codeOverwriteExisting;
+  }
+
+  public String getSpecOutputPath() {
+    return specOutputPath;
+  }
+
+  public void setSpecOutputPath(String specOutputPath) {
+    this.specOutputPath = specOutputPath;
   }
 }
