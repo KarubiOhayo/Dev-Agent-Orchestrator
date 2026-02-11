@@ -1,6 +1,7 @@
 package me.karubidev.devagent.agents.code;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -103,5 +104,95 @@ class CodeAgentServiceTest {
     ArgumentCaptor<String> userRequestCaptor = ArgumentCaptor.forClass(String.class);
     verify(contextManager).buildCodeContext(userRequestCaptor.capture(), eq("p1"), eq(tempDir.toAbsolutePath().normalize()));
     assertThat(userRequestCaptor.getValue()).contains("[SPEC_INPUT_PATH]");
+  }
+
+  @Test
+  void generateRejectsAbsoluteSpecInputPath(@TempDir Path tempDir) {
+    ModelRouter modelRouter = Mockito.mock(ModelRouter.class);
+    LlmOrchestratorService llmOrchestrator = Mockito.mock(LlmOrchestratorService.class);
+    ProjectContextManager contextManager = Mockito.mock(ProjectContextManager.class);
+    PromptRegistry promptRegistry = Mockito.mock(PromptRegistry.class);
+    RunStateStore runStateStore = Mockito.mock(RunStateStore.class);
+    CodeOutputParser codeOutputParser = Mockito.mock(CodeOutputParser.class);
+    FileApplyService fileApplyService = Mockito.mock(FileApplyService.class);
+
+    CodeAgentService service = new CodeAgentService(
+        modelRouter,
+        llmOrchestrator,
+        contextManager,
+        promptRegistry,
+        runStateStore,
+        codeOutputParser,
+        fileApplyService
+    );
+
+    CodeGenerateRequest request = new CodeGenerateRequest();
+    request.setProjectId("p1");
+    request.setTargetProjectRoot(tempDir.toString());
+    request.setSpecInputPath(tempDir.resolve("spec.json").toString());
+
+    RouteDecision routeDecision = new RouteDecision(
+        AgentType.CODE,
+        RoutingMode.BALANCED,
+        RiskLevel.MEDIUM,
+        new ModelRef("openai", "gpt-5.2-codex"),
+        List.of(),
+        List.of("test")
+    );
+    when(modelRouter.resolve(any())).thenReturn(routeDecision);
+    when(runStateStore.startRun(eq("p1"), eq("CODE"), eq("BALANCED"), contains("specInputPath")))
+        .thenReturn("run-abs");
+
+    assertThatThrownBy(() -> service.generate(request))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("relative path");
+
+    verify(runStateStore).appendEvent(eq("run-abs"), eq("SPEC_INPUT_FAILED"), contains("relative path"));
+    verify(runStateStore).appendEvent(eq("run-abs"), eq("CODE_FAILED"), contains("relative path"));
+  }
+
+  @Test
+  void generateRejectsTraversalSpecInputPath(@TempDir Path tempDir) {
+    ModelRouter modelRouter = Mockito.mock(ModelRouter.class);
+    LlmOrchestratorService llmOrchestrator = Mockito.mock(LlmOrchestratorService.class);
+    ProjectContextManager contextManager = Mockito.mock(ProjectContextManager.class);
+    PromptRegistry promptRegistry = Mockito.mock(PromptRegistry.class);
+    RunStateStore runStateStore = Mockito.mock(RunStateStore.class);
+    CodeOutputParser codeOutputParser = Mockito.mock(CodeOutputParser.class);
+    FileApplyService fileApplyService = Mockito.mock(FileApplyService.class);
+
+    CodeAgentService service = new CodeAgentService(
+        modelRouter,
+        llmOrchestrator,
+        contextManager,
+        promptRegistry,
+        runStateStore,
+        codeOutputParser,
+        fileApplyService
+    );
+
+    CodeGenerateRequest request = new CodeGenerateRequest();
+    request.setProjectId("p1");
+    request.setTargetProjectRoot(tempDir.toString());
+    request.setSpecInputPath("../outside/spec.json");
+
+    RouteDecision routeDecision = new RouteDecision(
+        AgentType.CODE,
+        RoutingMode.BALANCED,
+        RiskLevel.MEDIUM,
+        new ModelRef("openai", "gpt-5.2-codex"),
+        List.of(),
+        List.of("test")
+    );
+    when(modelRouter.resolve(any())).thenReturn(routeDecision);
+    when(runStateStore.startRun(eq("p1"), eq("CODE"), eq("BALANCED"), contains("specInputPath")))
+        .thenReturn("run-up");
+
+    assertThatThrownBy(() -> service.generate(request))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("must not contain '..'");
+
+    verify(runStateStore).appendEvent(eq("run-up"), eq("SPEC_INPUT_FAILED"), contains("must not contain '..'"));
+    verify(runStateStore).appendEvent(eq("run-up"), eq("CODE_FAILED"), contains("must not contain '..'"));
   }
 }

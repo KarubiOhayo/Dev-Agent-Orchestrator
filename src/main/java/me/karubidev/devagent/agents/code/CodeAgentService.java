@@ -3,6 +3,7 @@ package me.karubidev.devagent.agents.code;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import me.karubidev.devagent.agents.code.apply.CodeOutputParser;
 import me.karubidev.devagent.agents.code.apply.FileApplyResult;
@@ -76,7 +77,7 @@ public class CodeAgentService {
     );
 
     try {
-      SpecInput specInput = loadSpecInput(request.getSpecInputPath(), targetRoot);
+      SpecInput specInput = loadSpecInput(request.getSpecInputPath(), targetRoot, runId);
       if (specInput != null) {
         runStateStore.appendEvent(runId, "SPEC_INPUT_LOADED", specInput.path().toString());
       }
@@ -131,6 +132,7 @@ public class CodeAgentService {
           applyResult
       );
     } catch (Exception e) {
+      runStateStore.appendEvent(runId, "CODE_FAILED", errorMessage(e));
       runStateStore.completeFailure(runId, projectId, e.getMessage());
       throw e;
     }
@@ -179,21 +181,47 @@ public class CodeAgentService {
     return "";
   }
 
-  private SpecInput loadSpecInput(String specInputPath, Path targetRoot) {
+  private SpecInput loadSpecInput(String specInputPath, Path targetRoot, String runId) {
     if (specInputPath == null || specInputPath.isBlank()) {
       return null;
     }
 
-    Path rawPath = Path.of(specInputPath);
-    Path resolvedPath = rawPath.isAbsolute() ? rawPath : targetRoot.resolve(rawPath);
-    Path normalized = resolvedPath.toAbsolutePath().normalize();
-
     try {
+      Path normalized = resolvePathInsideTargetRoot(specInputPath, targetRoot, "specInputPath");
       String text = Files.readString(normalized, StandardCharsets.UTF_8);
       return new SpecInput(normalized, text);
+    } catch (IllegalArgumentException e) {
+      runStateStore.appendEvent(runId, "SPEC_INPUT_FAILED", errorMessage(e));
+      throw e;
     } catch (IOException e) {
-      throw new IllegalArgumentException("failed to read specInputPath: " + normalized, e);
+      String message = "failed to read specInputPath: " + specInputPath;
+      runStateStore.appendEvent(runId, "SPEC_INPUT_FAILED", message);
+      throw new IllegalArgumentException(message, e);
     }
+  }
+
+  private Path resolvePathInsideTargetRoot(String rawPath, Path targetRoot, String fieldName) {
+    Path candidate;
+    try {
+      candidate = Path.of(rawPath);
+    } catch (InvalidPathException e) {
+      throw new IllegalArgumentException(fieldName + " is invalid: " + rawPath, e);
+    }
+
+    if (candidate.isAbsolute()) {
+      throw new IllegalArgumentException(fieldName + " must be a relative path inside targetProjectRoot");
+    }
+    for (Path part : candidate) {
+      if ("..".equals(part.toString())) {
+        throw new IllegalArgumentException(fieldName + " must not contain '..'");
+      }
+    }
+
+    Path normalized = targetRoot.resolve(candidate).normalize();
+    if (!normalized.startsWith(targetRoot)) {
+      throw new IllegalArgumentException(fieldName + " escapes targetProjectRoot");
+    }
+    return normalized;
   }
 
   private String buildUserRequest(String userRequest, SpecInput specInput) {
@@ -234,5 +262,12 @@ public class CodeAgentService {
   }
 
   private record SpecInput(Path path, String content) {
+  }
+
+  private String errorMessage(Exception e) {
+    if (e.getMessage() == null || e.getMessage().isBlank()) {
+      return e.getClass().getSimpleName();
+    }
+    return e.getMessage();
   }
 }

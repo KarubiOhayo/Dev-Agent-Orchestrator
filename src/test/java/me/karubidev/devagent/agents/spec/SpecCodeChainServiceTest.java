@@ -1,8 +1,11 @@
 package me.karubidev.devagent.agents.spec;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -75,10 +78,80 @@ class SpecCodeChainServiceTest {
     verify(codeAgentService).generate(requestCaptor.capture());
     CodeGenerateRequest chainedRequest = requestCaptor.getValue();
     assertThat(chainedRequest.getSpecInputPath()).isNotBlank();
-    assertThat(Files.exists(Path.of(chainedRequest.getSpecInputPath()))).isTrue();
+    assertThat(Path.of(chainedRequest.getSpecInputPath()).isAbsolute()).isFalse();
+    assertThat(Files.exists(tempDir.resolve(chainedRequest.getSpecInputPath()))).isTrue();
 
     verify(runStateStore).appendEvent(eq("spec-run-1"), eq("CHAIN_SPEC_WRITTEN"), contains(".json"));
     verify(runStateStore).appendEvent(eq("spec-run-1"), eq("CHAIN_CODE_TRIGGERED"), contains(".json"));
     verify(runStateStore).appendEvent(eq("spec-run-1"), eq("CHAIN_CODE_DONE"), eq("codeRunId=code-run-1"));
+  }
+
+  @Test
+  void chainRejectsAbsoluteSpecOutputPath(@TempDir Path tempDir) {
+    CodeAgentService codeAgentService = Mockito.mock(CodeAgentService.class);
+    RunStateStore runStateStore = Mockito.mock(RunStateStore.class);
+    SpecCodeChainService service = new SpecCodeChainService(codeAgentService, runStateStore, new ObjectMapper());
+
+    SpecGenerateRequest request = new SpecGenerateRequest();
+    request.setProjectId("p1");
+    request.setChainToCode(true);
+    request.setSpecOutputPath(tempDir.resolve("spec.json").toString());
+
+    ObjectNode spec = new ObjectMapper().createObjectNode();
+    spec.put("title", "Test");
+
+    assertThatThrownBy(() -> service.runChain("spec-run-abs", request, spec, tempDir))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("relative path");
+
+    verify(runStateStore).appendEvent(eq("spec-run-abs"), eq("CHAIN_CODE_FAILED"), contains("relative path"));
+    verify(codeAgentService, never()).generate(any());
+  }
+
+  @Test
+  void chainRejectsTraversalSpecOutputPath(@TempDir Path tempDir) {
+    CodeAgentService codeAgentService = Mockito.mock(CodeAgentService.class);
+    RunStateStore runStateStore = Mockito.mock(RunStateStore.class);
+    SpecCodeChainService service = new SpecCodeChainService(codeAgentService, runStateStore, new ObjectMapper());
+
+    SpecGenerateRequest request = new SpecGenerateRequest();
+    request.setProjectId("p1");
+    request.setChainToCode(true);
+    request.setSpecOutputPath("../escape/spec.json");
+
+    ObjectNode spec = new ObjectMapper().createObjectNode();
+    spec.put("title", "Test");
+
+    assertThatThrownBy(() -> service.runChain("spec-run-up", request, spec, tempDir))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("must not contain '..'");
+
+    verify(runStateStore).appendEvent(eq("spec-run-up"), eq("CHAIN_CODE_FAILED"), contains("must not contain '..'"));
+    verify(codeAgentService, never()).generate(any());
+  }
+
+  @Test
+  void chainRejectsOverwriteWhenSpecFileExists(@TempDir Path tempDir) throws Exception {
+    CodeAgentService codeAgentService = Mockito.mock(CodeAgentService.class);
+    RunStateStore runStateStore = Mockito.mock(RunStateStore.class);
+    SpecCodeChainService service = new SpecCodeChainService(codeAgentService, runStateStore, new ObjectMapper());
+
+    Path existingSpec = tempDir.resolve(".devagent/specs/spec-run-exists.json");
+    Files.createDirectories(existingSpec.getParent());
+    Files.writeString(existingSpec, "{\"title\":\"existing\"}");
+
+    SpecGenerateRequest request = new SpecGenerateRequest();
+    request.setProjectId("p1");
+    request.setChainToCode(true);
+
+    ObjectNode spec = new ObjectMapper().createObjectNode();
+    spec.put("title", "New");
+
+    assertThatThrownBy(() -> service.runChain("spec-run-exists", request, spec, tempDir))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("overwrite disabled");
+
+    verify(runStateStore).appendEvent(eq("spec-run-exists"), eq("CHAIN_CODE_FAILED"), contains("overwrite disabled"));
+    verify(codeAgentService, never()).generate(any());
   }
 }
