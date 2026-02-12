@@ -1,27 +1,40 @@
-# Current Status Report (2026-02-11)
+# Current Status Report (2026-02-12)
 
 ## 요약
-CodeAgent 단일 파이프라인이 실사용 가능한 수준까지 구현됨.
-- 라우팅 -> LLM 호출 -> 결과 파싱 -> dry-run/apply -> run-state 기록
+Spec -> Code -> Doc/Review 체이닝(1차), Code 출력 JSON files[] 우선화, CLI(draft + H-003.2 종료코드 보완)까지 완료됨.
+- 라우팅 -> LLM 호출 -> JSON 우선 파싱 -> dry-run/apply -> run-state 기록
+- 운영 체계는 3스레드(Main/Review/Executor) + stateless 라운드 방식으로 전환
 
 ## 구현 완료 항목
 - ModelRouter + Routing API
 - Provider adapters(OpenAI/Anthropic/Google)
 - CodeAgent API
+- SpecAgent API + Spec -> Code chain
 - PromptRegistry + ContextPolicy
 - RunState(SQLite/fallback)
-- apply/dry-run
+- apply/dry-run + path safety(spec in/out)
+- Code output JSON files[] 우선 파싱 + markdown fallback warning 이벤트
+- DocAgent API + 문서 JSON 스키마 파싱/보정 + fallback warning 이벤트
+- Code -> Doc chain (`chainToDoc`, `docUserRequest`) + chain 이벤트 기록
+- ReviewAgent API + 리뷰 JSON 스키마 파싱/보정 + fallback warning 이벤트
+- Code -> Review chain (`chainToReview`, `reviewUserRequest`) + chain 이벤트 기록
+- CLI 엔트리포인트(`devagent generate/spec/help`) + 결과 표/리스트 formatter
+- CLI 오류 메시지 간소화(스택트레이스 기본 노출 차단) + API docs `files` 계약 반영
+- CLI 실행 래퍼 `bootJar -> java -jar` 전환으로 종료코드 정확 전달(`help=0`, unknown option=`2`)
 - 테스트 추가 및 통과
 
 ## 잔여 과제
-1. SpecAgent 구현 및 Spec -> Code 체이닝
-2. Code 출력 JSON 스키마 강제화(files[])
-3. CLI/가독성 개선
-4. Review/Refactor 자동화 확장
+1. CLI 기능 고도화(`--json` 출력, 옵션 별칭, 반복 실행 성능 최적화)
+2. files[]/document/review 스키마 의미 검증(path/content/section quality) 및 관측 지표 고도화
+3. Code 체인(Doc/Review) 실패 시 부분 성공 허용 여부 정책 결정
+4. ReviewOutputSchemaParser 경계 입력(fenced JSON 변형) 테스트 보강
 
 ## 리스크
-- 현재 Code 파일 추출은 markdown 패턴 의존
+- 모델 출력이 비정형일 때 markdown fallback 빈도가 높아질 수 있음
+- JSON 구조는 맞아도 files[]/document/review 항목 의미 검증은 아직 제한적
+- `devagent` 스크립트가 실행마다 jar 빌드 체크를 수행해 개발 루프에서 지연이 체감될 수 있음
+- 현재 Code -> Doc/Review 체인 실패는 Code 요청 실패로 전파되어 운영에서 실패 민감도가 높을 수 있음
 - strict-json escalation 동작에 따라 codex 모델 우선순위가 변동 가능
 
 ## 메인 제안
-다음 스프린트는 WT-1(Spec chain), WT-2(JSON schema) 병렬 진행 후, WT-3(UX)는 결과 안정화 이후 병행
+다음 라운드는 CLI 기능 고도화(--json/성능)를 handoff로 고정해 진행

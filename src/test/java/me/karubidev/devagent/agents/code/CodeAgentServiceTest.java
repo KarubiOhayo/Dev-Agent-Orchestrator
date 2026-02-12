@@ -15,10 +15,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import me.karubidev.devagent.agents.code.apply.CodeOutputParser;
+import me.karubidev.devagent.agents.code.apply.CodeOutputParser.ParseSource;
 import me.karubidev.devagent.agents.code.apply.FileApplyItem;
 import me.karubidev.devagent.agents.code.apply.FileApplyResult;
 import me.karubidev.devagent.agents.code.apply.FileApplyService;
 import me.karubidev.devagent.agents.code.apply.GeneratedFile;
+import me.karubidev.devagent.agents.doc.CodeDocChainService;
+import me.karubidev.devagent.agents.doc.DocGenerateResponse;
+import me.karubidev.devagent.agents.review.CodeReviewChainService;
+import me.karubidev.devagent.agents.review.ReviewGenerateResponse;
 import me.karubidev.devagent.context.ContextBundle;
 import me.karubidev.devagent.context.ProjectContextManager;
 import me.karubidev.devagent.llm.LlmExecutionResult;
@@ -36,6 +41,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import tools.jackson.databind.ObjectMapper;
 
 class CodeAgentServiceTest {
 
@@ -48,6 +54,8 @@ class CodeAgentServiceTest {
     RunStateStore runStateStore = Mockito.mock(RunStateStore.class);
     CodeOutputParser codeOutputParser = Mockito.mock(CodeOutputParser.class);
     FileApplyService fileApplyService = Mockito.mock(FileApplyService.class);
+    CodeDocChainService codeDocChainService = Mockito.mock(CodeDocChainService.class);
+    CodeReviewChainService codeReviewChainService = Mockito.mock(CodeReviewChainService.class);
 
     CodeAgentService service = new CodeAgentService(
         modelRouter,
@@ -56,7 +64,9 @@ class CodeAgentServiceTest {
         promptRegistry,
         runStateStore,
         codeOutputParser,
-        fileApplyService
+        fileApplyService,
+        codeDocChainService,
+        codeReviewChainService
     );
 
     Path specPath = tempDir.resolve("spec.json");
@@ -90,7 +100,12 @@ class CodeAgentServiceTest {
             List.of()
         )
     );
-    when(codeOutputParser.parseFiles(eq("raw-output"))).thenReturn(List.of(new GeneratedFile("src/A.java", "class A {}")));
+    when(codeOutputParser.parse(eq("raw-output"))).thenReturn(
+        new CodeOutputParser.ParseResult(
+            List.of(new GeneratedFile("src/A.java", "class A {}")),
+            ParseSource.JSON
+        )
+    );
     when(fileApplyService.apply(eq(tempDir.toAbsolutePath().normalize()), any(), eq(true), anyBoolean())).thenReturn(
         new FileApplyResult(true, 1, 0, 0, List.of(new FileApplyItem("src/A.java", "DRY_RUN", "ok")))
     );
@@ -99,6 +114,8 @@ class CodeAgentServiceTest {
     CodeGenerateResponse response = service.generate(request);
 
     assertThat(response.runId()).isEqualTo("run-1");
+    assertThat(response.files()).hasSize(1);
+    assertThat(response.files().get(0).path()).isEqualTo("src/A.java");
     verify(runStateStore).appendEvent(eq("run-1"), eq("SPEC_INPUT_LOADED"), contains("spec.json"));
 
     ArgumentCaptor<String> userRequestCaptor = ArgumentCaptor.forClass(String.class);
@@ -115,6 +132,8 @@ class CodeAgentServiceTest {
     RunStateStore runStateStore = Mockito.mock(RunStateStore.class);
     CodeOutputParser codeOutputParser = Mockito.mock(CodeOutputParser.class);
     FileApplyService fileApplyService = Mockito.mock(FileApplyService.class);
+    CodeDocChainService codeDocChainService = Mockito.mock(CodeDocChainService.class);
+    CodeReviewChainService codeReviewChainService = Mockito.mock(CodeReviewChainService.class);
 
     CodeAgentService service = new CodeAgentService(
         modelRouter,
@@ -123,7 +142,9 @@ class CodeAgentServiceTest {
         promptRegistry,
         runStateStore,
         codeOutputParser,
-        fileApplyService
+        fileApplyService,
+        codeDocChainService,
+        codeReviewChainService
     );
 
     CodeGenerateRequest request = new CodeGenerateRequest();
@@ -160,6 +181,8 @@ class CodeAgentServiceTest {
     RunStateStore runStateStore = Mockito.mock(RunStateStore.class);
     CodeOutputParser codeOutputParser = Mockito.mock(CodeOutputParser.class);
     FileApplyService fileApplyService = Mockito.mock(FileApplyService.class);
+    CodeDocChainService codeDocChainService = Mockito.mock(CodeDocChainService.class);
+    CodeReviewChainService codeReviewChainService = Mockito.mock(CodeReviewChainService.class);
 
     CodeAgentService service = new CodeAgentService(
         modelRouter,
@@ -168,7 +191,9 @@ class CodeAgentServiceTest {
         promptRegistry,
         runStateStore,
         codeOutputParser,
-        fileApplyService
+        fileApplyService,
+        codeDocChainService,
+        codeReviewChainService
     );
 
     CodeGenerateRequest request = new CodeGenerateRequest();
@@ -194,5 +219,246 @@ class CodeAgentServiceTest {
 
     verify(runStateStore).appendEvent(eq("run-up"), eq("SPEC_INPUT_FAILED"), contains("must not contain '..'"));
     verify(runStateStore).appendEvent(eq("run-up"), eq("CODE_FAILED"), contains("must not contain '..'"));
+  }
+
+  @Test
+  void generateRecordsWarningEventWhenMarkdownFallbackUsed(@TempDir Path tempDir) {
+    ModelRouter modelRouter = Mockito.mock(ModelRouter.class);
+    LlmOrchestratorService llmOrchestrator = Mockito.mock(LlmOrchestratorService.class);
+    ProjectContextManager contextManager = Mockito.mock(ProjectContextManager.class);
+    PromptRegistry promptRegistry = Mockito.mock(PromptRegistry.class);
+    RunStateStore runStateStore = Mockito.mock(RunStateStore.class);
+    CodeOutputParser codeOutputParser = Mockito.mock(CodeOutputParser.class);
+    FileApplyService fileApplyService = Mockito.mock(FileApplyService.class);
+    CodeDocChainService codeDocChainService = Mockito.mock(CodeDocChainService.class);
+    CodeReviewChainService codeReviewChainService = Mockito.mock(CodeReviewChainService.class);
+
+    CodeAgentService service = new CodeAgentService(
+        modelRouter,
+        llmOrchestrator,
+        contextManager,
+        promptRegistry,
+        runStateStore,
+        codeOutputParser,
+        fileApplyService,
+        codeDocChainService,
+        codeReviewChainService
+    );
+
+    CodeGenerateRequest request = new CodeGenerateRequest();
+    request.setProjectId("p1");
+    request.setTargetProjectRoot(tempDir.toString());
+    request.setUserRequest("implement");
+
+    RouteDecision routeDecision = new RouteDecision(
+        AgentType.CODE,
+        RoutingMode.BALANCED,
+        RiskLevel.MEDIUM,
+        new ModelRef("openai", "gpt-5.2-codex"),
+        List.of(),
+        List.of("test")
+    );
+    when(modelRouter.resolve(any())).thenReturn(routeDecision);
+    when(runStateStore.startRun(eq("p1"), eq("CODE"), eq("BALANCED"), eq("implement")))
+        .thenReturn("run-fallback");
+    when(contextManager.buildCodeContext(eq("implement"), eq("p1"), eq(tempDir.toAbsolutePath().normalize())))
+        .thenReturn(new ContextBundle("ctx", List.of()));
+    when(promptRegistry.buildPrompt(eq("code"), eq(tempDir.toAbsolutePath().normalize()), eq("implement"), anyString()))
+        .thenReturn("prompt");
+    when(llmOrchestrator.generate(eq(routeDecision), eq("prompt"))).thenReturn(
+        new LlmExecutionResult(
+            new LlmGenerationResult("openai", "gpt-5.2-codex", "raw-output", "{}"),
+            List.of()
+        )
+    );
+    when(codeOutputParser.parse(eq("raw-output"))).thenReturn(
+        new CodeOutputParser.ParseResult(
+            List.of(new GeneratedFile("src/Fallback.java", "class Fallback {}")),
+            ParseSource.MARKDOWN_FALLBACK
+        )
+    );
+    when(fileApplyService.apply(eq(tempDir.toAbsolutePath().normalize()), any(), eq(true), eq(false))).thenReturn(
+        new FileApplyResult(true, 1, 0, 0, List.of(new FileApplyItem("src/Fallback.java", "DRY_RUN", "ok")))
+    );
+    when(runStateStore.getProjectSummary("p1")).thenReturn("summary");
+
+    CodeGenerateResponse response = service.generate(request);
+
+    assertThat(response.files()).hasSize(1);
+    verify(runStateStore).appendEvent(eq("run-fallback"), eq("CODE_OUTPUT_FALLBACK_WARNING"), contains("MARKDOWN_FALLBACK"));
+  }
+
+  @Test
+  void generateRunsCodeToDocChainWhenRequested(@TempDir Path tempDir) {
+    ModelRouter modelRouter = Mockito.mock(ModelRouter.class);
+    LlmOrchestratorService llmOrchestrator = Mockito.mock(LlmOrchestratorService.class);
+    ProjectContextManager contextManager = Mockito.mock(ProjectContextManager.class);
+    PromptRegistry promptRegistry = Mockito.mock(PromptRegistry.class);
+    RunStateStore runStateStore = Mockito.mock(RunStateStore.class);
+    CodeOutputParser codeOutputParser = Mockito.mock(CodeOutputParser.class);
+    FileApplyService fileApplyService = Mockito.mock(FileApplyService.class);
+    CodeDocChainService codeDocChainService = Mockito.mock(CodeDocChainService.class);
+    CodeReviewChainService codeReviewChainService = Mockito.mock(CodeReviewChainService.class);
+
+    CodeAgentService service = new CodeAgentService(
+        modelRouter,
+        llmOrchestrator,
+        contextManager,
+        promptRegistry,
+        runStateStore,
+        codeOutputParser,
+        fileApplyService,
+        codeDocChainService,
+        codeReviewChainService
+    );
+
+    CodeGenerateRequest request = new CodeGenerateRequest();
+    request.setProjectId("p1");
+    request.setTargetProjectRoot(tempDir.toString());
+    request.setUserRequest("implement");
+    request.setChainToDoc(true);
+
+    RouteDecision routeDecision = new RouteDecision(
+        AgentType.CODE,
+        RoutingMode.BALANCED,
+        RiskLevel.MEDIUM,
+        new ModelRef("openai", "gpt-5.2-codex"),
+        List.of(),
+        List.of("test")
+    );
+    when(modelRouter.resolve(any())).thenReturn(routeDecision);
+    when(runStateStore.startRun(eq("p1"), eq("CODE"), eq("BALANCED"), eq("implement")))
+        .thenReturn("run-chain");
+    when(contextManager.buildCodeContext(eq("implement"), eq("p1"), eq(tempDir.toAbsolutePath().normalize())))
+        .thenReturn(new ContextBundle("ctx", List.of()));
+    when(promptRegistry.buildPrompt(eq("code"), eq(tempDir.toAbsolutePath().normalize()), eq("implement"), anyString()))
+        .thenReturn("prompt");
+    when(llmOrchestrator.generate(eq(routeDecision), eq("prompt"))).thenReturn(
+        new LlmExecutionResult(
+            new LlmGenerationResult("openai", "gpt-5.2-codex", "raw-output", "{}"),
+            List.of()
+        )
+    );
+    when(codeOutputParser.parse(eq("raw-output"))).thenReturn(
+        new CodeOutputParser.ParseResult(
+            List.of(new GeneratedFile("src/A.java", "class A {}")),
+            ParseSource.JSON
+        )
+    );
+    when(fileApplyService.apply(eq(tempDir.toAbsolutePath().normalize()), any(), eq(true), eq(false))).thenReturn(
+        new FileApplyResult(true, 1, 0, 0, List.of(new FileApplyItem("src/A.java", "DRY_RUN", "ok")))
+    );
+
+    DocGenerateResponse docResponse = new DocGenerateResponse(
+        "doc-run-1",
+        "p1",
+        tempDir.toString(),
+        null,
+        "openai",
+        "gpt-5.2",
+        new ObjectMapper().createObjectNode().put("title", "Doc"),
+        List.of(),
+        List.of(),
+        "summary",
+        "run-chain"
+    );
+    when(codeDocChainService.runChain(eq("run-chain"), eq(request), any(CodeGenerateResponse.class), eq(tempDir.toAbsolutePath().normalize())))
+        .thenReturn(docResponse);
+    when(codeReviewChainService.runChain(eq("run-chain"), eq(request), any(CodeGenerateResponse.class), eq(tempDir.toAbsolutePath().normalize())))
+        .thenReturn(null);
+    when(runStateStore.getProjectSummary("p1")).thenReturn("summary");
+
+    CodeGenerateResponse response = service.generate(request);
+
+    assertThat(response.chainedDocResult()).isNotNull();
+    assertThat(response.chainedDocResult().runId()).isEqualTo("doc-run-1");
+    verify(codeDocChainService).runChain(eq("run-chain"), eq(request), any(CodeGenerateResponse.class), eq(tempDir.toAbsolutePath().normalize()));
+  }
+
+  @Test
+  void generateRunsCodeToReviewChainWhenRequested(@TempDir Path tempDir) {
+    ModelRouter modelRouter = Mockito.mock(ModelRouter.class);
+    LlmOrchestratorService llmOrchestrator = Mockito.mock(LlmOrchestratorService.class);
+    ProjectContextManager contextManager = Mockito.mock(ProjectContextManager.class);
+    PromptRegistry promptRegistry = Mockito.mock(PromptRegistry.class);
+    RunStateStore runStateStore = Mockito.mock(RunStateStore.class);
+    CodeOutputParser codeOutputParser = Mockito.mock(CodeOutputParser.class);
+    FileApplyService fileApplyService = Mockito.mock(FileApplyService.class);
+    CodeDocChainService codeDocChainService = Mockito.mock(CodeDocChainService.class);
+    CodeReviewChainService codeReviewChainService = Mockito.mock(CodeReviewChainService.class);
+
+    CodeAgentService service = new CodeAgentService(
+        modelRouter,
+        llmOrchestrator,
+        contextManager,
+        promptRegistry,
+        runStateStore,
+        codeOutputParser,
+        fileApplyService,
+        codeDocChainService,
+        codeReviewChainService
+    );
+
+    CodeGenerateRequest request = new CodeGenerateRequest();
+    request.setProjectId("p1");
+    request.setTargetProjectRoot(tempDir.toString());
+    request.setUserRequest("implement");
+    request.setChainToReview(true);
+
+    RouteDecision routeDecision = new RouteDecision(
+        AgentType.CODE,
+        RoutingMode.BALANCED,
+        RiskLevel.MEDIUM,
+        new ModelRef("openai", "gpt-5.2-codex"),
+        List.of(),
+        List.of("test")
+    );
+    when(modelRouter.resolve(any())).thenReturn(routeDecision);
+    when(runStateStore.startRun(eq("p1"), eq("CODE"), eq("BALANCED"), eq("implement")))
+        .thenReturn("run-review");
+    when(contextManager.buildCodeContext(eq("implement"), eq("p1"), eq(tempDir.toAbsolutePath().normalize())))
+        .thenReturn(new ContextBundle("ctx", List.of()));
+    when(promptRegistry.buildPrompt(eq("code"), eq(tempDir.toAbsolutePath().normalize()), eq("implement"), anyString()))
+        .thenReturn("prompt");
+    when(llmOrchestrator.generate(eq(routeDecision), eq("prompt"))).thenReturn(
+        new LlmExecutionResult(
+            new LlmGenerationResult("openai", "gpt-5.2-codex", "raw-output", "{}"),
+            List.of()
+        )
+    );
+    when(codeOutputParser.parse(eq("raw-output"))).thenReturn(
+        new CodeOutputParser.ParseResult(
+            List.of(new GeneratedFile("src/A.java", "class A {}")),
+            ParseSource.JSON
+        )
+    );
+    when(fileApplyService.apply(eq(tempDir.toAbsolutePath().normalize()), any(), eq(true), eq(false))).thenReturn(
+        new FileApplyResult(true, 1, 0, 0, List.of(new FileApplyItem("src/A.java", "DRY_RUN", "ok")))
+    );
+    when(codeDocChainService.runChain(eq("run-review"), eq(request), any(CodeGenerateResponse.class), eq(tempDir.toAbsolutePath().normalize())))
+        .thenReturn(null);
+
+    ReviewGenerateResponse reviewResponse = new ReviewGenerateResponse(
+        "review-run-1",
+        "p1",
+        tempDir.toString(),
+        null,
+        "anthropic",
+        "claude-sonnet-4.5",
+        new ObjectMapper().createObjectNode().put("summary", "Looks good"),
+        List.of(),
+        List.of(),
+        "summary",
+        "run-review"
+    );
+    when(codeReviewChainService.runChain(eq("run-review"), eq(request), any(CodeGenerateResponse.class), eq(tempDir.toAbsolutePath().normalize())))
+        .thenReturn(reviewResponse);
+    when(runStateStore.getProjectSummary("p1")).thenReturn("summary");
+
+    CodeGenerateResponse response = service.generate(request);
+
+    assertThat(response.chainedReviewResult()).isNotNull();
+    assertThat(response.chainedReviewResult().runId()).isEqualTo("review-run-1");
+    verify(codeReviewChainService).runChain(eq("run-review"), eq(request), any(CodeGenerateResponse.class), eq(tempDir.toAbsolutePath().normalize()));
   }
 }

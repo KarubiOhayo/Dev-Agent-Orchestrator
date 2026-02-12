@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LIBS_DIR="$ROOT_DIR/build/libs"
+
+if [[ $# -eq 0 ]]; then
+  set -- help
+fi
+
+build_boot_jar() {
+  "$ROOT_DIR/gradlew" --quiet bootJar
+}
+
+find_boot_jar() {
+  local jar_path
+  local candidates=()
+  local jar
+
+  shopt -s nullglob
+  for jar in "$LIBS_DIR"/*.jar; do
+    if [[ "$jar" == *"-plain.jar" ]]; then
+      continue
+    fi
+    candidates+=("$jar")
+  done
+  shopt -u nullglob
+
+  if [[ ${#candidates[@]} -eq 0 ]]; then
+    return 1
+  fi
+
+  jar_path="${candidates[0]}"
+  printf '%s\n' "$jar_path"
+}
+
+build_boot_jar
+BOOT_JAR="$(find_boot_jar)"
+if [[ -z "$BOOT_JAR" ]]; then
+  echo "[devagent-cli] 실행 실패: boot jar를 찾을 수 없습니다. ($LIBS_DIR)" >&2
+  exit 1
+fi
+
+exec java -jar "$BOOT_JAR" "$@"

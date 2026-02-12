@@ -1,14 +1,14 @@
 # DevAgent Task Board
 
-Last Updated: 2026-02-11
+Last Updated: 2026-02-12
 Owner: Main Controller Thread
 Primary Reference: `docs/PROJECT_OVERVIEW.md`
 
 ## 현재 스냅샷
-- 목표: A(Context Engineering) 완성 후 C(Spec -> Code -> Doc) 체이닝으로 확장
-- 현재 상태: CodeAgent 단일 루프는 동작함 (라우팅, LLM 호출, dry-run/apply, run-state)
-- 핵심 리스크: LLM 출력을 Markdown 파싱에 의존 중 (JSON 스키마 강제 미완료)
-- 운영 정책: 2스레드 체계(읽기 전용 메인 + 실행 스레드)
+- 목표: A(Context Engineering) 완성 후 C(Spec -> Code -> Doc) 체이닝 확장 안정화
+- 현재 상태: Spec -> Code -> Doc/Review 체이닝(1차), Code JSON files[] 우선 파싱, CLI(H-003.2) 완료
+- 핵심 리스크: fallback 비율/스키마 의미 검증/체인 실패 정책(부분성공) 미정
+- 운영 정책: 3스레드 체계(메인 제어 + 리뷰 전담 + 실행 전담), 라운드별 stateless 운영
 
 ## 완료된 작업
 - [x] 모델 라우팅 정책 및 라우터 구현
@@ -19,30 +19,45 @@ Primary Reference: `docs/PROJECT_OVERVIEW.md`
 - [x] RunState(SQLite 우선 + fallback 로그)
 - [x] apply/dry-run 파일 반영
 - [x] 기본 테스트(라우팅/LLM fallback/파서/파일적용)
+- [x] H-001 SpecAgent + Spec -> Code 체이닝
+- [x] H-002 Code 출력 JSON files[] 스키마 우선화 + fallback warning 이벤트
+- [x] H-003 CLI + Output UX + H-003.1/H-003.2 보완
+- [x] H-004 DocAgent + Code -> Doc 체이닝(1차)
+- [x] H-005 ReviewAgent + Code -> Review 체이닝(1차)
 
-## 2스레드 운영 분배
+## 3스레드 운영 분배
 
 ### THREAD-A MAIN-CONTROL (읽기 전용)
 - Branch: `main` 또는 `codex/control-readonly`
-- 역할: 설계 승인, 작업 분배, 리뷰, 통합 판단
+- 역할: 라운드 계획, handoff 확정, 승인/보류 최종 판단, 문서 상태 동기화
+- 제약: 코드 수정/커밋 금지, 상세 코드리뷰는 THREAD-R에 위임
+- 입력: `PROJECT_OVERVIEW`, `TASK_BOARD`, `DECISIONS`, `REPORTS/H-XXX-result.md`, `REPORTS/H-XXX-review.md`, `RELAYS/H-XXX-review-to-main.md`
+- 산출: 다음 라운드 지시문, 상태 문서 갱신, Go/No-Go 결정
+
+### THREAD-R REVIEW-CONTROL (읽기 전용)
+- Branch: `main` 또는 `codex/review-readonly`
+- 역할: 코드/테스트/리스크 리뷰 전담(버그/회귀/누락 중심)
 - 제약: 코드 수정/커밋 금지
-- TODO:
-  - [ ] `H-001`, `H-002`, `H-003` 순서/수용기준 확정
-  - [ ] 실행 스레드 산출물 리뷰 및 승인/보류 판단
-  - [ ] `coordination/DECISIONS.md` 갱신
+- 입력: `coordination/RELAYS/H-XXX-executor-to-review.md`
+- 산출: `coordination/REPORTS/H-XXX-review.md`, `coordination/RELAYS/H-XXX-review-to-main.md`
 
 ### THREAD-B EXECUTOR (실제 구현)
 - Branch: `codex/execution`
-- 역할: 구현, 테스트, 커밋, 결과 보고
+- 역할: handoff 범위 구현, 테스트, 커밋, 결과 보고, 리뷰 피드백 반영
 - 제약: handoff 범위 밖 수정 금지
-- 현재 우선순위:
-  - [ ] H-001 SpecAgent + Spec -> Code 체이닝
-  - [ ] H-002 Code 출력 JSON files[] 스키마 우선화
-  - [ ] H-003 CLI/출력 가독성 개선
+- 산출: `coordination/REPORTS/H-XXX-result.md`, `coordination/RELAYS/H-XXX-executor-to-review.md`
 
 ## 진행 규칙
-1. THREAD-A는 코드 변경 없이 문서/분배/리뷰만 수행한다.
-2. THREAD-B는 handoff 범위만 구현하고 테스트를 통과시킨다.
-3. 공통 파일(`application.yml`, 공용 모델, 빌드 설정) 변경은 THREAD-A 승인 후 진행한다.
-4. 작업 완료 시 THREAD-B는 `coordination/REPORTS/H-XXX-result.md`를 반드시 작성한다.
-5. 병합은 THREAD-A 승인 이후에만 수행한다.
+1. 모든 스레드는 라운드 시작 시 문서 입력을 다시 로드하는 stateless 원칙을 따른다.
+2. THREAD-A는 상세 코드리뷰를 직접 수행하지 않고 THREAD-R 리뷰 리포트를 승인 판단의 근거로 사용한다.
+3. THREAD-B는 handoff 범위만 구현하고 테스트를 통과시킨 뒤 결과 리포트를 제출한다.
+4. THREAD-B는 결과 리포트 제출 직후 `coordination/RELAYS/H-XXX-executor-to-review.md`를 자동 생성해 THREAD-R 입력으로 전달한다.
+5. THREAD-R은 결과 리포트와 실제 변경 코드를 대조해 review 리포트를 제출한다.
+6. THREAD-R은 리뷰 완료 직후 `coordination/RELAYS/H-XXX-review-to-main.md`를 자동 생성해 THREAD-A 입력으로 전달한다.
+7. 공통 파일(`application.yml`, 공용 모델, 빌드 설정) 변경은 THREAD-A 사전 승인 후 진행한다.
+8. 병합은 THREAD-A 최종 승인 이후에만 수행한다.
+
+## 현재 우선순위
+- [~] H-006 진행중: CLI 고도화(`--json`, 옵션 별칭, 반복 실행 성능)
+- [ ] H-007 후보: 체인 실패 부분성공 정책(전파/격리) 확정
+- [ ] H-008 후보: 스키마 의미 검증(files/document/review) 강화

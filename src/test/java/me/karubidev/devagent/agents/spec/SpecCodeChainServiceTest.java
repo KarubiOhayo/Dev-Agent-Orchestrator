@@ -66,7 +66,10 @@ class SpecCodeChainServiceTest {
         List.of(new LlmAttempt("openai", "gpt-5.2-codex", true, "ok")),
         List.of(),
         "summary",
-        new FileApplyResult(true, 0, 0, 0, List.of())
+        List.of(),
+        new FileApplyResult(true, 0, 0, 0, List.of()),
+        null,
+        null
     );
     when(codeAgentService.generate(Mockito.any(CodeGenerateRequest.class))).thenReturn(codeResponse);
 

@@ -6,8 +6,13 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import me.karubidev.devagent.agents.code.apply.CodeOutputParser;
+import me.karubidev.devagent.agents.code.apply.CodeOutputParser.ParseResult;
 import me.karubidev.devagent.agents.code.apply.FileApplyResult;
 import me.karubidev.devagent.agents.code.apply.FileApplyService;
+import me.karubidev.devagent.agents.doc.CodeDocChainService;
+import me.karubidev.devagent.agents.doc.DocGenerateResponse;
+import me.karubidev.devagent.agents.review.CodeReviewChainService;
+import me.karubidev.devagent.agents.review.ReviewGenerateResponse;
 import me.karubidev.devagent.context.ContextBundle;
 import me.karubidev.devagent.context.ProjectContextManager;
 import me.karubidev.devagent.llm.LlmExecutionResult;
@@ -30,6 +35,8 @@ public class CodeAgentService {
   private final RunStateStore runStateStore;
   private final CodeOutputParser codeOutputParser;
   private final FileApplyService fileApplyService;
+  private final CodeDocChainService codeDocChainService;
+  private final CodeReviewChainService codeReviewChainService;
 
   public CodeAgentService(
       ModelRouter modelRouter,
@@ -38,7 +45,9 @@ public class CodeAgentService {
       PromptRegistry promptRegistry,
       RunStateStore runStateStore,
       CodeOutputParser codeOutputParser,
-      FileApplyService fileApplyService
+      FileApplyService fileApplyService,
+      CodeDocChainService codeDocChainService,
+      CodeReviewChainService codeReviewChainService
   ) {
     this.modelRouter = modelRouter;
     this.llmOrchestrator = llmOrchestrator;
@@ -47,6 +56,8 @@ public class CodeAgentService {
     this.runStateStore = runStateStore;
     this.codeOutputParser = codeOutputParser;
     this.fileApplyService = fileApplyService;
+    this.codeDocChainService = codeDocChainService;
+    this.codeReviewChainService = codeReviewChainService;
   }
 
   public CodeGenerateResponse generate(CodeGenerateRequest request) {
@@ -100,7 +111,11 @@ public class CodeAgentService {
       runStateStore.appendEvent(runId, "LLM_DONE",
           execution.result().provider() + ":" + execution.result().model());
 
-      var parsedFiles = codeOutputParser.parseFiles(execution.result().text());
+      ParseResult parseResult = codeOutputParser.parse(execution.result().text());
+      var parsedFiles = parseResult.files();
+      if (parseResult.usedMarkdownFallback()) {
+        runStateStore.appendEvent(runId, "CODE_OUTPUT_FALLBACK_WARNING", "source=MARKDOWN_FALLBACK");
+      }
       FileApplyResult applyResult = fileApplyService.apply(
           targetRoot,
           parsedFiles,
@@ -108,7 +123,42 @@ public class CodeAgentService {
           request.isOverwriteExisting()
       );
 
-      String summary = summarize(request, execution, applyResult);
+      CodeGenerateResponse baseResponse = new CodeGenerateResponse(
+          runId,
+          projectId,
+          targetRoot.toString(),
+          routeDecision,
+          execution.result().provider(),
+          execution.result().model(),
+          execution.result().text(),
+          execution.attempts(),
+          context.referencedFiles(),
+          "",
+          parsedFiles,
+          applyResult,
+          null,
+          null
+      );
+      DocGenerateResponse chainedDocResult = codeDocChainService.runChain(runId, request, baseResponse, targetRoot);
+      CodeGenerateResponse chainInput = new CodeGenerateResponse(
+          runId,
+          projectId,
+          targetRoot.toString(),
+          routeDecision,
+          execution.result().provider(),
+          execution.result().model(),
+          execution.result().text(),
+          execution.attempts(),
+          context.referencedFiles(),
+          "",
+          parsedFiles,
+          applyResult,
+          chainedDocResult,
+          null
+      );
+      ReviewGenerateResponse chainedReviewResult = codeReviewChainService.runChain(runId, request, chainInput, targetRoot);
+
+      String summary = summarize(request, execution, applyResult, chainedDocResult != null, chainedReviewResult != null);
       runStateStore.updateProjectSummary(projectId, summary);
       runStateStore.completeSuccess(
           runId,
@@ -129,7 +179,10 @@ public class CodeAgentService {
           execution.attempts(),
           context.referencedFiles(),
           runStateStore.getProjectSummary(projectId),
-          applyResult
+          parsedFiles,
+          applyResult,
+          chainedDocResult,
+          chainedReviewResult
       );
     } catch (Exception e) {
       runStateStore.appendEvent(runId, "CODE_FAILED", errorMessage(e));
@@ -138,7 +191,13 @@ public class CodeAgentService {
     }
   }
 
-  private String summarize(CodeGenerateRequest request, LlmExecutionResult execution, FileApplyResult applyResult) {
+  private String summarize(
+      CodeGenerateRequest request,
+      LlmExecutionResult execution,
+      FileApplyResult applyResult,
+      boolean chainToDocExecuted,
+      boolean chainToReviewExecuted
+  ) {
     return """
         lastRequest: %s
         specInputPath: %s
@@ -147,6 +206,10 @@ public class CodeAgentService {
         parsedFiles: %d
         writtenFiles: %d
         dryRun: %s
+        chainToDoc: %s
+        chainToDocExecuted: %s
+        chainToReview: %s
+        chainToReviewExecuted: %s
         """.formatted(
         requestPreview(request),
         request.getSpecInputPath(),
@@ -155,7 +218,11 @@ public class CodeAgentService {
         execution.result().model(),
         applyResult.parsedFiles(),
         applyResult.writtenFiles(),
-        applyResult.dryRun()
+        applyResult.dryRun(),
+        request.isChainToDoc(),
+        chainToDocExecuted,
+        request.isChainToReview(),
+        chainToReviewExecuted
     );
   }
 

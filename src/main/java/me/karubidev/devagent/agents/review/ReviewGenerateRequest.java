@@ -1,9 +1,11 @@
-package me.karubidev.devagent.agents.code;
+package me.karubidev.devagent.agents.review;
 
+import java.util.List;
+import me.karubidev.devagent.agents.code.apply.GeneratedFile;
 import me.karubidev.devagent.orchestration.routing.RiskLevel;
 import me.karubidev.devagent.orchestration.routing.RoutingMode;
 
-public class CodeGenerateRequest {
+public class ReviewGenerateRequest {
 
   private String projectId = "default";
   private String targetProjectRoot = ".";
@@ -12,13 +14,10 @@ public class CodeGenerateRequest {
   private RiskLevel riskLevel = RiskLevel.MEDIUM;
   private boolean largeContext;
   private boolean strictJsonRequired = true;
-  private boolean apply;
-  private boolean overwriteExisting;
-  private String specInputPath;
-  private boolean chainToDoc;
-  private String docUserRequest;
-  private boolean chainToReview;
-  private String reviewUserRequest;
+
+  private String codeRunId;
+  private String codeOutput;
+  private List<GeneratedFile> codeFiles = List.of();
 
   public String getProjectId() {
     return projectId;
@@ -76,59 +75,27 @@ public class CodeGenerateRequest {
     this.strictJsonRequired = strictJsonRequired;
   }
 
-  public boolean isApply() {
-    return apply;
+  public String getCodeRunId() {
+    return codeRunId;
   }
 
-  public void setApply(boolean apply) {
-    this.apply = apply;
+  public void setCodeRunId(String codeRunId) {
+    this.codeRunId = codeRunId;
   }
 
-  public boolean isOverwriteExisting() {
-    return overwriteExisting;
+  public String getCodeOutput() {
+    return codeOutput;
   }
 
-  public void setOverwriteExisting(boolean overwriteExisting) {
-    this.overwriteExisting = overwriteExisting;
+  public void setCodeOutput(String codeOutput) {
+    this.codeOutput = codeOutput;
   }
 
-  public String getSpecInputPath() {
-    return specInputPath;
+  public List<GeneratedFile> getCodeFiles() {
+    return codeFiles;
   }
 
-  public void setSpecInputPath(String specInputPath) {
-    this.specInputPath = specInputPath;
-  }
-
-  public boolean isChainToDoc() {
-    return chainToDoc;
-  }
-
-  public void setChainToDoc(boolean chainToDoc) {
-    this.chainToDoc = chainToDoc;
-  }
-
-  public String getDocUserRequest() {
-    return docUserRequest;
-  }
-
-  public void setDocUserRequest(String docUserRequest) {
-    this.docUserRequest = docUserRequest;
-  }
-
-  public boolean isChainToReview() {
-    return chainToReview;
-  }
-
-  public void setChainToReview(boolean chainToReview) {
-    this.chainToReview = chainToReview;
-  }
-
-  public String getReviewUserRequest() {
-    return reviewUserRequest;
-  }
-
-  public void setReviewUserRequest(String reviewUserRequest) {
-    this.reviewUserRequest = reviewUserRequest;
+  public void setCodeFiles(List<GeneratedFile> codeFiles) {
+    this.codeFiles = codeFiles == null ? List.of() : codeFiles;
   }
 }
