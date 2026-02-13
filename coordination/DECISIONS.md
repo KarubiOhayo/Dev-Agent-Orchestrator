@@ -68,9 +68,12 @@
 
 ## D-012 Code -> Doc 체이닝 운영 정책
 - Date: 2026-02-11
-- Decision: `chainToDoc=true`일 때 Code 완료 후 DocAgent를 연쇄 실행하고, 체인 실패는 현재 Code 요청 실패로 전파
-- Rationale: 초기 단계에서 부분 성공보다 일관된 실패 신호를 우선해 운영 단순성을 확보
-- Consequence: run-state에 `CHAIN_DOC_TRIGGERED/DONE/FAILED`를 기록하며, 추후 운영 요구에 따라 부분 성공 허용 정책 검토 필요
+- Decision: `chainToDoc=true`일 때 Code 완료 후 DocAgent를 연쇄 실행한다. 체인 실패 전파는 `chainFailurePolicy`를 따른다.
+- Rationale: 기본 fail-fast 호환성을 유지하면서도, 운영 요구에 따라 부분 성공을 명시적으로 허용하기 위함
+- Consequence:
+  - 기본값 `FAIL_FAST`에서는 체인 실패가 Code 요청 실패로 전파된다.
+  - `PARTIAL_SUCCESS`에서는 체인 실패를 `chainFailures[]`에 기록하고 Code 응답은 성공 반환된다.
+  - run-state에 `CHAIN_DOC_TRIGGERED/DONE/FAILED`를 기록한다.
 
 ## D-013 조정 체계 분리(3-Thread)
 - Date: 2026-02-12
@@ -95,12 +98,13 @@
 
 ## D-016 Code -> Review 체이닝 운영 정책
 - Date: 2026-02-12
-- Decision: `chainToReview=true`일 때 Code 완료 후 ReviewAgent를 연쇄 실행하고, 체인 실패는 현재 Code 요청 실패로 전파
-- Rationale: H-005 단계에서 부분 성공 정책보다 일관된 실패 신호를 우선해 운영 단순성을 확보
+- Decision: `chainToReview=true`일 때 Code 완료 후 ReviewAgent를 연쇄 실행한다. 체인 실패 전파는 `chainFailurePolicy`를 따른다.
+- Rationale: 리뷰 체인도 Doc 체인과 동일한 정책 계약을 공유해 API 해석 일관성을 유지하기 위함
 - Consequence:
   - run-state에 `CHAIN_REVIEW_TRIGGERED/DONE/FAILED`를 기록
   - Review 출력 파싱 fallback 시 `REVIEW_OUTPUT_FALLBACK_WARNING` 이벤트를 기록
-  - 부분 성공 허용 정책은 H-007에서 별도 결정
+  - 기본값 `FAIL_FAST`에서는 체인 실패가 Code 요청 실패로 전파된다.
+  - `PARTIAL_SUCCESS`에서는 체인 실패를 `chainFailures[]`에 기록하고 Code 응답은 성공 반환된다.
 
 ## D-017 H-XXX Placeholder 해석 규칙
 - Date: 2026-02-13
@@ -109,3 +113,68 @@
 - Consequence:
   - Main/Review/Executor 프롬프트와 Task Board에 해석 규칙을 명시
   - 릴레이/리포트 탐색 로직은 항상 실제 번호 파일을 대상으로 동작
+
+## D-018 strict-json 기본값/적용조건 정책
+- Date: 2026-02-13
+- Status: Approved (Scope: routing layer)
+- Decision:
+  - `RouteRequest.strictJsonRequired`는 기본적으로 "명시 요청 기반"으로 동작하도록 설계한다(기본 escalation 비활성 후보).
+  - strict-json escalation은 `strictJsonRequired=true`가 명시된 요청에서 우선 적용한다.
+  - escalation 우선순위 후보는 `review-high-risk -> strict-json -> large-context -> mode-primary -> mode-fallbacks` 순으로 관리한다.
+- Rationale: 현재 기본 strict-json 활성은 CODE/REFACTOR의 기본 모델 선택을 덮어쓸 수 있어 의도치 않은 비용/품질 변동을 유발할 수 있음.
+- Consequence:
+  - H-007에서 `RouteRequest`/`ModelRouter` 및 회귀 테스트로 정책이 반영되었다.
+  - Agent 요청 DTO의 `strictJsonRequired` 기본값 정합성은 H-010에서 API 계약 관점으로 추가 정리한다.
+
+## D-019 체인 실패 전파 정책(API 계약)
+- Date: 2026-02-13
+- Status: Approved
+- Decision:
+  1. 기본 정책은 `FAIL_FAST`로 유지한다(정책 미지정/null 포함).
+  2. 선택 정책 `PARTIAL_SUCCESS`를 지원한다.
+  3. `PARTIAL_SUCCESS`에서는 체인 실패를 `chainFailures[]`(`agent`, `failedStage`, `errorMessage`)로 응답에 포함하고 Code 응답은 성공 반환한다.
+  4. run-state 이벤트(`CHAIN_*_TRIGGERED/DONE/FAILED`)는 정책 모드와 무관하게 유지한다.
+- Rationale: 하위 호환성과 운영 단순성(기본 fail-fast)을 유지하면서, 부분 성공 활용 시나리오를 안전하게 확장하기 위함.
+- Consequence:
+  - D-012/D-016은 `chainFailurePolicy` 기반 계약으로 정합화한다.
+  - 클라이언트는 `PARTIAL_SUCCESS` 사용 시 `chainFailures[]` 확인을 필수로 처리해야 한다.
+
+## D-020 파일 적용 경계 검증 정책
+- Date: 2026-02-13
+- Status: Approved
+- Decision:
+  - 파일 적용 경계 검증은 `relative path + normalize + root startsWith` 사전 검증을 기본으로 유지한다.
+  - 실제 쓰기 직전에는 `toRealPath` 기반 실경로 재검증을 수행해 심볼릭 링크 경유 우회를 차단한다.
+  - 경계 위반은 `REJECTED`, 파일시스템 I/O 실패는 `ERROR`로 상태를 분리한다.
+- Rationale: H-008 리뷰 P2에서 확인된 심볼릭 링크 경계 우회 가능성을 H-008.1에서 차단해 파일 반영 안전성의 최소 기준을 확보함.
+- Consequence:
+  - `FileApplyService`의 경계 검증은 단순 prefix 비교를 넘어 실경로 재검증을 포함한다.
+  - 신규/회귀 테스트(`rejectSymlinkBoundaryBypass` 포함)로 경계 계약을 고정한다.
+
+## D-021 Main -> Executor 릴레이 자동 생성
+- Date: 2026-02-13
+- Status: Approved
+- Decision:
+  - Main은 다음 라운드 시작 시 handoff 확정 직후 `coordination/RELAYS/H-00N-main-to-executor.md`를 생성한다.
+  - 생성 포맷은 `coordination/RELAYS/TEMPLATE-main-to-executor.md`를 표준으로 사용한다.
+  - main-controller의 "반드시 3개 출력" 규칙은 유지하고, 2번 출력에 relay 생성 내용을 포함한다.
+- Rationale: 스레드 간 컨텍스트 복붙/누락을 줄이고, Executor 시작 입력을 라운드 단위로 고정하기 위함.
+- Consequence:
+  - 목적: Main 승인 판단 이후 실행 지시를 표준 릴레이로 즉시 연결한다.
+  - 결과: 릴레이 체계가 `Main -> Executor -> Review -> Main` 3종으로 정합화된다.
+  - 파일경로:
+    - 템플릿: `coordination/RELAYS/TEMPLATE-main-to-executor.md`
+    - 라운드 파일: `coordination/RELAYS/H-00N-main-to-executor.md`
+    - 운영 규칙 반영: `coordination/PROMPTS/main-controller.md`, `coordination/TASK_BOARD.md`
+
+## D-022 Automations Plan A (Report-Only)
+- Date: 2026-02-13
+- Status: Approved
+- Decision:
+  - Automations 범위는 점검/요약/발견사항 보고(report-only)로 한정한다.
+  - 자동 파일수정, 자동 커밋, 자동 PR/웹훅 연동은 금지한다.
+- Rationale: 로컬 단독 운영 단계에서 자동 변경 리스크를 차단하고 운영 신뢰도를 우선 확보하기 위함.
+- Consequence:
+  - Automations 출력은 inbox 보고를 기본으로 한다.
+  - 운영 템플릿은 버전관리 목적으로 레포에 보관한다.
+  - 템플릿 경로: `coordination/AUTOMATIONS/A-001-nightly-test-report.md`, `coordination/AUTOMATIONS/A-002-doc-drift-check.md`, `coordination/AUTOMATIONS/A-003-relay-watch.md`

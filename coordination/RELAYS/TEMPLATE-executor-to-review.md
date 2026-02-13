@@ -1,8 +1,9 @@
-# [H-XXX] Executor -> Review Relay Prompt
+# [H-00N] Executor -> Review Relay Prompt
 
 ## 라운드 정보
-- handoff: `coordination/HANDOFFS/H-XXX-*.md`
-- result: `coordination/REPORTS/H-XXX-result.md`
+- handoff: `coordination/HANDOFFS/H-00N-*.md`
+- main relay: `coordination/RELAYS/H-00N-main-to-executor.md`
+- result: `coordination/REPORTS/H-00N-result.md`
 
 ## 구현 요약
 - 핵심 변경:
@@ -22,5 +23,5 @@
 - 
 
 ## 요청 사항 (Review Thread)
-- `coordination/REPORTS/H-XXX-review.md` 작성
+- `coordination/REPORTS/H-00N-review.md` 작성
 - P1/P2/P3 심각도 기준으로 근거 파일/라인 포함

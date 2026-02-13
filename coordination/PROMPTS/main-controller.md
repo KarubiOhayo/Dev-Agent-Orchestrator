@@ -24,9 +24,10 @@
 5. 코드/파일 생성/커밋은 이 스레드에서 수행하지 않는다.
 6. 병합 전 `테스트 통과 + 리뷰 리포트 + 결과 리포트` 3종을 확인한다.
 7. review-to-main 릴레이 프롬프트는 승인 판단의 요약 입력으로 사용하되, 최종 판단은 원본 report 파일 대조로 확정한다.
+8. 다음 라운드 시작 시 handoff를 확정하면 `coordination/RELAYS/H-XXX-main-to-executor.md`를 자동 생성한다(실행 시 `H-00N`으로 치환).
 
 출력 원칙:
 - 반드시 다음 3개만 출력한다:
   1) 현재 라운드 판단(승인/보류 + 근거)
-  2) 다음 handoff 지시문
+  2) 다음 handoff 지시문 1건 + `coordination/RELAYS/H-XXX-main-to-executor.md` 생성 내용(경로/핵심 지시)
   3) 필요한 문서 갱신 항목

@@ -8,8 +8,8 @@ Primary Reference: `docs/PROJECT_OVERVIEW.md`
 
 ## 현재 스냅샷
 - 목표: A(Context Engineering) 완성 후 C(Spec -> Code -> Doc) 체이닝 확장 안정화
-- 현재 상태: Spec -> Code -> Doc/Review 체이닝(1차), Code JSON files[] 우선 파싱, CLI 고도화(H-006) 완료
-- 핵심 리스크: fallback 비율/스키마 의미 검증/체인 실패 정책(부분성공) 미정
+- 현재 상태: Spec -> Code -> Doc/Review 체이닝(1차), H-009(체인 실패 전파 정책/API 계약)까지 Go 완료
+- 핵심 리스크: `PARTIAL_SUCCESS` 사용 시 `chainFailures` 누락 확인 위험/입력검증·에러계약 표준화 미완료
 - 운영 정책: 3스레드 체계(메인 제어 + 리뷰 전담 + 실행 전담), 라운드별 stateless 운영
 
 ## 완료된 작업
@@ -27,6 +27,10 @@ Primary Reference: `docs/PROJECT_OVERVIEW.md`
 - [x] H-004 DocAgent + Code -> Doc 체이닝(1차)
 - [x] H-005 ReviewAgent + Code -> Review 체이닝(1차)
 - [x] H-006 CLI 고도화(`--json`, 옵션 별칭, 반복 실행 성능)
+- [x] H-007 strict-json 기본값/라우팅 우선순위 재설계
+- [x] H-008 파일 적용 경계 입력 방어 강화
+- [x] H-008.1 심볼릭 링크 경계 우회 차단 보강
+- [x] H-009 체인 실패 전파 정책(API 계약) 확정
 
 ## 3스레드 운영 분배
 
@@ -35,7 +39,7 @@ Primary Reference: `docs/PROJECT_OVERVIEW.md`
 - 역할: 라운드 계획, handoff 확정, 승인/보류 최종 판단, 문서 상태 동기화
 - 제약: 코드 수정/커밋 금지, 상세 코드리뷰는 THREAD-R에 위임
 - 입력: `PROJECT_OVERVIEW`, `TASK_BOARD`, `DECISIONS`, `REPORTS/H-XXX-result.md`, `REPORTS/H-XXX-review.md`, `RELAYS/H-XXX-review-to-main.md`
-- 산출: 다음 라운드 지시문, 상태 문서 갱신, Go/No-Go 결정
+- 산출: 다음 라운드 지시문, `RELAYS/H-00N-main-to-executor.md`, 상태 문서 갱신, Go/No-Go 결정
 
 ### THREAD-R REVIEW-CONTROL (읽기 전용)
 - Branch: `main` 또는 `codex/review-readonly`
@@ -50,17 +54,23 @@ Primary Reference: `docs/PROJECT_OVERVIEW.md`
 - 제약: handoff 범위 밖 수정 금지
 - 산출: `coordination/REPORTS/H-XXX-result.md`, `coordination/RELAYS/H-XXX-executor-to-review.md`
 
+## 운영 자산 정책 (2026-02-13)
+- 공통 운영 규칙은 루트 `AGENTS.md`를 기준으로 유지한다.
+- 라운드 실행/검토 가이드는 `.agents/skills/` 스킬 문서로 표준화한다.
+- 릴레이는 `Main -> Executor -> Review -> Main` 3종을 사용한다.
+- Automations는 Plan A(report-only)로 운영하며 자동 파일수정/커밋/PR을 금지한다.
+
 ## 진행 규칙
 1. 모든 스레드는 라운드 시작 시 문서 입력을 다시 로드하는 stateless 원칙을 따른다.
 2. THREAD-A는 상세 코드리뷰를 직접 수행하지 않고 THREAD-R 리뷰 리포트를 승인 판단의 근거로 사용한다.
-3. THREAD-B는 handoff 범위만 구현하고 테스트를 통과시킨 뒤 결과 리포트를 제출한다.
-4. THREAD-B는 결과 리포트 제출 직후 `coordination/RELAYS/H-XXX-executor-to-review.md`를 자동 생성해 THREAD-R 입력으로 전달한다.
-5. THREAD-R은 결과 리포트와 실제 변경 코드를 대조해 review 리포트를 제출한다.
-6. THREAD-R은 리뷰 완료 직후 `coordination/RELAYS/H-XXX-review-to-main.md`를 자동 생성해 THREAD-A 입력으로 전달한다.
-7. 공통 파일(`application.yml`, 공용 모델, 빌드 설정) 변경은 THREAD-A 사전 승인 후 진행한다.
-8. 병합은 THREAD-A 최종 승인 이후에만 수행한다.
+3. THREAD-A는 다음 라운드 시작 시 handoff 확정 직후 `coordination/RELAYS/H-00N-main-to-executor.md`를 생성한다.
+4. THREAD-B는 handoff 범위만 구현하고 테스트를 통과시킨 뒤 결과 리포트를 제출한다.
+5. THREAD-B는 결과 리포트 제출 직후 `coordination/RELAYS/H-XXX-executor-to-review.md`를 자동 생성해 THREAD-R 입력으로 전달한다.
+6. THREAD-R은 결과 리포트와 실제 변경 코드를 대조해 review 리포트를 제출한다.
+7. THREAD-R은 리뷰 완료 직후 `coordination/RELAYS/H-XXX-review-to-main.md`를 자동 생성해 THREAD-A 입력으로 전달한다.
+8. 공통 파일(`application.yml`, 공용 모델, 빌드 설정) 변경은 THREAD-A 사전 승인 후 진행한다.
+9. 병합은 THREAD-A 최종 승인 이후에만 수행한다.
 
 ## 현재 우선순위
-- [~] H-007 진행중: 체인 실패 부분성공 정책(전파/격리) 확정
-- [ ] H-008 후보: 스키마 의미 검증(files/document/review) 강화
-- [ ] H-009 후보: 리뷰/릴레이 자동화 운영 규칙 고도화
+- [~] H-010 진행중: API 입력검증/에러계약 표준화
+- [ ] H-011 후보: spec/doc/review 프롬프트 자산 보강

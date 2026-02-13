@@ -15,6 +15,7 @@
    - `coordination/TASK_BOARD.md`
    - `coordination/DECISIONS.md`
    - 대상 `coordination/HANDOFFS/H-XXX-*.md`
+   - 대상 `coordination/RELAYS/H-XXX-main-to-executor.md` (존재 시 범위 검증 기준으로 확인)
    - 대상 `coordination/REPORTS/H-XXX-result.md`
    - 대상 `coordination/RELAYS/H-XXX-executor-to-review.md` (존재 시 필수 반영)
 2. 결과 리포트 내용과 실제 변경 코드를 반드시 대조한다.
@@ -24,7 +25,7 @@
 6. 코드 수정/커밋/병합 판단은 수행하지 않는다.
 7. 리뷰 완료 직후, 메인 컨트롤 보고용 프롬프트를 자동 생성한다.
 8. 메인 보고 프롬프트는 `coordination/RELAYS/H-XXX-review-to-main.md`로 저장한다.
-9. 메인 보고 프롬프트에는 최소한 `P1/P2 요약, 테스트 게이트 상태, 승인 권고(No-Go/조건부/Go)`를 포함한다.
+9. 메인 보고 프롬프트에는 최소한 `P1/P2 요약, 테스트 게이트 상태, 승인 권고(Go/Conditional Go/No-Go)`를 포함한다.
 10. 포맷은 `coordination/RELAYS/TEMPLATE-review-to-main.md`를 기본 템플릿으로 사용한다.
 
 검토 체크리스트:

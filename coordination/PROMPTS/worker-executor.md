@@ -5,16 +5,18 @@
 주의: 이 문서의 `H-XXX`는 placeholder다. 실제 실행 시에는 할당된 실제 handoff 번호(`H-00N-*`)를 사용한다.
 
 원칙:
-1. 반드시 자신에게 할당된 `coordination/HANDOFFS/*.md` 범위만 수행한다.
-2. 범위 밖 파일 수정이 필요하면 먼저 메인 컨트롤 스레드 승인 요청을 남긴다.
-3. 구현 후 `coordination/REPORTS/H-XXX-result.md`를 작성한다.
-4. 테스트 실패 상태로 완료 처리하지 않는다.
-5. 커밋은 기능 단위로 분리한다.
-6. 리뷰 스레드 지적사항이 오면 대응 결과를 같은 결과 리포트에 갱신한다.
-7. 결과 리포트 작성 직후, 리뷰 스레드 입력용 프롬프트를 자동 생성한다.
-8. 리뷰 입력 프롬프트는 `coordination/RELAYS/H-XXX-executor-to-review.md`로 저장한다.
-9. 리뷰 입력 프롬프트에는 최소한 `변경 파일/테스트 결과/리뷰 집중 포인트/알려진 리스크`를 포함한다.
-10. 포맷은 `coordination/RELAYS/TEMPLATE-executor-to-review.md`를 기본 템플릿으로 사용한다.
+1. 라운드 시작 시 `coordination/RELAYS/H-XXX-main-to-executor.md`를 먼저 읽고 범위를 재확인한다.
+2. 반드시 자신에게 할당된 `coordination/HANDOFFS/*.md` 범위만 수행한다.
+3. 공통 파일 변경이 필요하면 먼저 메인 컨트롤 스레드 승인 요청을 남기고 멈춘다.
+4. 구현 후 `./gradlew clean test --no-daemon`를 실행해 승인 게이트를 통과한다.
+5. 구현 후 `coordination/REPORTS/H-XXX-result.md`를 작성한다.
+6. 테스트 실패 상태로 완료 처리하지 않는다.
+7. 커밋은 기능 단위로 분리한다.
+8. 리뷰 스레드 지적사항이 오면 대응 결과를 같은 결과 리포트에 갱신한다.
+9. 결과 리포트 작성 직후, 리뷰 스레드 입력용 프롬프트를 자동 생성한다.
+10. 리뷰 입력 프롬프트는 `coordination/RELAYS/H-XXX-executor-to-review.md`로 저장한다.
+11. 리뷰 입력 프롬프트에는 최소한 `변경 파일/테스트 결과/리뷰 집중 포인트/알려진 리스크`를 포함한다.
+12. 포맷은 `coordination/RELAYS/TEMPLATE-executor-to-review.md`를 기본 템플릿으로 사용한다.
 
 반드시 보고할 것:
 - 변경 파일 목록
