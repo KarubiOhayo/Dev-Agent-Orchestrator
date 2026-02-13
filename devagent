@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LIBS_DIR="$ROOT_DIR/build/libs"
+FORCE_BOOT_JAR="${DEVAGENT_FORCE_BOOTJAR:-false}"
 
 if [[ $# -eq 0 ]]; then
   set -- help
@@ -13,7 +14,7 @@ build_boot_jar() {
 }
 
 find_boot_jar() {
-  local jar_path
+  local jar_path=""
   local candidates=()
   local jar
 
@@ -23,6 +24,9 @@ find_boot_jar() {
       continue
     fi
     candidates+=("$jar")
+    if [[ -z "$jar_path" || "$jar" -nt "$jar_path" ]]; then
+      jar_path="$jar"
+    fi
   done
   shopt -u nullglob
 
@@ -30,11 +34,45 @@ find_boot_jar() {
     return 1
   fi
 
-  jar_path="${candidates[0]}"
   printf '%s\n' "$jar_path"
 }
 
-build_boot_jar
+needs_boot_jar_build() {
+  local jar_path="$1"
+  local candidate
+
+  if [[ "$(printf '%s' "$FORCE_BOOT_JAR" | tr '[:upper:]' '[:lower:]')" == "true" ]]; then
+    return 0
+  fi
+  if [[ -z "$jar_path" ]]; then
+    return 0
+  fi
+
+  for candidate in \
+    "$ROOT_DIR/build.gradle" \
+    "$ROOT_DIR/build.gradle.kts" \
+    "$ROOT_DIR/settings.gradle" \
+    "$ROOT_DIR/settings.gradle.kts" \
+    "$ROOT_DIR/gradle.properties"; do
+    if [[ -f "$candidate" && "$candidate" -nt "$jar_path" ]]; then
+      return 0
+    fi
+  done
+
+  for candidate in "$ROOT_DIR/src" "$ROOT_DIR/gradle" "$ROOT_DIR/buildSrc"; do
+    if [[ -d "$candidate" && -n "$(find "$candidate" -type f -newer "$jar_path" -print -quit 2>/dev/null)" ]]; then
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+BOOT_JAR="$(find_boot_jar || true)"
+if needs_boot_jar_build "${BOOT_JAR:-}"; then
+  build_boot_jar
+fi
+
 BOOT_JAR="$(find_boot_jar)"
 if [[ -z "$BOOT_JAR" ]]; then
   echo "[devagent-cli] 실행 실패: boot jar를 찾을 수 없습니다. ($LIBS_DIR)" >&2

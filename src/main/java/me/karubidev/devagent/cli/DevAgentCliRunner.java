@@ -1,6 +1,7 @@
 package me.karubidev.devagent.cli;
 
 import java.io.PrintStream;
+import java.util.Locale;
 import java.util.Set;
 import me.karubidev.devagent.agents.code.CodeAgentService;
 import me.karubidev.devagent.agents.code.CodeGenerateRequest;
@@ -27,7 +28,8 @@ public class DevAgentCliRunner implements ApplicationRunner, ExitCodeGenerator {
       "strict-json-required",
       "apply",
       "overwrite-existing",
-      "spec-input-path"
+      "spec-input-path",
+      "json"
   );
 
   private static final Set<String> SPEC_OPTIONS = Set.of(
@@ -42,7 +44,8 @@ public class DevAgentCliRunner implements ApplicationRunner, ExitCodeGenerator {
       "code-user-request",
       "code-apply",
       "code-overwrite-existing",
-      "spec-output-path"
+      "spec-output-path",
+      "json"
   );
 
   private final CodeAgentService codeAgentService;
@@ -78,8 +81,12 @@ public class DevAgentCliRunner implements ApplicationRunner, ExitCodeGenerator {
   @Override
   public void run(ApplicationArguments arguments) {
     exitCode = 0;
+    String[] sourceArgs = arguments.getSourceArgs();
+    boolean jsonErrorMode = shouldEmitJsonError(sourceArgs);
+    String command = detectCommand(sourceArgs);
+
     try {
-      DevAgentCliArguments cli = DevAgentCliArguments.parse(arguments.getSourceArgs());
+      DevAgentCliArguments cli = DevAgentCliArguments.parse(sourceArgs);
       if (!cli.cliMode()) {
         return;
       }
@@ -91,13 +98,13 @@ public class DevAgentCliRunner implements ApplicationRunner, ExitCodeGenerator {
       }
     } catch (CliCommandException e) {
       exitCode = e.getExitCode();
-      err.println("[devagent-cli] " + e.getMessage());
+      emitError(jsonErrorMode, command, exitCode, e.getMessage());
     } catch (Exception e) {
       String message = e.getMessage() == null || e.getMessage().isBlank()
           ? e.getClass().getSimpleName()
           : e.getMessage();
       exitCode = 1;
-      err.println("[devagent-cli] 실행 실패: " + message);
+      emitError(jsonErrorMode, command, exitCode, "실행 실패: " + message);
     }
   }
 
@@ -108,6 +115,7 @@ public class DevAgentCliRunner implements ApplicationRunner, ExitCodeGenerator {
 
   private void runGenerate(DevAgentCliArguments cli) {
     cli.assertOnly(GENERATE_OPTIONS);
+    boolean jsonMode = cli.optionAsBoolean("json", false);
 
     CodeGenerateRequest request = new CodeGenerateRequest();
     request.setProjectId(cli.optionOrDefault("project-id", request.getProjectId()));
@@ -126,11 +134,16 @@ public class DevAgentCliRunner implements ApplicationRunner, ExitCodeGenerator {
     }
 
     var response = codeAgentService.generate(request);
-    out.print(formatter.formatGenerate(response));
+    if (jsonMode) {
+      out.print(formatter.formatGenerateJson(response));
+    } else {
+      out.print(formatter.formatGenerate(response));
+    }
   }
 
   private void runSpec(DevAgentCliArguments cli) {
     cli.assertOnly(SPEC_OPTIONS);
+    boolean jsonMode = cli.optionAsBoolean("json", false);
 
     SpecGenerateRequest request = new SpecGenerateRequest();
     request.setProjectId(cli.optionOrDefault("project-id", request.getProjectId()));
@@ -153,7 +166,11 @@ public class DevAgentCliRunner implements ApplicationRunner, ExitCodeGenerator {
     }
 
     var response = specAgentService.generate(request);
-    out.print(formatter.formatSpec(response));
+    if (jsonMode) {
+      out.print(formatter.formatSpecJson(response));
+    } else {
+      out.print(formatter.formatSpec(response));
+    }
   }
 
   private void printUsage() {
@@ -165,26 +182,101 @@ public class DevAgentCliRunner implements ApplicationRunner, ExitCodeGenerator {
           devagent spec --user-request "<요청>" [options]
 
         common options:
-          --project-id=<id>                 (default: default)
-          --target-root=<path>              (default: .)
-          --mode=<COST_SAVER|BALANCED|QUALITY|GEMINI3_CANARY>
-          --risk-level=<LOW|MEDIUM|HIGH>
+          --project-id=<id>, --project, -p  (default: default)
+          --target-root=<path>, --root, -r  (default: .)
+          --user-request="<요청>", --request, -u
+          --mode=<COST_SAVER|BALANCED|QUALITY|GEMINI3_CANARY>, -m
+          --risk-level=<LOW|MEDIUM|HIGH>, --risk, -k
           --large-context=<true|false>
           --strict-json-required=<true|false>
+          --json=<true|false>, -j           (default: false)
 
         generate options:
-          --user-request="<요청>"
           --spec-input-path=<relative/path>
-          --apply=<true|false>              (default: false)
+          --apply=<true|false>, -a          (default: false)
           --overwrite-existing=<true|false> (default: false)
 
         spec options:
-          --user-request="<요청>"
-          --chain-to-code=<true|false>      (default: false)
+          --chain-to-code=<true|false>, -c  (default: false)
           --code-user-request="<요청>"
           --code-apply=<true|false>         (default: false)
           --code-overwrite-existing=<true|false>
           --spec-output-path=<relative/path>
         """);
+  }
+
+  private void emitError(boolean jsonMode, String command, int exitCode, String message) {
+    if (jsonMode) {
+      out.print(formatter.formatErrorJson(command, exitCode, message));
+      return;
+    }
+    err.println("[devagent-cli] " + message);
+  }
+
+  private boolean shouldEmitJsonError(String[] rawArgs) {
+    if (rawArgs == null || rawArgs.length == 0) {
+      return false;
+    }
+    for (int i = 0; i < rawArgs.length; i++) {
+      String token = normalize(rawArgs[i]);
+      if ("--json".equals(token) || "-j".equals(token)) {
+        if (i + 1 < rawArgs.length && !isOptionToken(rawArgs[i + 1])) {
+          Boolean parsed = parseBoolean(rawArgs[i + 1]);
+          return parsed == null ? true : parsed;
+        }
+        return true;
+      }
+      if (token.startsWith("--json=")) {
+        String value = token.substring("--json=".length());
+        Boolean parsed = parseBoolean(value);
+        return parsed == null ? true : parsed;
+      }
+      if (token.startsWith("-j=")) {
+        String value = token.substring("-j=".length());
+        Boolean parsed = parseBoolean(value);
+        return parsed == null ? true : parsed;
+      }
+    }
+    return false;
+  }
+
+  private String detectCommand(String[] rawArgs) {
+    if (rawArgs == null || rawArgs.length == 0) {
+      return null;
+    }
+
+    int index = 0;
+    String first = normalize(rawArgs[0]);
+    if ("devagent".equals(first)) {
+      index++;
+    }
+    if (index >= rawArgs.length) {
+      return null;
+    }
+
+    String command = normalize(rawArgs[index]);
+    if (command.startsWith("-")) {
+      return null;
+    }
+    return command;
+  }
+
+  private boolean isOptionToken(String token) {
+    return token != null && token.startsWith("-");
+  }
+
+  private Boolean parseBoolean(String raw) {
+    String normalized = normalize(raw);
+    if ("true".equals(normalized) || "1".equals(normalized) || "yes".equals(normalized)) {
+      return true;
+    }
+    if ("false".equals(normalized) || "0".equals(normalized) || "no".equals(normalized)) {
+      return false;
+    }
+    return null;
+  }
+
+  private String normalize(String raw) {
+    return raw == null ? "" : raw.trim().toLowerCase(Locale.ROOT);
   }
 }
