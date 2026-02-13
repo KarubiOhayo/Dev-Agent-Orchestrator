@@ -1,12 +1,14 @@
 # DevAgent Task Board
 
-Last Updated: 2026-02-12
+Last Updated: 2026-02-13
 Owner: Main Controller Thread
 Primary Reference: `docs/PROJECT_OVERVIEW.md`
 
+> 해석 규칙: 문서의 `H-XXX` 표기는 placeholder입니다. 실제 실행 시에는 대상 라운드의 최신 실제 파일명(예: `H-006-*`)으로 치환해 사용합니다.
+
 ## 현재 스냅샷
 - 목표: A(Context Engineering) 완성 후 C(Spec -> Code -> Doc) 체이닝 확장 안정화
-- 현재 상태: Spec -> Code -> Doc/Review 체이닝(1차), Code JSON files[] 우선 파싱, CLI(H-003.2) 완료
+- 현재 상태: Spec -> Code -> Doc/Review 체이닝(1차), Code JSON files[] 우선 파싱, CLI 고도화(H-006) 완료
 - 핵심 리스크: fallback 비율/스키마 의미 검증/체인 실패 정책(부분성공) 미정
 - 운영 정책: 3스레드 체계(메인 제어 + 리뷰 전담 + 실행 전담), 라운드별 stateless 운영
 
@@ -24,6 +26,7 @@ Primary Reference: `docs/PROJECT_OVERVIEW.md`
 - [x] H-003 CLI + Output UX + H-003.1/H-003.2 보완
 - [x] H-004 DocAgent + Code -> Doc 체이닝(1차)
 - [x] H-005 ReviewAgent + Code -> Review 체이닝(1차)
+- [x] H-006 CLI 고도화(`--json`, 옵션 별칭, 반복 실행 성능)
 
 ## 3스레드 운영 분배
 
@@ -58,6 +61,6 @@ Primary Reference: `docs/PROJECT_OVERVIEW.md`
 8. 병합은 THREAD-A 최종 승인 이후에만 수행한다.
 
 ## 현재 우선순위
-- [~] H-006 진행중: CLI 고도화(`--json`, 옵션 별칭, 반복 실행 성능)
-- [ ] H-007 후보: 체인 실패 부분성공 정책(전파/격리) 확정
+- [~] H-007 진행중: 체인 실패 부분성공 정책(전파/격리) 확정
 - [ ] H-008 후보: 스키마 의미 검증(files/document/review) 강화
+- [ ] H-009 후보: 리뷰/릴레이 자동화 운영 규칙 고도화

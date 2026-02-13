@@ -7,7 +7,7 @@
   - Issue -> Spec -> Code -> Doc 체이닝
   - PR Review/Refactor 자동화(후순위)
 
-## 2) 현재 구현 상태 (2026-02-12)
+## 2) 현재 구현 상태 (2026-02-13)
 - 완료:
   - 모델 라우팅 엔진 + 라우팅 API
   - 벤더 어댑터(OpenAI/Anthropic/Google) + fallback 실행
@@ -24,11 +24,11 @@
   - Code 출력 JSON `files[]` 우선 파싱 + markdown fallback warning 이벤트
   - spec input/output 경로 안전성 강화(target root 내부 상대경로 강제)
   - CLI 초안(`devagent generate/spec/help`) + 종료코드 보완(H-003.2)
+  - CLI 고도화(H-006): `--json`, 대표 alias, 반복 실행 성능 개선
   - apply/dry-run 파일 반영
 - 미완료:
   - 체인 실패 시 부분 성공 허용 정책 결정
   - `files[]`/`document`/`review` 의미 검증(path/content/section quality) 고도화
-  - CLI 고도화(`--json`, 옵션 별칭, 반복 실행 성능 최적화)
 
 ## 3) 핵심 아키텍처
 - `api/`: 엔드포인트
@@ -93,12 +93,12 @@
 - 모델 출력 비정형 시 fallback 비율이 상승할 수 있음
 - `files[]`/`document`/`review` 구조는 보정되지만 의미 품질 검증은 아직 제한적
 - Code -> Doc/Review 체인 실패가 현재 Code 요청 실패로 전파됨(부분 성공 정책 미정)
-- CLI는 동작 안정화됐지만 머신 파싱용 출력(`--json`)은 미지원
+- CLI JSON 출력은 지원되지만, 옵션 파싱 경계 케이스는 지속 회귀 점검 필요
 
 ## 8) 다음 우선순위
-1. H-006: CLI 고도화(`--json`, 옵션 별칭, 성능)
-2. H-007: 체인 실패 전파 정책(부분 성공 허용 여부) 확정
-3. 스키마 의미 검증기(files/document/review) 및 운영 지표 강화
+1. H-007: 체인 실패 전파 정책(부분 성공 허용 여부) 확정
+2. H-008: 스키마 의미 검증기(files/document/review) 및 운영 지표 강화
+3. 리뷰/릴레이 자동화 규칙 고도화
 4. PR Review/Refactor 자동화 단계 확장
 
 ## 9) 라운드 시작 체크 (Stateless)

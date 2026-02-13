@@ -101,3 +101,11 @@
   - run-state에 `CHAIN_REVIEW_TRIGGERED/DONE/FAILED`를 기록
   - Review 출력 파싱 fallback 시 `REVIEW_OUTPUT_FALLBACK_WARNING` 이벤트를 기록
   - 부분 성공 허용 정책은 H-007에서 별도 결정
+
+## D-017 H-XXX Placeholder 해석 규칙
+- Date: 2026-02-13
+- Decision: `H-XXX` 표기는 템플릿 placeholder이며, 실행 시에는 대상 라운드의 최신 실제 파일(`H-00N-*`)로 치환한다.
+- Rationale: 자동화/에이전트가 placeholder를 literal path로 해석해 파일 탐색에 실패하는 문제를 방지
+- Consequence:
+  - Main/Review/Executor 프롬프트와 Task Board에 해석 규칙을 명시
+  - 릴레이/리포트 탐색 로직은 항상 실제 번호 파일을 대상으로 동작
