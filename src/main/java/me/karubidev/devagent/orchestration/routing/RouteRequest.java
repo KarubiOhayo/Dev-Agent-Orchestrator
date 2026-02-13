@@ -6,7 +6,7 @@ public class RouteRequest {
 	private RoutingMode mode = RoutingMode.BALANCED;
 	private RiskLevel riskLevel = RiskLevel.MEDIUM;
 	private boolean largeContext;
-	private boolean strictJsonRequired = true;
+	private Boolean strictJsonRequired;
 
 	public AgentType getAgentType() {
 		return agentType;
@@ -41,10 +41,14 @@ public class RouteRequest {
 	}
 
 	public boolean isStrictJsonRequired() {
-		return strictJsonRequired;
+		return Boolean.TRUE.equals(strictJsonRequired);
 	}
 
-	public void setStrictJsonRequired(boolean strictJsonRequired) {
+	public void setStrictJsonRequired(Boolean strictJsonRequired) {
 		this.strictJsonRequired = strictJsonRequired;
+	}
+
+	public boolean isStrictJsonExplicitlyRequired() {
+		return Boolean.TRUE.equals(strictJsonRequired);
 	}
 }

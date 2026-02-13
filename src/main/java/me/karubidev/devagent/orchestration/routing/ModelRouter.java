@@ -65,15 +65,15 @@ public class ModelRouter {
 			}
 		}
 
-		if (request.isLargeContext()) {
-			if (addCandidate(candidateSet, escalation.getHugeContext())) {
-				reasons.add("large-context escalation");
+		if (request.isStrictJsonExplicitlyRequired()) {
+			if (addCandidate(candidateSet, escalation.getStrictJson())) {
+				reasons.add("strict-json escalation");
 			}
 		}
 
-		if (request.isStrictJsonRequired()) {
-			if (addCandidate(candidateSet, escalation.getStrictJson())) {
-				reasons.add("strict-json escalation");
+		if (request.isLargeContext()) {
+			if (addCandidate(candidateSet, escalation.getHugeContext())) {
+				reasons.add("large-context escalation");
 			}
 		}
 	}
