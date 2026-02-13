@@ -22,6 +22,49 @@ public record CodeGenerateResponse(
     List<GeneratedFile> files,
     FileApplyResult applyResult,
     DocGenerateResponse chainedDocResult,
-    ReviewGenerateResponse chainedReviewResult
+    ReviewGenerateResponse chainedReviewResult,
+    List<ChainFailure> chainFailures
 ) {
+
+  public CodeGenerateResponse {
+    chainFailures = chainFailures == null ? List.of() : List.copyOf(chainFailures);
+  }
+
+  public CodeGenerateResponse(
+      String runId,
+      String projectId,
+      String targetProjectRoot,
+      RouteDecision routeDecision,
+      String usedProvider,
+      String usedModel,
+      String output,
+      List<LlmAttempt> attempts,
+      List<String> referencedContextFiles,
+      String projectSummary,
+      List<GeneratedFile> files,
+      FileApplyResult applyResult,
+      DocGenerateResponse chainedDocResult,
+      ReviewGenerateResponse chainedReviewResult
+  ) {
+    this(
+        runId,
+        projectId,
+        targetProjectRoot,
+        routeDecision,
+        usedProvider,
+        usedModel,
+        output,
+        attempts,
+        referencedContextFiles,
+        projectSummary,
+        files,
+        applyResult,
+        chainedDocResult,
+        chainedReviewResult,
+        List.of()
+    );
+  }
+
+  public record ChainFailure(String agent, String failedStage, String errorMessage) {
+  }
 }

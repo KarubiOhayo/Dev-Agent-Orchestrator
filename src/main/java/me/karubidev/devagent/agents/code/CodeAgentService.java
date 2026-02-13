@@ -5,10 +5,14 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import me.karubidev.devagent.agents.code.apply.CodeOutputParser;
 import me.karubidev.devagent.agents.code.apply.CodeOutputParser.ParseResult;
 import me.karubidev.devagent.agents.code.apply.FileApplyResult;
 import me.karubidev.devagent.agents.code.apply.FileApplyService;
+import me.karubidev.devagent.agents.code.CodeGenerateRequest.ChainFailurePolicy;
+import me.karubidev.devagent.agents.code.CodeGenerateResponse.ChainFailure;
 import me.karubidev.devagent.agents.doc.CodeDocChainService;
 import me.karubidev.devagent.agents.doc.DocGenerateResponse;
 import me.karubidev.devagent.agents.review.CodeReviewChainService;
@@ -66,8 +70,8 @@ public class CodeAgentService {
     }
 
     String projectId = normalizeProjectId(request.getProjectId());
-    Path targetRoot = resolveTargetRoot(request.getTargetProjectRoot());
     String requestPreview = requestPreview(request);
+    ChainFailurePolicy chainFailurePolicy = resolveChainFailurePolicy(request.getChainFailurePolicy());
     if (requestPreview.isBlank()) {
       throw new IllegalArgumentException("userRequest or specInputPath is required");
     }
@@ -88,6 +92,7 @@ public class CodeAgentService {
     );
 
     try {
+      Path targetRoot = resolveTargetRoot(request.getTargetProjectRoot());
       SpecInput specInput = loadSpecInput(request.getSpecInputPath(), targetRoot, runId);
       if (specInput != null) {
         runStateStore.appendEvent(runId, "SPEC_INPUT_LOADED", specInput.path().toString());
@@ -122,6 +127,7 @@ public class CodeAgentService {
           !request.isApply(),
           request.isOverwriteExisting()
       );
+      List<ChainFailure> chainFailures = new ArrayList<>();
 
       CodeGenerateResponse baseResponse = new CodeGenerateResponse(
           runId,
@@ -137,9 +143,17 @@ public class CodeAgentService {
           parsedFiles,
           applyResult,
           null,
-          null
+          null,
+          List.of()
       );
-      DocGenerateResponse chainedDocResult = codeDocChainService.runChain(runId, request, baseResponse, targetRoot);
+      DocGenerateResponse chainedDocResult = runDocChain(
+          runId,
+          request,
+          baseResponse,
+          targetRoot,
+          chainFailurePolicy,
+          chainFailures
+      );
       CodeGenerateResponse chainInput = new CodeGenerateResponse(
           runId,
           projectId,
@@ -154,11 +168,26 @@ public class CodeAgentService {
           parsedFiles,
           applyResult,
           chainedDocResult,
-          null
+          null,
+          List.copyOf(chainFailures)
       );
-      ReviewGenerateResponse chainedReviewResult = codeReviewChainService.runChain(runId, request, chainInput, targetRoot);
+      ReviewGenerateResponse chainedReviewResult = runReviewChain(
+          runId,
+          request,
+          chainInput,
+          targetRoot,
+          chainFailurePolicy,
+          chainFailures
+      );
 
-      String summary = summarize(request, execution, applyResult, chainedDocResult != null, chainedReviewResult != null);
+      String summary = summarize(
+          request,
+          execution,
+          applyResult,
+          chainedDocResult != null,
+          chainedReviewResult != null,
+          chainFailures.size()
+      );
       runStateStore.updateProjectSummary(projectId, summary);
       runStateStore.completeSuccess(
           runId,
@@ -182,7 +211,8 @@ public class CodeAgentService {
           parsedFiles,
           applyResult,
           chainedDocResult,
-          chainedReviewResult
+          chainedReviewResult,
+          List.copyOf(chainFailures)
       );
     } catch (Exception e) {
       runStateStore.appendEvent(runId, "CODE_FAILED", errorMessage(e));
@@ -196,7 +226,8 @@ public class CodeAgentService {
       LlmExecutionResult execution,
       FileApplyResult applyResult,
       boolean chainToDocExecuted,
-      boolean chainToReviewExecuted
+      boolean chainToReviewExecuted,
+      int chainFailureCount
   ) {
     return """
         lastRequest: %s
@@ -210,6 +241,7 @@ public class CodeAgentService {
         chainToDocExecuted: %s
         chainToReview: %s
         chainToReviewExecuted: %s
+        chainFailures: %d
         """.formatted(
         requestPreview(request),
         request.getSpecInputPath(),
@@ -222,8 +254,54 @@ public class CodeAgentService {
         request.isChainToDoc(),
         chainToDocExecuted,
         request.isChainToReview(),
-        chainToReviewExecuted
+        chainToReviewExecuted,
+        chainFailureCount
     );
+  }
+
+  private DocGenerateResponse runDocChain(
+      String runId,
+      CodeGenerateRequest request,
+      CodeGenerateResponse codeResponse,
+      Path targetRoot,
+      ChainFailurePolicy chainFailurePolicy,
+      List<ChainFailure> chainFailures
+  ) {
+    try {
+      return codeDocChainService.runChain(runId, request, codeResponse, targetRoot);
+    } catch (Exception e) {
+      if (chainFailurePolicy == ChainFailurePolicy.FAIL_FAST) {
+        throw e;
+      }
+      chainFailures.add(new ChainFailure("DOC", "CHAIN_DOC", errorMessage(e)));
+      return null;
+    }
+  }
+
+  private ReviewGenerateResponse runReviewChain(
+      String runId,
+      CodeGenerateRequest request,
+      CodeGenerateResponse codeResponse,
+      Path targetRoot,
+      ChainFailurePolicy chainFailurePolicy,
+      List<ChainFailure> chainFailures
+  ) {
+    try {
+      return codeReviewChainService.runChain(runId, request, codeResponse, targetRoot);
+    } catch (Exception e) {
+      if (chainFailurePolicy == ChainFailurePolicy.FAIL_FAST) {
+        throw e;
+      }
+      chainFailures.add(new ChainFailure("REVIEW", "CHAIN_REVIEW", errorMessage(e)));
+      return null;
+    }
+  }
+
+  private ChainFailurePolicy resolveChainFailurePolicy(ChainFailurePolicy chainFailurePolicy) {
+    if (chainFailurePolicy == null) {
+      return ChainFailurePolicy.FAIL_FAST;
+    }
+    return chainFailurePolicy;
   }
 
   private String normalizeProjectId(String projectId) {
@@ -235,7 +313,11 @@ public class CodeAgentService {
 
   private Path resolveTargetRoot(String targetProjectRoot) {
     String raw = (targetProjectRoot == null || targetProjectRoot.isBlank()) ? "." : targetProjectRoot;
-    return Path.of(raw).toAbsolutePath().normalize();
+    try {
+      return Path.of(raw).toAbsolutePath().normalize();
+    } catch (InvalidPathException e) {
+      throw new IllegalArgumentException("targetProjectRoot is invalid: " + raw, e);
+    }
   }
 
   private String requestPreview(CodeGenerateRequest request) {

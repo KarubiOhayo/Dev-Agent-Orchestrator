@@ -48,7 +48,8 @@ curl -X POST http://localhost:8080/api/agents/code/generate \
     "chainToDoc": true,
     "docUserRequest": "생성된 코드 기준으로 API/구조 문서를 작성해줘",
     "chainToReview": true,
-    "reviewUserRequest": "보안/안정성 관점으로 우선순위 리뷰를 작성해줘"
+    "reviewUserRequest": "보안/안정성 관점으로 우선순위 리뷰를 작성해줘",
+    "chainFailurePolicy": "FAIL_FAST"
   }'
 ```
 
@@ -67,8 +68,20 @@ curl -X POST http://localhost:8080/api/agents/code/generate \
 - `referencedContextFiles`: 컨텍스트에 실제로 주입된 파일 목록
 - `projectSummary`: 프로젝트 최신 요약 메모리
 - `applyResult`: 파싱 파일 수/쓰기 결과(`DRY_RUN`, `WRITTEN`, `SKIPPED`, `REJECTED`, `ERROR`)
-- `chainedDocResult`: `chainToDoc=true`일 때 DocAgent 실행 결과(실패 시 전체 요청 실패)
-- `chainedReviewResult`: `chainToReview=true`일 때 ReviewAgent 실행 결과(실패 시 전체 요청 실패)
+- `chainedDocResult`: `chainToDoc=true`일 때 DocAgent 실행 결과
+- `chainedReviewResult`: `chainToReview=true`일 때 ReviewAgent 실행 결과
+- `chainFailures`: 체인 실패 구조화 목록
+  - 형식: `[{ "agent": "DOC|REVIEW", "failedStage": "CHAIN_DOC|CHAIN_REVIEW", "errorMessage": "string" }]`
+  - `chainFailurePolicy=PARTIAL_SUCCESS`일 때 체인 실패가 발생하면 해당 목록에 누적됨
+  - `chainFailurePolicy=FAIL_FAST`일 때는 체인 실패 즉시 요청 실패로 전파되므로 일반적으로 빈 배열
+
+## 체인 실패 정책
+
+- `chainFailurePolicy` 기본값: `FAIL_FAST` (하위 호환)
+- 선택값:
+  - `FAIL_FAST`: Doc/Review 체인 실패 시 Code 요청 전체를 실패로 반환
+  - `PARTIAL_SUCCESS`: 체인 실패를 `chainFailures`에 기록하고 Code 요청은 성공으로 반환
+- `PARTIAL_SUCCESS`에서도 run-state 이벤트(`CHAIN_*_TRIGGERED/DONE/FAILED`) 기록 계약은 동일하게 유지됨
 
 ## Doc Agent 요청 예시
 

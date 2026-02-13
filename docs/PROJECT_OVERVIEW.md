@@ -24,11 +24,15 @@
   - Code 출력 JSON `files[]` 우선 파싱 + markdown fallback warning 이벤트
   - spec input/output 경로 안전성 강화(target root 내부 상대경로 강제)
   - CLI 초안(`devagent generate/spec/help`) + 종료코드 보완(H-003.2)
-  - CLI 고도화(H-006): `--json`, 대표 alias, 반복 실행 성능 개선
+  - CLI 고도화(H-006): `--json`, 대표 alias, 반복 실행 성능 개선 (최종 정합성 확인 완료)
+  - H-007 strict-json 기본값/라우팅 우선순위 재설계 완료(Go)
+  - H-008 파일 적용 경계 입력 방어 강화 완료
+  - H-008.1 심볼릭 링크 경계 우회 차단 보강 완료(Go)
+  - H-009 체인 실패 전파 정책(API 계약) 확정 완료(Go)
   - apply/dry-run 파일 반영
 - 미완료:
-  - 체인 실패 시 부분 성공 허용 정책 결정
-  - `files[]`/`document`/`review` 의미 검증(path/content/section quality) 고도화
+  - API 입력검증/에러계약 표준화
+  - spec/doc/review 프롬프트 자산 보강
 
 ## 3) 핵심 아키텍처
 - `api/`: 엔드포인트
@@ -92,14 +96,12 @@
 ## 7) 현재 운영 리스크
 - 모델 출력 비정형 시 fallback 비율이 상승할 수 있음
 - `files[]`/`document`/`review` 구조는 보정되지만 의미 품질 검증은 아직 제한적
-- Code -> Doc/Review 체인 실패가 현재 Code 요청 실패로 전파됨(부분 성공 정책 미정)
+- `PARTIAL_SUCCESS` 사용 시 클라이언트가 `chainFailures`를 확인하지 않으면 체인 실패를 간과할 수 있음
 - CLI JSON 출력은 지원되지만, 옵션 파싱 경계 케이스는 지속 회귀 점검 필요
 
 ## 8) 다음 우선순위
-1. H-007: 체인 실패 전파 정책(부분 성공 허용 여부) 확정
-2. H-008: 스키마 의미 검증기(files/document/review) 및 운영 지표 강화
-3. 리뷰/릴레이 자동화 규칙 고도화
-4. PR Review/Refactor 자동화 단계 확장
+1. H-010: API 입력검증/에러계약 표준화
+2. H-011: spec/doc/review 프롬프트 자산 보강
 
 ## 9) 라운드 시작 체크 (Stateless)
 1. `docs/PROJECT_OVERVIEW.md` 읽기
@@ -107,3 +109,7 @@
 3. `coordination/DECISIONS.md` 충돌 여부 확인
 4. 대상 handoff/result/review 문서 1개씩 확정
 5. Main -> Executor/Review 지시 분리 전달
+
+## 10) 참고 평가 문서
+- 초기 설계 대비 현재 상태 점검(2026-02-13):
+  - `docs/assessments/2026-02-13-initial-plan-gap-analysis.md`

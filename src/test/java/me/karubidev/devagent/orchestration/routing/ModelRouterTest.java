@@ -1,6 +1,7 @@
 package me.karubidev.devagent.orchestration.routing;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 
 import org.junit.jupiter.api.Test;
@@ -12,6 +13,23 @@ class ModelRouterTest {
 
 	@Autowired
 	private ModelRouter modelRouter;
+
+	@Test
+	void resolveRejectsNullRequest() {
+		assertThatThrownBy(() -> modelRouter.resolve(null))
+			.isInstanceOf(IllegalArgumentException.class)
+			.hasMessage("agentType is required");
+	}
+
+	@Test
+	void resolveRejectsNullAgentType() {
+		RouteRequest request = new RouteRequest();
+		request.setMode(RoutingMode.BALANCED);
+
+		assertThatThrownBy(() -> modelRouter.resolve(request))
+			.isInstanceOf(IllegalArgumentException.class)
+			.hasMessage("agentType is required");
+	}
 
 	@Test
 	void routeRouterCostSaverUsesFlashLite() {

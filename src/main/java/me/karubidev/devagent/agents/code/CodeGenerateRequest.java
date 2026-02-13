@@ -5,6 +5,11 @@ import me.karubidev.devagent.orchestration.routing.RoutingMode;
 
 public class CodeGenerateRequest {
 
+  public enum ChainFailurePolicy {
+    FAIL_FAST,
+    PARTIAL_SUCCESS
+  }
+
   private String projectId = "default";
   private String targetProjectRoot = ".";
   private String userRequest;
@@ -19,6 +24,7 @@ public class CodeGenerateRequest {
   private String docUserRequest;
   private boolean chainToReview;
   private String reviewUserRequest;
+  private ChainFailurePolicy chainFailurePolicy = ChainFailurePolicy.FAIL_FAST;
 
   public String getProjectId() {
     return projectId;
@@ -130,5 +136,13 @@ public class CodeGenerateRequest {
 
   public void setReviewUserRequest(String reviewUserRequest) {
     this.reviewUserRequest = reviewUserRequest;
+  }
+
+  public ChainFailurePolicy getChainFailurePolicy() {
+    return chainFailurePolicy;
+  }
+
+  public void setChainFailurePolicy(ChainFailurePolicy chainFailurePolicy) {
+    this.chainFailurePolicy = chainFailurePolicy;
   }
 }
