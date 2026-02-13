@@ -3,8 +3,11 @@
 ## 개요
 
 `devagent` 스크립트로 `generate`/`spec` 명령을 한 줄로 실행할 수 있습니다.
-스크립트는 `bootRun`을 거치지 않고 `bootJar` 생성 후 `java -jar`로 실행하므로,
-CLI 종료코드(예: 잘못된 옵션은 `2`)가 그대로 전달됩니다.
+스크립트는 `bootRun` 대신 `bootJar + java -jar` 경로를 사용해
+CLI 종료코드(예: 잘못된 옵션은 `2`)를 그대로 전달합니다.
+
+- 기본 출력: human-readable 요약 테이블
+- `--json`/`-j`: machine parsing 용 JSON 출력(성공/실패 공통 envelope)
 
 ## 설치
 
@@ -26,11 +29,11 @@ ln -sf "$(pwd)/devagent" /usr/local/bin/devagent
 
 ```bash
 ./devagent generate \
-  --project-id demo-auth \
-  --target-root . \
-  --user-request "로그인 API 스켈레톤을 만들어줘" \
-  --mode BALANCED \
-  --risk-level MEDIUM
+  -p demo-auth \
+  -r . \
+  -u "로그인 API 스켈레톤을 만들어줘" \
+  -m BALANCED \
+  -k MEDIUM
 ```
 
 또는 PATH 등록 후:
@@ -42,20 +45,22 @@ devagent generate --user-request "로그인 API 스켈레톤을 만들어줘"
 ## 실행 경로와 트레이드오프
 
 - 실행 경로:
-  - `./gradlew --quiet bootJar`
+  - (필요 시) `./gradlew --quiet bootJar`
   - `java -jar build/libs/<boot-jar>.jar ...`
 - 장점:
   - CLI 프로세스 종료코드를 정확히 전달 (`help=0`, `unknown option=2`)
   - `bootRun` 실패 래핑으로 인한 종료코드 왜곡 방지
-- 단점:
-  - 매 실행마다 `bootJar` 체크가 수행되어, 기존 `bootRun` 대비 초기/반복 실행 비용이 증가할 수 있음
+  - 최신 boot jar 재사용으로 반복 실행 시 `bootJar` 호출을 생략 가능
+- 참고:
+  - 스크립트는 `build.gradle/settings.gradle/gradle.properties/src/gradle/buildSrc` 변경 시에만 재빌드합니다.
+  - 항상 재빌드하려면 `DEVAGENT_FORCE_BOOTJAR=true ./devagent ...` 를 사용하세요.
 
 ### 2) Code Generate (실제 파일 적용)
 
 ```bash
 ./devagent generate \
-  --user-request "JWT 로그인 핸들러를 만들어줘" \
-  --apply true \
+  -u "JWT 로그인 핸들러를 만들어줘" \
+  -a true \
   --overwrite-existing false
 ```
 
@@ -63,9 +68,17 @@ devagent generate --user-request "로그인 API 스켈레톤을 만들어줘"
 
 ```bash
 ./devagent spec \
-  --user-request "로그인/토큰 재발급 명세를 JSON으로 작성해줘" \
-  --mode QUALITY \
-  --risk-level MEDIUM
+  -u "로그인/토큰 재발급 명세를 JSON으로 작성해줘" \
+  -m QUALITY \
+  -k MEDIUM
+```
+
+### 4) JSON 출력 모드
+
+```bash
+./devagent generate \
+  -u "로그인 API 스켈레톤을 만들어줘" \
+  -j
 ```
 
 ## 출력 예시 (dry-run)
@@ -88,13 +101,69 @@ file results
 - DRY_RUN src/main/java/AuthService.java (planned)
 ```
 
+## JSON 출력 예시
+
+### 성공 (`generate --json`)
+
+```json
+{
+  "ok": true,
+  "command": "generate",
+  "runId": "run-123",
+  "model": {
+    "provider": "openai",
+    "name": "gpt-5.2-codex",
+    "id": "openai:gpt-5.2-codex"
+  },
+  "data": {
+    "summary": {
+      "parsedFiles": 2,
+      "applyOutcome": "DRY_RUN",
+      "writtenFiles": 0,
+      "skippedFiles": 0
+    },
+    "fileResults": [
+      {
+        "path": "src/main/java/AuthController.java",
+        "status": "DRY_RUN",
+        "message": "planned"
+      }
+    ]
+  },
+  "error": null
+}
+```
+
+### 실패 (`--json` + 잘못된 옵션)
+
+```json
+{
+  "ok": false,
+  "command": "generate",
+  "runId": null,
+  "model": null,
+  "data": null,
+  "error": {
+    "exitCode": 2,
+    "message": "지원하지 않는 옵션입니다: --unknown-option"
+  }
+}
+```
+
 ## 주요 옵션
 
-- `--project-id`: 실행 컨텍스트 프로젝트 ID
-- `--target-root`: 파일 적용 대상 루트 경로
-- `--user-request`: 생성 요청 텍스트
-- `--mode`: `COST_SAVER | BALANCED | QUALITY | GEMINI3_CANARY`
-- `--risk-level`: `LOW | MEDIUM | HIGH`
-- `--apply`: `true`면 실제 파일 쓰기, `false`면 dry-run
+- `--project-id`, `--project`, `-p`: 실행 컨텍스트 프로젝트 ID
+- `--target-root`, `--root`, `-r`: 파일 적용 대상 루트 경로
+- `--user-request`, `--request`, `-u`: 생성 요청 텍스트
+- `--mode`, `-m`: `COST_SAVER | BALANCED | QUALITY | GEMINI3_CANARY`
+- `--risk-level`, `--risk`, `-k`: `LOW | MEDIUM | HIGH`
+- `--json`, `-j`: JSON 출력 모드(기본 `false`)
+- `--apply`, `-a`: `true`면 실제 파일 쓰기, `false`면 dry-run
 - `--spec-input-path`: `generate`에서 스펙 JSON 상대 경로 주입
-- `--chain-to-code`: `spec`에서 스펙 생성 후 코드 생성 체이닝
+- `--chain-to-code`, `-c`: `spec`에서 스펙 생성 후 코드 생성 체이닝
+
+## 옵션 파싱 규칙 참고
+
+- `--key=value`와 `--key value`를 모두 지원합니다.
+- 분리형 long option(`--key value`)에서 value가 `-`로 시작해도, 해당 토큰은 값으로 소비합니다.
+- 다만 실제로 지원되는 옵션 키/값 검증은 기존 규칙(unknown option 차단, enum/boolean 검증)을 그대로 따릅니다.
