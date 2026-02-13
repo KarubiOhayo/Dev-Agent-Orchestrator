@@ -591,6 +591,8 @@ bin/
 .vscode/
 
 .env
+.env.*
+!.env.example
 
 # DevAgent runtime state
 storage/
