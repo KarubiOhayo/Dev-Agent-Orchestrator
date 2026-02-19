@@ -51,10 +51,10 @@
   - H-027 CLI `PARTIAL_SUCCESS` 소비 가드레일 보강 완료(`--fail-on-chain-failures`, 종료코드 `3`, human/json 가시성 보강, Review `Go`)
   - H-028 CLI 가드레일 실사용성 점검 완료(`data.guardrailTriggered`, human 경고 `guardrail=enabled|disabled`, 자동화/CI 체크리스트 + 샘플 파이프라인 검증, Review `Go`)
   - H-029 fallback-warning H-024 동결 트랙 재개 조건 점검 완료(`KEEP_FROZEN` 판정 고정 + 운영 문서/야간 템플릿 계약 동기화, Review `Go`)
+  - H-030 fallback-warning `KEEP_FROZEN` 상태 실행량/체인 커버리지 회복 액션 이행 추적 완료(`recoveryActionTracking[]` + `recoveryActionCompletionRate` + `blockedActionCount` 계약 동기화, `KEEP_FROZEN` 유지)
   - apply/dry-run 파일 반영
 - 미완료:
-  - H-030 fallback-warning `KEEP_FROZEN` 상태 실행량/체인 커버리지 회복 액션 이행 추적(최근 14일/7일 실측 + `dailyCompliance`/`weeklyComplianceRate` + 신호별 이행 증거 동기화)
-  - H-024 fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정(Frozen/Backlog, H-030에서 `RESUME_H024` 판정 시 재개)
+  - H-024 fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정(Frozen/Backlog, `RESUME_H024` 판정 근거 확보 시 재개)
   - fallback warning 임계치/알림 룰 보정안의 운영 적용 후 회귀 점검(지속 데이터 누적 필요)
 
 ## 3) 핵심 아키텍처
@@ -124,8 +124,8 @@
 - CLI JSON 출력은 지원되지만, 옵션 파싱 경계 케이스는 지속 회귀 점검 필요
 
 ## 8) 다음 우선순위
-1. H-030 fallback-warning `KEEP_FROZEN` 상태 실행량/체인 커버리지 회복 액션 이행 추적(최근 14일/7일 실측 + `dailyCompliance`/`weeklyComplianceRate` + 신호별 이행 증거 동기화)
-2. H-024 fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정(Frozen/Backlog, H-030에서 `RESUME_H024` 판정 시 재개)
+1. H-024 fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정(Frozen/Backlog, `RESUME_H024` 판정 근거 확보 시 재개)
+2. fallback warning 임계치/알림 룰 보정안의 운영 적용 후 회귀 점검(지속 데이터 누적 필요)
 
 ## 9) 라운드 시작 체크 (Stateless)
 1. `docs/PROJECT_OVERVIEW.md` 읽기
