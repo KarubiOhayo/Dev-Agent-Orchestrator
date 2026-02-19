@@ -459,3 +459,18 @@
   - H-031은 Main 승인(Go)으로 종료하고, 다음 실행 라운드를 `coordination/HANDOFFS/H-032-fallback-warning-keep-frozen-signal-recovery-evidence-acquisition.md`로 확정한다.
   - `coordination/REPORTS/CURRENT_STATUS_2026-02-19.md`, `coordination/TASK_BOARD.md`, `coordination/RELAYS/H-032-main-to-executor.md`는 H-032 기준으로 동기화한다.
   - H-024는 `RESUME_H024` 근거(게이트 충족 + 신호 개선 증거) 확보 전까지 Frozen/Backlog 상태를 유지한다.
+
+## D-044 fallback-warning H-032 승인 및 H-033 실행 증거 누적 점검 정책
+- Date: 2026-02-19
+- Status: Approved (H-032 Close-out / H-033 Scope)
+- Decision:
+  - H-032 결과를 기준으로 `resumeDecision=KEEP_FROZEN` 단일 판정을 유지한다.
+  - 다음 라운드(H-033)는 `LOW_TRAFFIC`/`CHAIN_COVERAGE_GAP` 신호에 대해 실행 증거 누적 상태를 정량 점검하는 `evidenceAccumulationSummary[]` 계약을 운영 문서와 야간 템플릿에 동일하게 고정한다.
+  - H-033의 `evidenceAccumulationSummary[]` 필수 필드는 `signal`, `requiredEvidenceCount`, `observedEvidenceCount`, `coverageRate`, `staleEvidenceCount`, `freshEvidenceCount`, `status`, `lastObservedAt`로 고정한다.
+  - `signalRecoveryEvidenceLedger[]` 필수 필드와 `RESUME_H024|KEEP_FROZEN` 단일 판정 계약은 유지한다.
+  - 기존 게이트/산식/임계치(`0.05`, `0.15`, `+0.10p`, `0.10`)와 `INSUFFICIENT_SAMPLE` 제외 규칙은 변경하지 않는다.
+- Rationale: H-032에서도 `executionGapDelta=+3`, `chainShareGapDelta=0.00%p`, `recoveryActionCompletionRate=0.00`, `blockedActionCount=2`, `signalRecoveryEvidenceLedger=BLOCKED/BLOCKED`가 유지되어 재개 판단 근거를 강화하려면 신호별 증거의 "존재"뿐 아니라 "누적 커버리지/신선도"를 표준 포맷으로 관리해야 하기 때문이다.
+- Consequence:
+  - H-032는 Main 승인(Go)으로 종료하고, 다음 실행 라운드를 `coordination/HANDOFFS/H-033-fallback-warning-keep-frozen-evidence-accumulation-check.md`로 확정한다.
+  - `coordination/REPORTS/CURRENT_STATUS_2026-02-19.md`, `coordination/TASK_BOARD.md`, `coordination/RELAYS/H-033-main-to-executor.md`는 H-033 기준으로 동기화한다.
+  - H-024는 `RESUME_H024` 근거(게이트 충족 + 신호 개선 증거 + 증거 누적 커버리지 확보) 전까지 Frozen/Backlog 상태를 유지한다.
