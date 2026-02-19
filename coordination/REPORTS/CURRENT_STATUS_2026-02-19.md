@@ -1,28 +1,28 @@
 # Current Status Report (2026-02-19)
 
 ## 요약
-- H-016(fallback warning 임계치/알림 룰 실측 기반 보정 실행) 라운드는 테스트 게이트 통과 보고 + Review `Go`로 Main 기준 최종 **승인(Go)** 판단이다.
-- H-016 실측값 기준으로 `INSUFFICIENT_SAMPLE` 비율이 `1.00`으로 확인되어 보정은 **보류**되고, 임계치/알림 룰 수치(`0.05`, `0.15`, `+0.10p`, `0.10`)는 유지되었다.
-- 다음 실행 라운드는 H-017(fallback warning 보정 재착수용 샘플 확보 계획 수립)으로 고정한다.
+- H-017(fallback warning 보정 재착수용 샘플 확보 계획 수립) 라운드는 테스트 게이트 통과 보고 + Review `Go`로 Main 기준 최종 **승인(Go)** 판단이다.
+- H-017에서 재보정 착수 게이트(`집계 성공 >= 10`, `INSUFFICIENT_SAMPLE <= 0.50`, `집계 불가 < 3`, `샘플 충분 일수 >= 7`)와 Projection/원인분류 기준이 문서/자동점검 템플릿에 동기화되었다.
+- 다음 실행 라운드는 H-018(fallback warning 샘플 확보 계획 운영 적용 점검)으로 고정한다.
 
 ## 최신 라운드 판단
-- 대상 라운드: H-016
+- 대상 라운드: H-017
 - 판단: 승인(Go)
 - 근거:
-  - `coordination/REPORTS/H-016-result.md` (`./gradlew clean test --no-daemon` 포함 테스트 게이트 통과 보고, 보정 보류 근거 수치 명시)
-  - `coordination/REPORTS/H-016-review.md` (P1/P2/P3 = 0, 최종 권고 `Go`)
-  - `coordination/RELAYS/H-016-review-to-main.md` (리스크 `LOW`, 다음 라운드 H-017 제안)
+  - `coordination/REPORTS/H-017-result.md` (`./gradlew clean test --no-daemon` 포함 테스트 게이트 통과 보고, 샘플 확보 목표/Projection/분기 규칙 명시)
+  - `coordination/REPORTS/H-017-review.md` (P1/P2/P3 = 0, 최종 권고 `Go`)
+  - `coordination/RELAYS/H-017-review-to-main.md` (리스크 `LOW`, 다음 라운드 H-018 제안)
 
 ## 다음 라운드 준비 상태
-- 확정 handoff: `coordination/HANDOFFS/H-017-fallback-warning-sample-acquisition-plan.md`
-- Main -> Executor relay: `coordination/RELAYS/H-017-main-to-executor.md`
+- 확정 handoff: `coordination/HANDOFFS/H-018-fallback-warning-sample-plan-operations-check.md`
+- Main -> Executor relay: `coordination/RELAYS/H-018-main-to-executor.md`
 - 우선순위:
-  1. H-017 fallback warning 보정 재착수용 샘플 확보 계획 수립(최근 14일 모수 확보 목표/추적 지표/재보정 착수 조건 문서화)
+  1. H-018 fallback warning 샘플 확보 계획 운영 적용 점검(최근 14일 실측 추세/Projection 오차/재보정 착수 시점 추적)
 
 ## 리스크
-- 최근 14일에서 샘플 충분 일수(`parseEligibleRunCount >= 20`)가 0일이라 보정 재착수 조건 충족까지 추가 표본 확보가 필요하다.
-- Doc/Review run 표본이 0인 상태가 지속되면 agent 간 분포 기반 후보값 검증이 제한된다.
+- 최근 14일 실측 추세가 H-017 목표 일일 모수(전체 32, CODE/DOC/REVIEW 비중)를 지속 충족하지 못하면 재보정 착수 시점이 지연될 수 있다.
+- Projection은 최근 3일 평균 기반 가정이라 트래픽 변동이 크면 오차가 누적될 수 있어 주간 재보정이 필요하다.
 - `PARTIAL_SUCCESS` 사용 시 클라이언트가 `chainFailures[]`를 확인하지 않으면 체인 실패를 간과할 수 있다.
 
 ## 메인 제안
-- Executor는 H-017에서 H-016 실측치를 기준선으로 삼아 샘플 확보 정량 목표와 추적 지표를 문서에 고정하고, 재보정 착수 가능/보류 판정을 주간 단위로 일관되게 보고할 수 있게 템플릿을 보강한다.
+- Executor는 H-018에서 H-017 규칙을 실제 운영 데이터에 적용해 게이트 충족 추세와 Projection 오차를 계량화하고, 재보정 착수 예상 시점을 `가능/보류` 판정과 함께 고정해 다음 임계치 보정 라운드 진입 근거를 만든다.

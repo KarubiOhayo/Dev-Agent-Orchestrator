@@ -261,3 +261,17 @@
 - Consequence:
   - `docs/code-agent-api.md`와 `coordination/AUTOMATIONS/A-001-nightly-test-report.md`는 보류 분기와 수치 유지 규칙을 운영 기준으로 사용한다.
   - 다음 라운드(H-017)는 샘플 확보 계획/추적 지표/재보정 착수 조건을 고정하는 작업으로 진행한다.
+
+## D-029 fallback warning 재보정 착수 게이트/Projection 추적 정책
+- Date: 2026-02-19
+- Status: Approved (H-017 Scope)
+- Decision:
+  - H-016 기준선(`INSUFFICIENT_SAMPLE` 비율 `1.00`, 샘플 충분 일수 0일)을 기준으로 H-017 샘플 확보 정량 목표를 운영 게이트로 사용한다.
+  - 재보정 착수 가능 조건은 최근 14일 기준 `집계 성공 >= 10`, `INSUFFICIENT_SAMPLE <= 0.50`, `집계 불가 < 3`, `샘플 충분 일수(parseEligibleRunCount >= 20) >= 7`로 고정한다.
+  - H-017 이후 운영 점검은 `parseEligibleRunCount` 추세(전체 + agent별), 목표 대비 진행률, Projection(`requiredSufficientDays`)을 함께 보고한다.
+  - 게이트 미충족 시 임계치/알림 룰 수치(`0.05`, `0.15`, `+0.10p`, `0.10`)는 유지하고, 원인 분류(`LOW_TRAFFIC`, `CHAIN_COVERAGE_GAP`, `COLLECTION_FAILURE`) 기반 보완 액션을 우선한다.
+- Rationale: 보정 보류 상태를 해소하려면 임계치 자체 조정보다 샘플 확보와 착수 시점 예측 정확도를 먼저 관리해야 하며, 단일 수치 보고만으로는 착수 가능 시점 판단이 불안정하기 때문이다.
+- Consequence:
+  - `docs/code-agent-api.md`는 기준선/목표/분기/Projection 규칙을 기준 문서로 유지한다.
+  - `coordination/AUTOMATIONS/A-001-nightly-test-report.md`는 추세/진행률/Projection/다음 액션을 필수 출력으로 사용한다.
+  - 다음 라운드(H-018)는 H-017 계획의 운영 적용 점검(실측 추세, Projection 오차, 재보정 착수 시점 추적)으로 진행한다.
