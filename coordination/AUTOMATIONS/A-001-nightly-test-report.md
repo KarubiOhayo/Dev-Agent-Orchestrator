@@ -39,39 +39,33 @@
      - 전일 대비 warningRate +0.10p 이상 상승 + warningEventCount 5건 이상 증가
      - 전체 집계 warningRate >= 0.10
    - run-state 데이터를 찾지 못하면 원인과 함께 `집계 불가`로 보고한다.
-   - H-017 샘플 확보 추적(최근 14일 KST 기준) 점검을 추가한다.
+   - H-018 운영 적용 점검(최근 14일 KST 기준)을 추가한다.
     - 기준선(H-016)을 고정해 함께 보고한다.
       - 집계 성공 `14일`, `INSUFFICIENT_SAMPLE` `14일/1.00`, `집계 불가` `0일`
       - `parseEligibleRunCount(14d)`: `CODE 4`, `SPEC 1`, `DOC 0`, `REVIEW 0`, `전체 5`
-    - 최근 14일의 일 단위 집계를 대상으로 `집계 성공`/`집계 불가`/`INSUFFICIENT_SAMPLE` 일수를 계산한다.
+    - 최근 14일의 일 단위 집계를 대상으로 `집계 성공`/`집계 불가`/`INSUFFICIENT_SAMPLE`/`샘플 충분(>=20)` 일수를 계산한다.
     - `INSUFFICIENT_SAMPLE` 비율을 계산한다. (`INSUFFICIENT_SAMPLE 일수 / 14`)
     - `집계 불가` 원인을 분류한다. (예: run-state 부재, 조회/파싱 실패, 필수 필드 누락)
     - 최근 14일 `parseEligibleRunCount` 추세를 전체 + agent별로 계산한다.
       - 일별 값 표(14행) + 7일 이동평균
       - 일일 최소 모수 목표 대비 진행률:
         - `CODE >= 16`, `SPEC >= 4`, `DOC >= 6`, `REVIEW >= 6`, `전체 >= 32`
-    - H-017 목표 대비 진행률을 계산한다.
+    - H-017 목표 대비 진행률/미달률을 계산한다.
       - 집계 성공 일수 `>= 10`
       - `INSUFFICIENT_SAMPLE` 비율 `<= 0.50`
       - `집계 불가` 일수 `< 3`
       - 샘플 충분 일수(`parseEligibleRunCount >= 20`) `>= 7`
-    - 게이트 충족 예상치(Projection)를 계산한다.
-      - `requiredSufficientDays = max(0, insufficientDays - 7)`
-      - 최근 3일 평균 전체 모수(`parseEligibleRunCount`)가 32 이상이면
-        - `예상 재보정 착수 가능일 = 오늘(KST) + requiredSufficientDays`
-      - 예상치 미산정 또는 지연 시 원인을 분류한다.
-        - `LOW_TRAFFIC`, `CHAIN_COVERAGE_GAP`, `COLLECTION_FAILURE`
+    - Projection 대비 실측 오차를 계산한다.
+      - `deltaSufficientDays = actualSufficientDays - 7`
+      - `deltaInsufficientRatio = actualInsufficientRatio - 0.50`
+      - `deltaStartDate`: H-017 예상 착수일(산정 가능 시)과 실제 판정 시점 차이
+    - 오차 허용 기준을 판정한다.
+      - `abs(deltaSufficientDays) > 2` 또는 `abs(deltaInsufficientRatio) > 0.10`이면 오차 초과
+      - `deltaStartDate` 미산정이면 전제조건 미충족으로 간주하고 보류 근거에 포함
     - 재보정 착수 가능/보류를 판정하고 다음 액션을 제시한다.
-      - 게이트 충족: "재보정 착수 가능" + 후보값 산정/전후 비교 준비
-      - 게이트 미충족: "보정 보류" + 미충족 원인별 샘플 확보 액션
+      - 오차 초과 또는 게이트 미충족: "보정 보류" + 원인 분류(`LOW_TRAFFIC`, `CHAIN_COVERAGE_GAP`, `COLLECTION_FAILURE`) + 우선순위 액션
+      - 게이트 충족 + 오차 허용 범위 내: "재보정 착수 가능" + 다음 라운드(임계치 후보 산정 라운드) 제안
     - 보정 보류 시 임계치/알림 룰 수치(`0.05`, `0.15`, `+0.10p`, `0.10`)는 유지한다.
-    - 게이트 충족 시 임계치/알림 룰 후보값을 제시한다.
-      - 임계치 후보: `NORMAL/CAUTION/WARNING` 경계값 후보
-      - 알림 룰 후보: 급증 기준(`+0.10p`) 및 전체 보호 기준(`0.10`) 조정 후보
-      - 적용 전/후 비교:
-        - agent별 등급 분포(`NORMAL/CAUTION/WARNING`) 변화
-        - 알림 트리거 건수 변화(연속 초과/급증/전체 보호)
-        - 예상 영향 요약(오탐 완화/미탐 증가 가능성)
 3) 테스트 성공/실패 요약, 실패 테스트 이름(있으면), 추정 영향 범위, 권장 후속조치를 작성한다.
 4) 결과를 inbox 보고 형식으로 출력한다.
 
@@ -96,11 +90,11 @@
   - 최근 14일 `INSUFFICIENT_SAMPLE` 일수와 비율
   - 최근 14일 `집계 불가` 원인 분류(원인별 일수)
   - 최근 14일 `parseEligibleRunCount` 추세(전체 + agent별 일별값, 7일 이동평균)
-  - H-017 목표 대비 진행률(집계 성공/샘플 부족/집계 불가/샘플 충분 일수)
-  - 게이트 충족 예상치(Projection: 예상 재보정 착수 가능일, 지연 원인 분류)
+  - H-017 목표 대비 진행률/미달률(집계 성공/샘플 부족/집계 불가/샘플 충분 일수)
+  - Projection 대비 실측 오차(`deltaSufficientDays`, `deltaInsufficientRatio`, `deltaStartDate`)
   - 임계치 보정 판단(진행/보류) 및 근거
   - 다음 액션(재보정 착수 준비 또는 샘플 확보 지속)
-  - 보정 진행 시: 임계치/알림 룰 후보값 + 적용 전/후 비교 표
-  - 보정 보류 시: 기존 수치 유지 확인 + 보류 사유(미충족 게이트 항목)
+  - 보정 진행 시: 임계치 후보 산정 라운드 제안 문구
+  - 보정 보류 시: 기존 수치 유지 확인 + 보류 사유(미충족 게이트/오차 초과 항목)
 - 권장 후속조치(수동)
 ```

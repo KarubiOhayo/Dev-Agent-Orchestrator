@@ -282,6 +282,93 @@ curl -X POST http://localhost:8080/api/agents/code/generate \
   - 임계치/알림 룰 수치(`0.05`, `0.15`, `+0.10p`, `0.10`)는 재보정 착수 전까지 변경하지 않는다.
   - `parseEligibleRunCount < 20`의 `INSUFFICIENT_SAMPLE` 제외 규칙은 유지한다.
 
+### H-018 운영 적용 점검 결과 (H-017 계획 적용)
+
+- 점검 구간:
+  - 최근 14일 KST `2026-02-06 ~ 2026-02-19`
+- 데이터 소스:
+  - `storage/devagent.db` (`runs`, `run_events`)
+- 대상 fallback warning 이벤트:
+  - `CODE_OUTPUT_FALLBACK_WARNING`
+  - `SPEC_OUTPUT_FALLBACK_WARNING`
+  - `DOC_OUTPUT_FALLBACK_WARNING`
+  - `REVIEW_OUTPUT_FALLBACK_WARNING`
+
+#### 최근 14일 실측 요약 (게이트 + agent 모수)
+
+| 항목 | 실측값 | H-017 목표/기준 | 판정 |
+|---|---:|---:|---|
+| 집계 성공 일수 | 14일 | >= 10일 | PASS |
+| `INSUFFICIENT_SAMPLE` 일수/비율 | 14일 / 1.00 | <= 0.50 | FAIL |
+| `집계 불가` 일수 | 0일 | < 3일 | PASS |
+| 샘플 충분 일수(`parseEligibleRunCount >= 20`) | 0일 | >= 7일 | FAIL |
+
+| 구분 | parseEligibleRunCount(14d) | warningEventCount(14d) | warningRate(14d) |
+|---|---:|---:|---:|
+| CODE | 4 | 0 | 0.0000 |
+| SPEC | 1 | 0 | 0.0000 |
+| DOC | 0 | 0 | N/A |
+| REVIEW | 0 | 0 | N/A |
+| 전체 | 5 | 0 | 0.0000 |
+
+- 일별 추세 요약:
+  - 실측 모수 발생일: `2026-02-11`(전체 4), `2026-02-13`(전체 1)
+  - 나머지 12일은 `parseEligibleRunCount=0`으로 샘플 부족 상태가 지속됨
+  - 최근 3일 평균 전체 모수: `0.0000` (목표 `>= 32` 미충족)
+
+#### H-017 목표 대비 진행률/미달률
+
+| 항목 | 실측 | 목표 | 달성률 | 미달률/갭 |
+|---|---:|---:|---:|---:|
+| 집계 성공 일수 | 14일 | >= 10일 | 140% | 0일 |
+| `INSUFFICIENT_SAMPLE` 비율 | 1.00 | <= 0.50 | 0% | +0.50 |
+| `집계 불가` 일수 | 0일 | < 3일 | 100% | 0일 |
+| 샘플 충분 일수(`>=20`) | 0일 | >= 7일 | 0% | -7일 |
+
+#### Projection 대비 실측 오차 (H-018)
+
+- H-017 Projection 기준:
+  - `requiredSufficientDays = max(0, insufficientDays - 7)` -> `7일`
+  - `최근 3일 평균 전체 모수 >= 32`일 때만 `예상 재보정 착수 가능일` 산정
+- H-018 실측:
+  - `insufficientDays=14`, `sufficientDays=0`, `insuffRatio=1.00`, 최근 3일 평균 전체 모수 `0.0000`
+
+| 오차 항목 | H-017 예상(기준) | H-018 실측 | Delta | 허용 기준 | 초과 여부 |
+|---|---|---|---:|---|---|
+| `deltaSufficientDays` | 7일(필요 최소) | 0일 | -7일 | 절대오차 2일 | 초과 |
+| `deltaInsufficientRatio` | 0.50(상한) | 1.00 | +0.50 | 절대오차 0.10 | 초과 |
+| `deltaStartDate` | `2026-02-26`(조건부 최소 예상) | 미산정/보류 | N/A | 절대오차 2일 | 조건 미충족 |
+
+- 종합 오차 판정:
+  - `|deltaSufficientDays|=7 > 2`, `|deltaInsufficientRatio|=0.50 > 0.10`으로 허용 기준 초과
+  - `deltaStartDate`는 전제조건(최근 3일 평균 전체 모수 `>= 32`) 미충족으로 산정 불가
+
+#### 재보정 착수 가능/보류 판정
+
+- 최종 판정:
+  - **보정 보류**
+- 근거:
+  - 게이트 4개 중 2개(`INSUFFICIENT_SAMPLE` 비율, 샘플 충분 일수) 미충족
+  - Projection 오차 허용 기준(일수/비율) 초과
+
+#### 미충족 원인 분류 및 보완 액션 (우선순위)
+
+1. `LOW_TRAFFIC` (우선순위 1)
+   - 근거: 최근 3일 평균 전체 모수 `0.0000` (목표 `>= 32` 대비 -32.0000)
+   - 액션: Code 직접 호출/체인 호출 실행량을 일일 목표(`CODE 16`, `SPEC 4`, `DOC 6`, `REVIEW 6`)까지 증량
+2. `CHAIN_COVERAGE_GAP` (우선순위 2)
+   - 근거: 14일 누적 `DOC 0`, `REVIEW 0`, `SPEC 1`로 체인 기반 모수 확보 실패
+   - 액션: Spec->Code, Code->Doc/Review 체인 비중을 우선 상향하고 agent별 일일 목표 달성 여부를 일 단위로 점검
+3. `COLLECTION_FAILURE` (우선순위 3)
+   - 근거: `집계 불가 0일`로 현재 미발생
+   - 액션: run-state 조회/파싱 실패 감시 규칙 유지(발생 시 즉시 원인 분류 및 당일 복구)
+
+#### 유지 원칙 재확인
+
+- 임계치/알림 룰 수치(`0.05`, `0.15`, `+0.10p`, `0.10`)는 변경하지 않는다.
+- `parseEligibleRunCount < 20`의 `INSUFFICIENT_SAMPLE` 제외 규칙을 유지한다.
+- 이벤트 정의(`*_OUTPUT_FALLBACK_WARNING`)와 모수 정의(직접 호출 + 체인 호출 포함)는 변경하지 않는다.
+
 ## 공통 오류 응답 계약 (Routing + Agent API)
 
 다음 엔드포인트는 입력 오류를 동일한 오류 envelope로 반환합니다.
