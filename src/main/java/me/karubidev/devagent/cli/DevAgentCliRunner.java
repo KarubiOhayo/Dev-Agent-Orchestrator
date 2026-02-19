@@ -5,6 +5,7 @@ import java.util.Locale;
 import java.util.Set;
 import me.karubidev.devagent.agents.code.CodeAgentService;
 import me.karubidev.devagent.agents.code.CodeGenerateRequest;
+import me.karubidev.devagent.agents.code.CodeGenerateResponse;
 import me.karubidev.devagent.agents.spec.SpecAgentService;
 import me.karubidev.devagent.agents.spec.SpecGenerateRequest;
 import me.karubidev.devagent.orchestration.routing.RiskLevel;
@@ -17,6 +18,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class DevAgentCliRunner implements ApplicationRunner, ExitCodeGenerator {
+
+  private static final int EXIT_CODE_CHAIN_FAILURE_GUARDRAIL = 3;
 
   private static final Set<String> GENERATE_OPTIONS = Set.of(
       "project-id",
@@ -34,6 +37,7 @@ public class DevAgentCliRunner implements ApplicationRunner, ExitCodeGenerator {
       "chain-to-review",
       "review-user-request",
       "chain-failure-policy",
+      "fail-on-chain-failures",
       "json"
   );
 
@@ -54,6 +58,7 @@ public class DevAgentCliRunner implements ApplicationRunner, ExitCodeGenerator {
       "code-chain-to-review",
       "code-review-user-request",
       "code-chain-failure-policy",
+      "fail-on-chain-failures",
       "spec-output-path",
       "json"
   );
@@ -126,6 +131,7 @@ public class DevAgentCliRunner implements ApplicationRunner, ExitCodeGenerator {
   private void runGenerate(DevAgentCliArguments cli) {
     cli.assertOnly(GENERATE_OPTIONS);
     boolean jsonMode = cli.optionAsBoolean("json", false);
+    boolean failOnChainFailures = cli.optionAsBoolean("fail-on-chain-failures", false);
 
     CodeGenerateRequest request = new CodeGenerateRequest();
     request.setProjectId(cli.optionOrDefault("project-id", request.getProjectId()));
@@ -164,11 +170,13 @@ public class DevAgentCliRunner implements ApplicationRunner, ExitCodeGenerator {
     } else {
       out.print(formatter.formatGenerate(response));
     }
+    applyChainFailureGuardrail(failOnChainFailures, response);
   }
 
   private void runSpec(DevAgentCliArguments cli) {
     cli.assertOnly(SPEC_OPTIONS);
     boolean jsonMode = cli.optionAsBoolean("json", false);
+    boolean failOnChainFailures = cli.optionAsBoolean("fail-on-chain-failures", false);
 
     SpecGenerateRequest request = new SpecGenerateRequest();
     request.setProjectId(cli.optionOrDefault("project-id", request.getProjectId()));
@@ -211,6 +219,7 @@ public class DevAgentCliRunner implements ApplicationRunner, ExitCodeGenerator {
     } else {
       out.print(formatter.formatSpec(response));
     }
+    applyChainFailureGuardrail(failOnChainFailures, response.chainedCodeResult());
   }
 
   private void printUsage() {
@@ -240,6 +249,7 @@ public class DevAgentCliRunner implements ApplicationRunner, ExitCodeGenerator {
           --chain-to-review=<true|false>    (default: false)
           --review-user-request="<요청>"
           --chain-failure-policy=<FAIL_FAST|PARTIAL_SUCCESS> (default: FAIL_FAST)
+          --fail-on-chain-failures=<true|false> (default: false, chainFailures>0 => exit 3)
 
         spec options:
           --chain-to-code=<true|false>, -c  (default: false)
@@ -251,6 +261,7 @@ public class DevAgentCliRunner implements ApplicationRunner, ExitCodeGenerator {
           --code-chain-to-review=<true|false> (default: false)
           --code-review-user-request="<요청>"
           --code-chain-failure-policy=<FAIL_FAST|PARTIAL_SUCCESS> (default: FAIL_FAST)
+          --fail-on-chain-failures=<true|false> (default: false, chainFailures>0 => exit 3)
           --spec-output-path=<relative/path>
         """);
   }
@@ -324,6 +335,16 @@ public class DevAgentCliRunner implements ApplicationRunner, ExitCodeGenerator {
       return false;
     }
     return null;
+  }
+
+  private void applyChainFailureGuardrail(boolean failOnChainFailures, CodeGenerateResponse response) {
+    if (failOnChainFailures && hasChainFailures(response)) {
+      exitCode = EXIT_CODE_CHAIN_FAILURE_GUARDRAIL;
+    }
+  }
+
+  private boolean hasChainFailures(CodeGenerateResponse response) {
+    return response != null && response.chainFailures() != null && !response.chainFailures().isEmpty();
   }
 
   private String normalize(String raw) {

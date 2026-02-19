@@ -39,6 +39,7 @@ final class DevAgentCliArguments {
       "chain-to-code",
       "chain-to-doc",
       "chain-to-review",
+      "fail-on-chain-failures",
       "large-context",
       "strict-json-required",
       "overwrite-existing",

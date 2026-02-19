@@ -4,7 +4,7 @@
 
 `devagent` 스크립트로 `generate`/`spec` 명령을 한 줄로 실행할 수 있습니다.
 스크립트는 `bootRun` 대신 `bootJar + java -jar` 경로를 사용해
-CLI 종료코드(예: 잘못된 옵션은 `2`)를 그대로 전달합니다.
+CLI 종료코드(예: 잘못된 옵션은 `2`, 체인 실패 가드레일은 `3`)를 그대로 전달합니다.
 
 - 기본 출력: human-readable 요약 테이블
 - `--json`/`-j`: machine parsing 용 JSON 출력(성공/실패 공통 envelope)
@@ -92,7 +92,31 @@ devagent generate --user-request "로그인 API 스켈레톤을 만들어줘"
   -k MEDIUM
 ```
 
-### 5) JSON 출력 모드
+### 5) `PARTIAL_SUCCESS` 소비 가드레일 (자동화/CI)
+
+`--fail-on-chain-failures=true`를 사용하면 `PARTIAL_SUCCESS` + `chainFailures[]` 발생 시
+출력은 유지하면서 종료코드를 `3`으로 반환합니다.
+
+```bash
+./devagent generate \
+  -u "로그인 API 코드를 생성해줘" \
+  --chain-to-doc true \
+  --chain-to-review true \
+  --chain-failure-policy PARTIAL_SUCCESS \
+  --fail-on-chain-failures true
+```
+
+```bash
+./devagent spec \
+  -u "로그인/토큰 재발급 명세를 JSON으로 작성해줘" \
+  --chain-to-code true \
+  --code-chain-to-doc true \
+  --code-chain-to-review true \
+  --code-chain-failure-policy PARTIAL_SUCCESS \
+  --fail-on-chain-failures true
+```
+
+### 6) JSON 출력 모드
 
 ```bash
 ./devagent generate \
@@ -117,6 +141,8 @@ devagent generate --user-request "로그인 API 스켈레톤을 만들어줘"
 | chainedReview| true                |
 | chainFailures| 1                   |
 +-------------+----------------------+
+
+[warning] chainFailures detected: 1 (use --fail-on-chain-failures=true to return exit code 3)
 
 file results
 - DRY_RUN src/main/java/AuthController.java (planned)
@@ -147,6 +173,7 @@ file results
       "chainedReview": true,
       "chainFailures": 1
     },
+    "hasChainFailures": true,
     "fileResults": [
       {
         "path": "src/main/java/AuthController.java",
@@ -168,8 +195,10 @@ file results
 
 주의:
 
+- 기본 모드(기본값): `--fail-on-chain-failures` 미사용 또는 `false`면, `chainFailures[]`가 있어도 종료코드는 `0`입니다.
+- 가드레일 모드: `--fail-on-chain-failures=true`면, `chainFailures[]`가 비어 있지 않을 때 종료코드 `3`을 반환합니다.
 - API에서 `chainFailurePolicy=PARTIAL_SUCCESS`를 사용한 경우, HTTP/API 호출 자체가 성공이어도 `chainFailures[]`를 반드시 확인해야 합니다.
-- `chainFailures[]`가 비어 있지 않으면 Doc/Review 체인 중 일부가 실패한 상태입니다.
+- JSON 출력에서는 `data.hasChainFailures` 보조 필드로 빠른 분기 처리가 가능합니다.
 
 ### 실패 (`--json` + 잘못된 옵션)
 
@@ -200,6 +229,7 @@ file results
 - `--chain-to-doc`, `--doc-user-request`: `generate`에서 Code -> Doc 체인 옵션
 - `--chain-to-review`, `--review-user-request`: `generate`에서 Code -> Review 체인 옵션
 - `--chain-failure-policy`: `generate` 체인 실패 정책 (`FAIL_FAST | PARTIAL_SUCCESS`)
+- `--fail-on-chain-failures`: `generate/spec` 공통 가드레일 (`true` + `chainFailures>0`이면 종료코드 `3`)
 - `--chain-to-code`, `-c`: `spec`에서 스펙 생성 후 코드 생성 체이닝
 - `--code-chain-to-doc`, `--code-doc-user-request`: `spec`의 Code 체인에서 Doc 체인 옵션
 - `--code-chain-to-review`, `--code-review-user-request`: `spec`의 Code 체인에서 Review 체인 옵션

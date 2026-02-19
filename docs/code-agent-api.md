@@ -107,6 +107,7 @@ curl -X POST http://localhost:8080/api/agents/spec/generate \
   - `PARTIAL_SUCCESS`: 체인 실패를 `chainFailures`에 기록하고 Code 요청은 성공으로 반환
 - `PARTIAL_SUCCESS`에서도 run-state 이벤트(`CHAIN_*_TRIGGERED/DONE/FAILED`) 기록 계약은 동일하게 유지됨
 - `PARTIAL_SUCCESS`를 사용하는 클라이언트는 HTTP 200이어도 `chainFailures[]`를 반드시 확인해야 함
+- CLI(`devagent generate/spec`)에서는 `--fail-on-chain-failures=true` 가드레일로 `chainFailures[]` 존재 시 종료코드 `3`을 강제할 수 있음(출력/응답 계약은 유지).
 
 ## 출력 파싱 fallback 관측 이벤트 (run-state)
 

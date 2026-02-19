@@ -50,6 +50,16 @@ class DevAgentCliArgumentsTest {
   }
 
   @Test
+  void parseGenerateSupportsFailOnChainFailuresOption() {
+    DevAgentCliArguments parsed = DevAgentCliArguments.parse(new String[]{
+        "generate",
+        "--fail-on-chain-failures", "true"
+    });
+
+    assertThat(parsed.optionAsBoolean("fail-on-chain-failures", false)).isTrue();
+  }
+
+  @Test
   void parseSpecSupportsCodePrefixedChainOptions() {
     DevAgentCliArguments parsed = DevAgentCliArguments.parse(new String[]{
         "spec",
@@ -141,6 +151,17 @@ class DevAgentCliArgumentsTest {
     });
 
     assertThat(parsed.optionAsBoolean("json", false)).isTrue();
+  }
+
+  @Test
+  void parseAllowsEquivalentBooleanValuesForFailOnChainFailures() {
+    DevAgentCliArguments parsed = DevAgentCliArguments.parse(new String[]{
+        "generate",
+        "--fail-on-chain-failures=true",
+        "--fail-on-chain-failures=yes"
+    });
+
+    assertThat(parsed.optionAsBoolean("fail-on-chain-failures", false)).isTrue();
   }
 
   @Test

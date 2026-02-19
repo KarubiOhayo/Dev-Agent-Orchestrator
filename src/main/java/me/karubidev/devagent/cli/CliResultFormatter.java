@@ -20,10 +20,15 @@ public class CliResultFormatter {
   }
 
   public String formatGenerate(CodeGenerateResponse response) {
+    return formatGenerate(response, true);
+  }
+
+  private String formatGenerate(CodeGenerateResponse response, boolean includeChainFailureWarning) {
     FileApplyResult applyResult = response.applyResult();
     int parsedFiles = applyResult != null ? applyResult.parsedFiles() : safeSize(response.files());
     int writtenFiles = applyResult != null ? applyResult.writtenFiles() : 0;
     int skippedFiles = applyResult != null ? applyResult.skippedFiles() : 0;
+    int chainFailureCount = safeSize(response.chainFailures());
     String applyOutcome;
     if (applyResult == null) {
       applyOutcome = "UNKNOWN";
@@ -40,12 +45,15 @@ public class CliResultFormatter {
         new Row("skippedFiles", String.valueOf(skippedFiles)),
         new Row("chainedDoc", response.chainedDocResult() == null ? "false" : "true"),
         new Row("chainedReview", response.chainedReviewResult() == null ? "false" : "true"),
-        new Row("chainFailures", String.valueOf(safeSize(response.chainFailures())))
+        new Row("chainFailures", String.valueOf(chainFailureCount))
     );
 
     StringBuilder sb = new StringBuilder();
     sb.append("== generate summary ==\n");
     sb.append(renderTable(rows));
+    if (includeChainFailureWarning) {
+      appendChainFailureWarning(sb, chainFailureCount);
+    }
     appendFileItems(sb, applyResult);
     appendChainFailures(sb, response.chainFailures());
     return sb.toString();
@@ -69,9 +77,10 @@ public class CliResultFormatter {
     StringBuilder sb = new StringBuilder();
     sb.append("== spec summary ==\n");
     sb.append(renderTable(rows));
+    appendChainFailureWarning(sb, chainFailureCount);
     if (chainedCode != null) {
       sb.append("\n");
-      sb.append(formatGenerate(chainedCode));
+      sb.append(formatGenerate(chainedCode, false));
     }
     return sb.toString();
   }
@@ -100,6 +109,7 @@ public class CliResultFormatter {
         response.chainedCodeResult() == null ? 0 : safeSize(response.chainedCodeResult().chainFailures())
     );
     data.set("summary", summary);
+    data.put("hasChainFailures", response.chainedCodeResult() != null && safeSize(response.chainedCodeResult().chainFailures()) > 0);
     if (response.spec() != null) {
       data.set("spec", response.spec());
     } else {
@@ -255,6 +265,7 @@ public class CliResultFormatter {
     int parsedFiles = applyResult != null ? applyResult.parsedFiles() : safeSize(response.files());
     int writtenFiles = applyResult != null ? applyResult.writtenFiles() : 0;
     int skippedFiles = applyResult != null ? applyResult.skippedFiles() : 0;
+    int chainFailureCount = safeSize(response.chainFailures());
     String applyOutcome;
     if (applyResult == null) {
       applyOutcome = "UNKNOWN";
@@ -270,8 +281,9 @@ public class CliResultFormatter {
     summary.put("skippedFiles", skippedFiles);
     summary.put("chainedDoc", response.chainedDocResult() != null);
     summary.put("chainedReview", response.chainedReviewResult() != null);
-    summary.put("chainFailures", safeSize(response.chainFailures()));
+    summary.put("chainFailures", chainFailureCount);
     data.set("summary", summary);
+    data.put("hasChainFailures", chainFailureCount > 0);
 
     ArrayNode files = objectMapper.createArrayNode();
     if (applyResult != null && applyResult.files() != null) {
@@ -298,6 +310,15 @@ public class CliResultFormatter {
     data.set("fileResults", files);
     data.set("chainFailures", buildChainFailuresNode(response.chainFailures()));
     return data;
+  }
+
+  private void appendChainFailureWarning(StringBuilder sb, int chainFailureCount) {
+    if (chainFailureCount <= 0) {
+      return;
+    }
+    sb.append("\n[warning] chainFailures detected: ")
+        .append(chainFailureCount)
+        .append(" (use --fail-on-chain-failures=true to return exit code 3)\n");
   }
 
   private ArrayNode buildChainFailuresNode(List<CodeGenerateResponse.ChainFailure> chainFailures) {

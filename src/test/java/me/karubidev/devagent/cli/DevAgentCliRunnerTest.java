@@ -127,6 +127,7 @@ class DevAgentCliRunnerTest {
         .contains("chainedDoc")
         .contains("chainedReview")
         .contains("chainFailures")
+        .contains("[warning] chainFailures detected: 1")
         .contains("chain failures")
         .contains("agent=REVIEW")
         .contains("stage=CHAIN_REVIEW")
@@ -164,11 +165,98 @@ class DevAgentCliRunnerTest {
     assertThat(json.path("data").path("summary").path("chainedDoc").asBoolean()).isTrue();
     assertThat(json.path("data").path("summary").path("chainedReview").asBoolean()).isFalse();
     assertThat(json.path("data").path("summary").path("chainFailures").asInt()).isEqualTo(1);
+    assertThat(json.path("data").path("hasChainFailures").asBoolean()).isTrue();
     assertThat(json.path("data").path("chainFailures")).hasSize(1);
     assertThat(json.path("data").path("chainFailures").get(0).path("agent").asText()).isEqualTo("REVIEW");
     assertThat(json.path("data").path("chainFailures").get(0).path("failedStage").asText()).isEqualTo("CHAIN_REVIEW");
     assertThat(json.path("data").path("chainFailures").get(0).path("errorMessage").asText())
         .isEqualTo("review failure");
+  }
+
+  @Test
+  void runGenerateReturnsExitCodeThreeWhenGuardrailEnabledAndChainFailuresExist() {
+    ByteArrayOutputStream outBytes = new ByteArrayOutputStream();
+    ByteArrayOutputStream errBytes = new ByteArrayOutputStream();
+
+    CodeAgentService codeAgentService = Mockito.mock(CodeAgentService.class);
+    Mockito.when(codeAgentService.generate(any())).thenReturn(sampleGenerateResponseWithChainFailure());
+
+    DevAgentCliRunner runner = new DevAgentCliRunner(
+        codeAgentService,
+        Mockito.mock(SpecAgentService.class),
+        new CliResultFormatter(new ObjectMapper()),
+        new PrintStream(outBytes),
+        new PrintStream(errBytes)
+    );
+
+    runner.run(new DefaultApplicationArguments(
+        "generate",
+        "--user-request=test",
+        "--chain-to-doc=true",
+        "--chain-to-review=true",
+        "--chain-failure-policy=PARTIAL_SUCCESS",
+        "--fail-on-chain-failures=true"
+    ));
+
+    assertThat(runner.getExitCode()).isEqualTo(3);
+    assertThat(errBytes.toString()).isBlank();
+    assertThat(outBytes.toString()).contains("chainFailures");
+  }
+
+  @Test
+  void runGenerateKeepsSuccessExitCodeWhenGuardrailDisabledByOption() {
+    ByteArrayOutputStream outBytes = new ByteArrayOutputStream();
+    ByteArrayOutputStream errBytes = new ByteArrayOutputStream();
+
+    CodeAgentService codeAgentService = Mockito.mock(CodeAgentService.class);
+    Mockito.when(codeAgentService.generate(any())).thenReturn(sampleGenerateResponseWithChainFailure());
+
+    DevAgentCliRunner runner = new DevAgentCliRunner(
+        codeAgentService,
+        Mockito.mock(SpecAgentService.class),
+        new CliResultFormatter(new ObjectMapper()),
+        new PrintStream(outBytes),
+        new PrintStream(errBytes)
+    );
+
+    runner.run(new DefaultApplicationArguments(
+        "generate",
+        "--user-request=test",
+        "--chain-to-doc=true",
+        "--chain-to-review=true",
+        "--chain-failure-policy=PARTIAL_SUCCESS",
+        "--fail-on-chain-failures=false"
+    ));
+
+    assertThat(runner.getExitCode()).isZero();
+    assertThat(errBytes.toString()).isBlank();
+    assertThat(outBytes.toString()).contains("chainFailures");
+  }
+
+  @Test
+  void runGenerateKeepsSuccessExitCodeWhenNoChainFailuresEvenIfGuardrailEnabled() {
+    ByteArrayOutputStream outBytes = new ByteArrayOutputStream();
+    ByteArrayOutputStream errBytes = new ByteArrayOutputStream();
+
+    CodeAgentService codeAgentService = Mockito.mock(CodeAgentService.class);
+    Mockito.when(codeAgentService.generate(any())).thenReturn(sampleGenerateResponse());
+
+    DevAgentCliRunner runner = new DevAgentCliRunner(
+        codeAgentService,
+        Mockito.mock(SpecAgentService.class),
+        new CliResultFormatter(new ObjectMapper()),
+        new PrintStream(outBytes),
+        new PrintStream(errBytes)
+    );
+
+    runner.run(new DefaultApplicationArguments(
+        "generate",
+        "--user-request=test",
+        "--fail-on-chain-failures=true"
+    ));
+
+    assertThat(runner.getExitCode()).isZero();
+    assertThat(errBytes.toString()).isBlank();
   }
 
   @Test
@@ -230,6 +318,7 @@ class DevAgentCliRunnerTest {
         .contains("chainedDoc")
         .contains("chainedReview")
         .contains("chainFailures")
+        .contains("[warning] chainFailures detected: 1")
         .contains("== generate summary ==")
         .contains("chain failures")
         .contains("agent=REVIEW")
@@ -272,12 +361,45 @@ class DevAgentCliRunnerTest {
     assertThat(json.path("data").path("summary").path("chainedDoc").asBoolean()).isTrue();
     assertThat(json.path("data").path("summary").path("chainedReview").asBoolean()).isFalse();
     assertThat(json.path("data").path("summary").path("chainFailures").asInt()).isEqualTo(1);
+    assertThat(json.path("data").path("hasChainFailures").asBoolean()).isTrue();
     assertThat(json.path("data").path("chainFailures")).hasSize(1);
     assertThat(json.path("data").path("chainFailures").get(0).path("agent").asText()).isEqualTo("REVIEW");
     assertThat(json.path("data").path("chainFailures").get(0).path("failedStage").asText()).isEqualTo("CHAIN_REVIEW");
     assertThat(json.path("data").path("chainFailures").get(0).path("errorMessage").asText())
         .isEqualTo("review failure");
+    assertThat(json.path("data").path("chainedCode").path("hasChainFailures").asBoolean()).isTrue();
     assertThat(json.path("data").path("chainedCode").path("summary").path("chainFailures").asInt()).isEqualTo(1);
+  }
+
+  @Test
+  void runSpecReturnsExitCodeThreeWhenGuardrailEnabledAndChainFailuresExist() {
+    ByteArrayOutputStream outBytes = new ByteArrayOutputStream();
+    ByteArrayOutputStream errBytes = new ByteArrayOutputStream();
+
+    SpecAgentService specAgentService = Mockito.mock(SpecAgentService.class);
+    Mockito.when(specAgentService.generate(any())).thenReturn(sampleSpecResponseWithChainedCodeFailure());
+
+    DevAgentCliRunner runner = new DevAgentCliRunner(
+        Mockito.mock(CodeAgentService.class),
+        specAgentService,
+        new CliResultFormatter(new ObjectMapper()),
+        new PrintStream(outBytes),
+        new PrintStream(errBytes)
+    );
+
+    runner.run(new DefaultApplicationArguments(
+        "spec",
+        "--user-request=test",
+        "--chain-to-code=true",
+        "--code-chain-to-doc=true",
+        "--code-chain-to-review=true",
+        "--code-chain-failure-policy=PARTIAL_SUCCESS",
+        "--fail-on-chain-failures=true"
+    ));
+
+    assertThat(runner.getExitCode()).isEqualTo(3);
+    assertThat(errBytes.toString()).isBlank();
+    assertThat(outBytes.toString()).contains("chainFailures");
   }
 
   @Test
