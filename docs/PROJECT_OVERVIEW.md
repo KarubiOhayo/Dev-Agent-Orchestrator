@@ -49,10 +49,11 @@
   - H-025 Spec -> Code 체인에서 Code의 Doc/Review 체인 옵션 전파 + CLI 옵션/출력 보강 완료(Review `Go`)
   - H-026 Spec/CLI 원샷 체이닝 E2E 계약 테스트 보강 완료(`PARTIAL_SUCCESS` + `chainFailures[]` 소비 검증, Review `Go`)
   - H-027 CLI `PARTIAL_SUCCESS` 소비 가드레일 보강 완료(`--fail-on-chain-failures`, 종료코드 `3`, human/json 가시성 보강, Review `Go`)
+  - H-028 CLI 가드레일 실사용성 점검 완료(`data.guardrailTriggered`, human 경고 `guardrail=enabled|disabled`, 자동화/CI 체크리스트 + 샘플 파이프라인 검증, Review `Go`)
   - apply/dry-run 파일 반영
 - 미완료:
-  - H-028 CLI 가드레일 실사용성 점검(자동화/CI 소비자 `exit code 3` 처리 체크리스트 + 샘플 파이프라인 검증)
-  - H-024 fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정(Frozen/Backlog, 운영 데이터 확보 후 재개)
+  - H-029 fallback-warning H-024 동결 트랙 재개 조건 점검(최신 14일 운영 데이터/샘플 충족률 재평가 + `RESUME_H024/KEEP_FROZEN` 판정 근거 업데이트)
+  - H-024 fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정(Frozen/Backlog, H-029 판정 후 재개 여부 확정)
   - fallback warning 임계치/알림 룰 보정안의 운영 적용 후 회귀 점검(지속 데이터 누적 필요)
 
 ## 3) 핵심 아키텍처
@@ -122,8 +123,8 @@
 - CLI JSON 출력은 지원되지만, 옵션 파싱 경계 케이스는 지속 회귀 점검 필요
 
 ## 8) 다음 우선순위
-1. H-028 CLI 가드레일 실사용성 점검(자동화/CI 소비자 `exit code 3` 처리 체크리스트 + 샘플 파이프라인 검증)
-2. H-024 fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정(Frozen/Backlog, 운영 데이터 확보 후 재개)
+1. H-029 fallback-warning H-024 동결 트랙 재개 조건 점검(최신 14일 운영 데이터/샘플 충족률 재평가 + `RESUME_H024/KEEP_FROZEN` 판정)
+2. H-024 fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정(Frozen/Backlog, H-029에서 `RESUME_H024` 판정 시 재개)
 
 ## 9) 라운드 시작 체크 (Stateless)
 1. `docs/PROJECT_OVERVIEW.md` 읽기

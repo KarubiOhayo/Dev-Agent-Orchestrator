@@ -403,3 +403,17 @@
 - Consequence:
   - H-027 결과는 테스트 게이트 통과 + 리뷰 `Go`로 Main 승인 조건을 충족한다.
   - 다음 라운드(H-028)는 자동화/CI 소비자 관점에서 `exit code 3` 처리 체크리스트와 샘플 파이프라인 검증을 고정한다.
+
+## D-040 CLI 가드레일 소비 신호(`guardrailTriggered`) 및 CI 점검 계약 고정
+- Date: 2026-02-19
+- Status: Approved (H-028 Scope)
+- Decision:
+  - CLI `generate/spec` JSON 출력 `data`에 `guardrailTriggered` 보조 필드를 추가한다.
+  - `guardrailTriggered=true` 조건은 `--fail-on-chain-failures=true` + `chainFailures[] > 0` + 종료코드 `3` 조합으로 고정한다.
+  - human 경고 문구는 체인 실패 시 `guardrail=enabled|disabled` 상태를 1줄로 명시한다.
+  - 자동화/CI 소비 규약은 종료코드와 함께 JSON 신호(`chainFailures[]`, `hasChainFailures`, `guardrailTriggered`)를 동시 점검하도록 문서화한다.
+  - opt-in 정책(`--fail-on-chain-failures` 기본값 `false`)과 API 서버 응답 계약(`PARTIAL_SUCCESS`, `chainFailures[]`)은 유지한다.
+- Rationale: 종료코드만 또는 본문만 단독 소비하는 자동화 경로에서 체인 실패 해석 불일치가 발생할 수 있어, 기계 소비 신호와 운영 체크리스트를 동시에 고정할 필요가 있다.
+- Consequence:
+  - H-028 결과는 테스트 게이트 통과 + 리뷰 `Go`로 Main 승인 조건을 충족한다.
+  - 다음 라운드(H-029)는 fallback-warning H-024 동결 트랙 재개 조건 점검(`RESUME_H024/KEEP_FROZEN`)으로 진행한다.
