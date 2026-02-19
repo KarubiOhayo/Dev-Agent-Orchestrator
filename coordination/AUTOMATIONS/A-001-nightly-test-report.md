@@ -86,6 +86,9 @@
        - 재보정 착수 게이트(4개): `집계 성공 >= 10`, `INSUFFICIENT_SAMPLE <= 0.50`, `집계 불가 < 3`, `샘플 충분 일수(parseEligibleRunCount >= 20) >= 7`
        - 최종 판정은 `recalibrationReadiness` 필드에 `READY` 또는 `HOLD`로 표기한다.
        - 미충족 게이트는 `unmetGates` 목록으로 명시한다. (예: `INSUFFICIENT_SAMPLE_RATIO`, `SUFFICIENT_DAYS`)
+       - H-024 동결 트랙 재개 판정은 `resumeDecision` 필드에 `RESUME_H024` 또는 `KEEP_FROZEN` 중 하나만 표기한다.
+       - `unmetReadinessSignals`에 게이트 미충족 + 원인 신호(`LOW_TRAFFIC`, `CHAIN_COVERAGE_GAP`, `COLLECTION_FAILURE`)를 함께 기록한다.
+       - `nextCheckTrigger`에는 필수 충족 조건(게이트 4개)과 다음 점검 시각(KST)을 함께 기록한다.
        - 오차 초과 또는 게이트 4개 중 1개라도 미충족: `HOLD` + 원인 분류(`LOW_TRAFFIC`, `CHAIN_COVERAGE_GAP`, `COLLECTION_FAILURE`) + 우선순위 액션
        - `HOLD`일 때 원인 우선순위는 목표-실적 gap + 실행률 지표 기반으로 정한다.
          - `LOW_TRAFFIC`: 최근 7일 `executionRecoveryTrend.executionGap` + `executionGapDelta` + 최근 3일 평균 `overallExecutionRate` 기준
@@ -95,6 +98,8 @@
          - `status`는 `IN_PROGRESS|BLOCKED|DONE` 중 하나로 표기한다.
          - `evidence`에는 runId 또는 집계표 근거를 반드시 포함한다.
        - 게이트 4개 모두 충족 + 오차 허용 범위 내: `READY` + 다음 라운드 문구를 `임계치 후보 산정 라운드 착수 제안`으로 고정한다.
+       - `READY`이고 `unmetReadinessSignals`가 비어 있으면 `resumeDecision=RESUME_H024`로 표기한다.
+       - 그 외 경우는 `resumeDecision=KEEP_FROZEN`으로 표기하고, `nextCheckTrigger` + 우선순위 액션을 함께 제시한다.
      - `HOLD`일 때 임계치/알림 룰 수치(`0.05`, `0.15`, `+0.10p`, `0.10`)는 유지한다.
      - `HOLD`일 때 일일 우선 액션(직접 호출 증량, 체인 호출 증량, 점검 시각/담당)을 목표-실적 gap 근거와 함께 제시한다.
 3) 테스트 성공/실패 요약, 실패 테스트 이름(있으면), 추정 영향 범위, 권장 후속조치를 작성한다.
@@ -134,8 +139,13 @@
   - Projection 대비 실측 오차(`deltaSufficientDays`, `deltaInsufficientRatio`, `deltaStartDate`)
   - `recalibrationReadiness` (`READY`/`HOLD`)
   - 미충족 게이트 목록(`unmetGates`)
+  - `resumeDecision` (`RESUME_H024`/`KEEP_FROZEN`)
+  - `unmetReadinessSignals` (게이트 미충족 + 원인 신호)
+  - `nextCheckTrigger` (필수 충족 조건 + 다음 점검 시각 KST)
   - 임계치 보정 판단 근거(4개 게이트 + 오차 판정)
   - 다음 액션(재보정 착수 준비 또는 샘플 확보 지속, `LOW_TRAFFIC`/`CHAIN_COVERAGE_GAP` 우선순위 포함, 목표-실적 gap + 실행률/호출 믹스 근거 명시)
+  - `RESUME_H024` 시: 재개 즉시 액션(문서/자동화 동기화 범위 + 수용 기준) 명시
+  - `KEEP_FROZEN` 시: 동결 유지 사유 + 필수 충족 조건 + 다음 점검 시각 명시
   - `READY` 시: `임계치 후보 산정 라운드 착수 제안` 문구 고정
   - `HOLD` 시: 기존 수치 유지 확인 + 보류 사유(4개 게이트 기준 미충족 항목/오차 초과 항목) + 일일 우선 액션(점검 시각/담당 포함)
 - 권장 후속조치(수동)
