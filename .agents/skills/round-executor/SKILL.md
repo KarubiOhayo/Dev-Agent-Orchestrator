@@ -27,6 +27,7 @@ description: "트리거: 지정된 handoff 범위를 구현하고 테스트 후 
 5. Review 전달 릴레이를 템플릿 기반으로 작성한다.
    - `coordination/RELAYS/H-00N-executor-to-review.md`
    - 템플릿: `coordination/RELAYS/TEMPLATE-executor-to-review.md`
+6. 라운드 완료 전 구현 변경 + 결과 산출물(`coordination/REPORTS/`, `coordination/RELAYS/`)을 커밋/푸시한다.
 
 ## 금지 사항
 - handoff 범위 밖 수정 금지
@@ -43,4 +44,3 @@ description: "트리거: 지정된 handoff 범위를 구현하고 테스트 후 
 - 파일 산출(필수 2개):
   - `coordination/REPORTS/H-00N-result.md`
   - `coordination/RELAYS/H-00N-executor-to-review.md`
-
