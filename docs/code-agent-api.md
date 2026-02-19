@@ -220,6 +220,68 @@ curl -X POST http://localhost:8080/api/agents/code/generate \
 - 적용 전/후 비교:
   - **보정 보류에 따라 후보값 제시 및 전/후 비교를 수행하지 않음**
 
+### H-017 샘플 확보 계획 (재보정 착수 준비)
+
+- H-016 기준선(최근 14일, KST `2026-02-06 ~ 2026-02-19`):
+  - 집계 성공 일수: `14일`
+  - `INSUFFICIENT_SAMPLE` 일수/비율: `14일 / 1.00`
+  - `집계 불가` 일수: `0일`
+  - 누적 `parseEligibleRunCount`: `CODE 4`, `SPEC 1`, `DOC 0`, `REVIEW 0`, `전체 5`
+  - 샘플 충분 일수(`parseEligibleRunCount >= 20`): `0일`
+
+#### 재보정 착수 목표 (최근 14일 기준)
+
+| 항목 | H-016 기준선 | H-017 목표 |
+|---|---:|---:|
+| 집계 성공 일수 | 14일 | >= 10일 |
+| `INSUFFICIENT_SAMPLE` 비율 | 1.00 | <= 0.50 |
+| `집계 불가` 일수 | 0일 | < 3일 |
+| 샘플 충분 일수(`>=20`) | 0일 | >= 7일 |
+
+#### 샘플 확보 실행안 (직접 호출 + 체인 호출)
+
+- 시나리오 A (직접 Code 호출):
+  - `POST /api/agents/code/generate`를 `apply=false`, 체인 비활성으로 일 `6회` 실행
+  - 기대 모수 증가: `CODE +6/일`
+- 시나리오 B (Spec -> Code 체인):
+  - `POST /api/agents/spec/generate`를 `chainToCode=true`로 일 `4회` 실행
+  - 기대 모수 증가: `SPEC +4/일`, `CODE +4/일`
+- 시나리오 C (Code -> Doc/Review 체인):
+  - `POST /api/agents/code/generate`를 `chainToDoc=true`, `chainToReview=true`로 일 `6회` 실행
+  - 기대 모수 증가: `CODE +6/일`, `DOC +6/일`, `REVIEW +6/일`
+- 일일 최소 모수 목표(전체 + agent):
+  - `CODE >= 16`, `SPEC >= 4`, `DOC >= 6`, `REVIEW >= 6`, `전체 >= 32`
+- 점검 주기:
+  - 매일 야간 리포트(`A-001`, 09:00 KST)로 전일/최근 14일 추세를 점검
+  - 당일 중간 점검 1회(수동)로 체인 실행 누락 여부를 보정
+
+#### 목표 대비 진행률/예상치(Projection) 산출 기준
+
+- 목표 대비 진행률:
+  - `집계 성공 진행률 = min(1, 집계성공일수 / 10)`
+  - `샘플 부족 개선 진행률 = min(1, (1.00 - insuffRatio) / 0.50)` (H-016 기준선 1.00 대비)
+  - `집계 불가 안정성 진행률 = min(1, (3 - 집계불가일수) / 3)`
+- 게이트 충족 예상치(베스트 케이스):
+  - `requiredSufficientDays = max(0, insufficientDays - 7)`
+  - 최근 3일 평균 `parseEligibleRunCount(전체) >= 32`를 만족하면
+    - `예상 재보정 착수 가능일 = 오늘 + requiredSufficientDays(일)`
+- 미충족 원인 분류:
+  - `LOW_TRAFFIC`: 전체 모수(`parseEligibleRunCount`)가 일일 목표 미달
+  - `CHAIN_COVERAGE_GAP`: `SPEC`/`DOC`/`REVIEW` 중 1개 이상이 agent 목표 미달
+  - `COLLECTION_FAILURE`: run-state 조회/파싱 실패로 `집계 불가` 발생
+
+#### 재보정 착수/보류 분기 규칙
+
+- `재보정 착수 가능`:
+  - 최근 14일 기준 `집계 성공 >= 10`, `INSUFFICIENT_SAMPLE 비율 <= 0.50`, `집계 불가 < 3`을 모두 충족
+  - 다음 액션: 임계치/알림 룰 후보값 산정 + 적용 전/후 영향 비교 라운드 착수
+- `재보정 보류`:
+  - 위 3개 게이트 중 1개라도 미충족
+  - 다음 액션: 샘플 확보 실행안 유지/확대 + 미충족 원인 분류 기반 보완
+- 유지 원칙:
+  - 임계치/알림 룰 수치(`0.05`, `0.15`, `+0.10p`, `0.10`)는 재보정 착수 전까지 변경하지 않는다.
+  - `parseEligibleRunCount < 20`의 `INSUFFICIENT_SAMPLE` 제외 규칙은 유지한다.
+
 ## 공통 오류 응답 계약 (Routing + Agent API)
 
 다음 엔드포인트는 입력 오류를 동일한 오류 envelope로 반환합니다.
