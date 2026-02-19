@@ -46,9 +46,10 @@
   - H-021 fallback warning 실행량 증대 검증용 호출 믹스 추적 완료(최근 7일 직접/체인 호출 믹스 계약 동기화 + `LOW_TRAFFIC`/`CHAIN_COVERAGE_GAP` 분리 근거 고정, Review `Go`)
   - H-022 fallback warning 실행량 회복 액션 플랜 수립/운영 점검 완료(최근 7일 목표-실적 gap + 실행량 회복 액션 계약 동기화, Review `Go`)
   - H-023 fallback warning 실행량 회복 액션 이행률 추적/검증 완료(최근 7일 절대 gap + delta + `executionRecoveryTrend`/`recoveryActionStatus` 계약 동기화, Review `Go`)
+  - H-025 Spec -> Code 체인에서 Code의 Doc/Review 체인 옵션 전파 + CLI 옵션/출력 보강 완료(Review `Go`)
   - apply/dry-run 파일 반영
 - 미완료:
-  - H-025 Spec -> Code 체인에서 Code의 Doc/Review 체인 옵션 전파 + CLI 옵션/출력 보강
+  - H-026 Spec/CLI 원샷 체이닝 E2E 계약 테스트 보강(`PARTIAL_SUCCESS` + `chainFailures[]` 소비 검증)
   - H-024 fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정(Frozen/Backlog, 운영 데이터 확보 후 재개)
   - fallback warning 임계치/알림 룰 보정안의 운영 적용 후 회귀 점검(지속 데이터 누적 필요)
 
@@ -119,7 +120,7 @@
 - CLI JSON 출력은 지원되지만, 옵션 파싱 경계 케이스는 지속 회귀 점검 필요
 
 ## 8) 다음 우선순위
-1. H-025 Spec -> Code 체인에서 Code의 Doc/Review 체인 옵션 전파 + CLI 옵션/출력 보강
+1. H-026 Spec/CLI 원샷 체이닝 E2E 계약 테스트 보강(`PARTIAL_SUCCESS` + `chainFailures[]` 소비 검증)
 2. H-024 fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정(Frozen/Backlog, 운영 데이터 확보 후 재개)
 
 ## 9) 라운드 시작 체크 (Stateless)

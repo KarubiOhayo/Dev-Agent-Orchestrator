@@ -366,3 +366,15 @@
 - Consequence:
   - fallback-warning 관련 문서/자동화는 현 상태 유지(변경 최소화)로 운영한다.
   - 신규 기능은 체이닝/CLI 사용성 개선(H-025)에 투자한다.
+
+## D-037 Spec -> Code 체인 옵션 전파 및 CLI chainFailures 노출 계약 고정
+- Date: 2026-02-19
+- Status: Approved (H-025 Scope)
+- Decision:
+  - Spec 요청은 Code 체인 확장 옵션(`codeChainToDoc`, `codeDocUserRequest`, `codeChainToReview`, `codeReviewUserRequest`, `codeChainFailurePolicy`)을 지원하고, Spec -> Code 체인 시 `CodeGenerateRequest`로 동일 의미를 전파한다.
+  - CLI `generate/spec`는 Doc/Review 체인 옵션과 `chainFailurePolicy`를 모두 노출하며, human/json summary에 `chainedDoc`, `chainedReview`, `chainFailures`를 고정 출력한다.
+  - CLI json 출력은 기존 `summary`, `fileResults` 호환을 유지하면서 구조화 `data.chainFailures[]`를 추가 제공한다.
+- Rationale: 원샷 체이닝 사용성 개선과 함께 `PARTIAL_SUCCESS`에서 체인 실패 누락(소비자 미확인) 리스크를 출력 계약으로 완화해야 운영 관측성과 회귀 점검 신뢰도를 높일 수 있기 때문이다.
+- Consequence:
+  - H-025 결과는 리뷰 `Go`로 승인되며, 체이닝/CLI 계약이 운영 기준으로 승격된다.
+  - 다음 라운드(H-026)는 Spec/CLI 원샷 체이닝 경로의 E2E 계약 테스트(특히 `PARTIAL_SUCCESS` + `chainFailures[]` 소비 검증) 보강으로 진행한다.
