@@ -55,6 +55,8 @@
       - `INSUFFICIENT_SAMPLE` 비율 `<= 0.50`
       - `집계 불가` 일수 `< 3`
       - 샘플 충분 일수(`parseEligibleRunCount >= 20`) `>= 7`
+      - `집계 성공 달성률 = min(1, 집계 성공 일수 / 10)`으로 계산하고 `0~100%` 범위로 표기한다.
+      - 목표 초과 정보는 `목표 초과 일수 = max(0, 집계 성공 일수 - 10)`로 별도 표기한다.
     - Projection 대비 실측 오차를 계산한다.
       - `deltaSufficientDays = actualSufficientDays - 7`
       - `deltaInsufficientRatio = actualInsufficientRatio - 0.50`
@@ -63,8 +65,9 @@
       - `abs(deltaSufficientDays) > 2` 또는 `abs(deltaInsufficientRatio) > 0.10`이면 오차 초과
       - `deltaStartDate` 미산정이면 전제조건 미충족으로 간주하고 보류 근거에 포함
     - 재보정 착수 가능/보류를 판정하고 다음 액션을 제시한다.
-      - 오차 초과 또는 게이트 미충족: "보정 보류" + 원인 분류(`LOW_TRAFFIC`, `CHAIN_COVERAGE_GAP`, `COLLECTION_FAILURE`) + 우선순위 액션
-      - 게이트 충족 + 오차 허용 범위 내: "재보정 착수 가능" + 다음 라운드(임계치 후보 산정 라운드) 제안
+      - 재보정 착수 게이트(4개): `집계 성공 >= 10`, `INSUFFICIENT_SAMPLE <= 0.50`, `집계 불가 < 3`, `샘플 충분 일수(parseEligibleRunCount >= 20) >= 7`
+      - 오차 초과 또는 게이트 4개 중 1개라도 미충족: "보정 보류" + 원인 분류(`LOW_TRAFFIC`, `CHAIN_COVERAGE_GAP`, `COLLECTION_FAILURE`) + 우선순위 액션
+      - 게이트 4개 모두 충족 + 오차 허용 범위 내: "재보정 착수 가능" + 다음 라운드(임계치 후보 산정 라운드) 제안
     - 보정 보류 시 임계치/알림 룰 수치(`0.05`, `0.15`, `+0.10p`, `0.10`)는 유지한다.
 3) 테스트 성공/실패 요약, 실패 테스트 이름(있으면), 추정 영향 범위, 권장 후속조치를 작성한다.
 4) 결과를 inbox 보고 형식으로 출력한다.
@@ -90,11 +93,11 @@
   - 최근 14일 `INSUFFICIENT_SAMPLE` 일수와 비율
   - 최근 14일 `집계 불가` 원인 분류(원인별 일수)
   - 최근 14일 `parseEligibleRunCount` 추세(전체 + agent별 일별값, 7일 이동평균)
-  - H-017 목표 대비 진행률/미달률(집계 성공/샘플 부족/집계 불가/샘플 충분 일수)
+  - H-017 목표 대비 진행률/미달률(집계 성공 달성률 `min(1, 집계 성공 일수 / 10)` + 목표 초과 일수 포함, 샘플 부족/집계 불가/샘플 충분 일수)
   - Projection 대비 실측 오차(`deltaSufficientDays`, `deltaInsufficientRatio`, `deltaStartDate`)
   - 임계치 보정 판단(진행/보류) 및 근거
   - 다음 액션(재보정 착수 준비 또는 샘플 확보 지속)
   - 보정 진행 시: 임계치 후보 산정 라운드 제안 문구
-  - 보정 보류 시: 기존 수치 유지 확인 + 보류 사유(미충족 게이트/오차 초과 항목)
+  - 보정 보류 시: 기존 수치 유지 확인 + 보류 사유(4개 게이트 기준 미충족 항목/오차 초과 항목)
 - 권장 후속조치(수동)
 ```
