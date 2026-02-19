@@ -343,3 +343,17 @@
 - Consequence:
   - H-023은 `docs/code-agent-api.md`와 `coordination/AUTOMATIONS/A-001-nightly-test-report.md`에 gap 추세/액션 이행 상태 출력을 동기화하는 라운드로 진행한다.
   - Main 판단은 14일 게이트 판정과 함께 `executionGap`/`chainShareGap` 축소 추세 및 액션 이행 근거를 공동 기준으로 사용한다.
+
+## D-035 fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 ledger 정책
+- Date: 2026-02-19
+- Status: Approved (H-023 Scope)
+- Decision:
+  - H-023 결과(`executionGapDelta=+3`, `chainShareGapDelta=0.00%p`) 기준으로 `HOLD` 지속 시점에는 추세 지표만으로 개선 여부를 판단하지 않고 일일 최소 이행률 하한선 점검을 추가한다.
+  - H-024부터 최근 7일 일자별 `dailyExecutionBaseline`(agent별 최소 direct/chain/total run 하한선) 대비 실측 PASS/FAIL과 `weeklyComplianceRate = compliantDays / 7`를 필수 출력으로 고정한다.
+  - `weeklyComplianceRate` 단계 분류는 `ON_TRACK(>=0.70)`, `AT_RISK(>=0.40, <0.70)`, `OFF_TRACK(<0.40)`로 표준화한다.
+  - `HOLD`가 지속되면 `LOW_TRAFFIC`/`CHAIN_COVERAGE_GAP`/`COLLECTION_FAILURE` 원인별 `recoveryEvidenceLedger`(`status`, `evidenceRef(runId/집계표)`, `owner`, `updatedAt`)를 함께 고정한다.
+  - 임계치/알림 룰 수치(`0.05`, `0.15`, `+0.10p`, `0.10`)와 `INSUFFICIENT_SAMPLE` 제외 규칙은 변경하지 않는다.
+- Rationale: H-023에서도 14일 게이트 미충족과 delta 미개선이 동시에 유지되어, 액션 이행 증거 누락을 줄이고 회복 진행 상태를 일 단위로 판정할 운영 기준이 필요하기 때문이다.
+- Consequence:
+  - H-024는 `docs/code-agent-api.md`와 `coordination/AUTOMATIONS/A-001-nightly-test-report.md`에 하한선/이행률/증거 ledger 출력 계약을 동기화한다.
+  - Main 판단은 기존 14일 게이트 + gap 추세에 더해 `weeklyComplianceRate` 단계와 원인별 evidence ledger 충족 여부를 함께 확인한다.

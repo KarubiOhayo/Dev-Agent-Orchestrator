@@ -45,9 +45,10 @@
   - H-020 fallback warning 샘플 확보 실행률 추적 정합화 완료(최근 7일 실행률/달성률 계약 동기화 + `READY/HOLD` 입력 강화, Review `Go`)
   - H-021 fallback warning 실행량 증대 검증용 호출 믹스 추적 완료(최근 7일 직접/체인 호출 믹스 계약 동기화 + `LOW_TRAFFIC`/`CHAIN_COVERAGE_GAP` 분리 근거 고정, Review `Go`)
   - H-022 fallback warning 실행량 회복 액션 플랜 수립/운영 점검 완료(최근 7일 목표-실적 gap + 실행량 회복 액션 계약 동기화, Review `Go`)
+  - H-023 fallback warning 실행량 회복 액션 이행률 추적/검증 완료(최근 7일 절대 gap + delta + `executionRecoveryTrend`/`recoveryActionStatus` 계약 동기화, Review `Go`)
   - apply/dry-run 파일 반영
 - 미완료:
-  - H-023 fallback warning 실행량 회복 액션 이행률 추적/검증(최근 7일 `executionGap`/`chainShareGap` 축소 추세 + 일일 액션 이행 근거 점검)
+  - H-024 fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정(일일 하한선 PASS/FAIL + 주간 이행률 단계 분류 + `LOW_TRAFFIC`/`CHAIN_COVERAGE_GAP` 증거 ledger 표준화)
   - fallback warning 임계치/알림 룰 보정안의 운영 적용 후 회귀 점검(지속 데이터 누적 필요)
 
 ## 3) 핵심 아키텍처
@@ -117,7 +118,8 @@
 - CLI JSON 출력은 지원되지만, 옵션 파싱 경계 케이스는 지속 회귀 점검 필요
 
 ## 8) 다음 우선순위
-1. fallback warning 운영 데이터(최소 2주) 기반 임계치/알림 룰 보정 및 오탐/미탐 점검
+1. H-024 fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정
+2. fallback warning 운영 데이터(최소 2주) 기반 임계치/알림 룰 보정 및 오탐/미탐 점검
 
 ## 9) 라운드 시작 체크 (Stateless)
 1. `docs/PROJECT_OVERVIEW.md` 읽기
