@@ -357,3 +357,12 @@
 - Consequence:
   - H-024는 `docs/code-agent-api.md`와 `coordination/AUTOMATIONS/A-001-nightly-test-report.md`에 하한선/이행률/증거 ledger 출력 계약을 동기화한다.
   - Main 판단은 기존 14일 게이트 + gap 추세에 더해 `weeklyComplianceRate` 단계와 원인별 evidence ledger 충족 여부를 함께 확인한다.
+
+## D-036 fallback-warning(H-024) 트랙 동결 및 다음 트랙 전환
+- Date: 2026-02-19
+- Status: Approved
+- Decision: H-024는 동결하고, H-025(체이닝/CLI)로 우선순위를 전환한다.
+- Rationale: 14일 게이트 HOLD(샘플 충분 일수 0일) + DOC/REVIEW chainRuns=0 상태에서 H-024 거버넌스 강화는 ROI가 낮다.
+- Consequence:
+  - fallback-warning 관련 문서/자동화는 현 상태 유지(변경 최소화)로 운영한다.
+  - 신규 기능은 체이닝/CLI 사용성 개선(H-025)에 투자한다.

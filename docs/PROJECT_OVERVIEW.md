@@ -48,7 +48,8 @@
   - H-023 fallback warning 실행량 회복 액션 이행률 추적/검증 완료(최근 7일 절대 gap + delta + `executionRecoveryTrend`/`recoveryActionStatus` 계약 동기화, Review `Go`)
   - apply/dry-run 파일 반영
 - 미완료:
-  - H-024 fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정(일일 하한선 PASS/FAIL + 주간 이행률 단계 분류 + `LOW_TRAFFIC`/`CHAIN_COVERAGE_GAP` 증거 ledger 표준화)
+  - H-025 Spec -> Code 체인에서 Code의 Doc/Review 체인 옵션 전파 + CLI 옵션/출력 보강
+  - H-024 fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정(Frozen/Backlog, 운영 데이터 확보 후 재개)
   - fallback warning 임계치/알림 룰 보정안의 운영 적용 후 회귀 점검(지속 데이터 누적 필요)
 
 ## 3) 핵심 아키텍처
@@ -118,8 +119,8 @@
 - CLI JSON 출력은 지원되지만, 옵션 파싱 경계 케이스는 지속 회귀 점검 필요
 
 ## 8) 다음 우선순위
-1. H-024 fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정
-2. fallback warning 운영 데이터(최소 2주) 기반 임계치/알림 룰 보정 및 오탐/미탐 점검
+1. H-025 Spec -> Code 체인에서 Code의 Doc/Review 체인 옵션 전파 + CLI 옵션/출력 보강
+2. H-024 fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정(Frozen/Backlog, 운영 데이터 확보 후 재개)
 
 ## 9) 라운드 시작 체크 (Stateless)
 1. `docs/PROJECT_OVERVIEW.md` 읽기
