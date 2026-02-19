@@ -14,8 +14,27 @@
 1) 저장소 루트에서 아래 테스트를 실행한다.
    - (루트 확인) `gradlew` 파일이 존재해야 한다.
    - 실행: `./gradlew clean test --no-daemon`
-2) 성공/실패 요약, 실패 테스트 이름(있으면), 추정 영향 범위, 권장 후속조치를 작성한다.
-3) 결과를 inbox 보고 형식으로 출력한다.
+2) fallback warning run-state 점검을 수행한다.
+   - 집계 기간: 전일 KST 00:00~23:59
+   - 대상 이벤트:
+     - `CODE_OUTPUT_FALLBACK_WARNING`
+     - `SPEC_OUTPUT_FALLBACK_WARNING`
+     - `DOC_OUTPUT_FALLBACK_WARNING`
+     - `REVIEW_OUTPUT_FALLBACK_WARNING`
+   - 집계 단위: agent별 일 단위 + 전체 집계
+   - 경고율 산식: `warningRate = warningEventCount / parseEligibleRunCount`
+   - 최소 샘플 수: `parseEligibleRunCount < 20`이면 `INSUFFICIENT_SAMPLE`
+   - 임계치:
+     - `NORMAL`: warningRate < 0.05
+     - `CAUTION`: 0.05 <= warningRate < 0.15
+     - `WARNING`: warningRate >= 0.15
+   - 알림 룰:
+     - 동일 agent `WARNING` 2일 연속
+     - 전일 대비 warningRate +0.10p 이상 상승 + warningEventCount 5건 이상 증가
+     - 전체 집계 warningRate >= 0.10
+   - run-state 데이터를 찾지 못하면 원인과 함께 `집계 불가`로 보고한다.
+3) 테스트 성공/실패 요약, 실패 테스트 이름(있으면), 추정 영향 범위, 권장 후속조치를 작성한다.
+4) 결과를 inbox 보고 형식으로 출력한다.
 
 금지(Plan A):
 - 파일 생성/수정/삭제
@@ -27,5 +46,11 @@
 - 실행 명령
 - 결과(통과/실패)
 - 실패 요약(없으면 "No failures")
+- fallback warning 점검
+  - 집계 기간
+  - 이벤트별 건수
+  - agent별 `parseEligibleRunCount`, `warningRate`, 임계치 판정
+  - 전체 집계 `parseEligibleRunCount`, `warningRate`, 임계치 판정
+  - 알림 룰 충족 여부(연속 초과/급증/전체 집계)
 - 권장 후속조치(수동)
 ```

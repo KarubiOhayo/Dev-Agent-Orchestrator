@@ -22,19 +22,23 @@ public class SpecOutputSchemaParser {
     this.objectMapper = objectMapper;
   }
 
-  public JsonNode parseOrFallback(String rawText, String userRequest) {
+  public ParseResult parse(String rawText, String userRequest) {
     JsonNode direct = readObject(rawText);
     if (direct != null) {
-      return direct;
+      return new ParseResult(direct, ParseSource.DIRECT_JSON);
     }
 
     String codeBlock = extractJsonCodeBlock(rawText);
     JsonNode fromBlock = readObject(codeBlock);
     if (fromBlock != null) {
-      return fromBlock;
+      return new ParseResult(fromBlock, ParseSource.JSON_CODE_BLOCK);
     }
 
-    return fallbackSchema(rawText, userRequest);
+    return new ParseResult(fallbackSchema(rawText, userRequest), ParseSource.FALLBACK_SCHEMA);
+  }
+
+  public JsonNode parseOrFallback(String rawText, String userRequest) {
+    return parse(rawText, userRequest).spec();
   }
 
   private JsonNode readObject(String text) {
@@ -95,5 +99,14 @@ public class SpecOutputSchemaParser {
       return value;
     }
     return value.substring(0, maxChars) + "...";
+  }
+
+  public record ParseResult(JsonNode spec, ParseSource source) {
+  }
+
+  public enum ParseSource {
+    DIRECT_JSON,
+    JSON_CODE_BLOCK,
+    FALLBACK_SCHEMA
   }
 }

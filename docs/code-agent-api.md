@@ -82,6 +82,196 @@ curl -X POST http://localhost:8080/api/agents/code/generate \
   - `FAIL_FAST`: Doc/Review 체인 실패 시 Code 요청 전체를 실패로 반환
   - `PARTIAL_SUCCESS`: 체인 실패를 `chainFailures`에 기록하고 Code 요청은 성공으로 반환
 - `PARTIAL_SUCCESS`에서도 run-state 이벤트(`CHAIN_*_TRIGGERED/DONE/FAILED`) 기록 계약은 동일하게 유지됨
+- `PARTIAL_SUCCESS`를 사용하는 클라이언트는 HTTP 200이어도 `chainFailures[]`를 반드시 확인해야 함
+
+## 출력 파싱 fallback 관측 이벤트 (run-state)
+
+- Code: `CODE_OUTPUT_FALLBACK_WARNING`
+  - 기록 조건: code 출력이 `files[]` JSON으로 직접 파싱되지 않고 markdown fallback 경로를 사용한 경우
+  - 메시지 형식: `source=MARKDOWN_FALLBACK`
+- Spec: `SPEC_OUTPUT_FALLBACK_WARNING`
+  - 기록 조건: spec 출력 파싱 source가 `DIRECT_JSON`이 아닌 경우
+    - 경고 대상 source: `JSON_CODE_BLOCK`, `FALLBACK_SCHEMA`
+  - 메시지 형식: `source=<PARSE_SOURCE>`
+- Doc: `DOC_OUTPUT_FALLBACK_WARNING`
+  - 기록 조건: doc 출력 파싱이 fallback schema(`FALLBACK`) 경로를 사용한 경우
+  - 메시지 형식: `source=FALLBACK`
+- Review: `REVIEW_OUTPUT_FALLBACK_WARNING`
+  - 기록 조건: review 출력 파싱이 fallback schema(`FALLBACK`) 경로를 사용한 경우
+  - 메시지 형식: `source=FALLBACK`
+
+## fallback warning run-state 집계 기준 (운영 계약)
+
+### 대상 이벤트
+
+- `CODE_OUTPUT_FALLBACK_WARNING`
+- `SPEC_OUTPUT_FALLBACK_WARNING`
+- `DOC_OUTPUT_FALLBACK_WARNING`
+- `REVIEW_OUTPUT_FALLBACK_WARNING`
+
+### 집계 단위
+
+- 기본 집계는 `agent별 일 단위(KST 00:00~23:59)`로 수행한다.
+- 동일 기간의 `전체 집계(모든 agent 합산)`를 함께 계산한다.
+- 보고서에는 이벤트별 건수, `parseEligibleRunCount`, `warningRate`, 임계치 판정 결과를 모두 포함한다.
+
+### 모수/경고율 정의
+
+- 경고율 산식:
+  - `warningRate = warningEventCount / parseEligibleRunCount`
+- `warningEventCount`:
+  - 해당 집계 단위(일/agent 또는 전체)에서 발생한 `*_OUTPUT_FALLBACK_WARNING` 이벤트 수
+- `parseEligibleRunCount`:
+  - 동일 집계 단위에서 파싱 대상 출력을 생성한 실행 수
+  - Code: `POST /api/agents/code/generate` 실행 중 출력 파싱 단계에 진입한 run 수
+  - Spec: `POST /api/agents/spec/generate` 실행 중 출력 파싱 단계에 진입한 run 수
+  - Doc: `POST /api/agents/doc/generate` 실행 중 출력 파싱 단계에 진입한 run 수
+  - Review: `POST /api/agents/review/generate` 실행 중 출력 파싱 단계에 진입한 run 수
+- 최소 샘플 수 조건:
+  - `parseEligibleRunCount < 20`이면 판정 등급을 `INSUFFICIENT_SAMPLE`로 표시하고 임계치 판정/알림 트리거에서 제외한다.
+
+### 임계치
+
+| 등급 | 조건 (`warningRate`) | 운영 해석 |
+|---|---|---|
+| NORMAL | `< 0.05` | 정상 범위 |
+| CAUTION | `>= 0.05` and `< 0.15` | 주의, 추세 관찰 필요 |
+| WARNING | `>= 0.15` | 경고, 원인 분석 및 대응 필요 |
+
+### 알림 룰
+
+- 연속 초과:
+  - 동일 agent가 `WARNING` 등급을 2일 연속 기록하면 알림을 발생시킨다.
+- 급증:
+  - 전일 대비 `warningRate`가 `+0.10`p 이상 상승하고 `warningEventCount`가 5건 이상 증가하면 알림을 발생시킨다.
+- 전체 집계 보호 규칙:
+  - 전체 집계 `warningRate >= 0.10`이면 agent별 상태와 별개로 일괄 점검 알림을 발생시킨다.
+- `INSUFFICIENT_SAMPLE`은 알림 대상에서 제외하되, 보고서에 `표본 부족` 상태를 명시한다.
+
+## 공통 오류 응답 계약 (Routing + Agent API)
+
+다음 엔드포인트는 입력 오류를 동일한 오류 envelope로 반환합니다.
+
+- `POST /api/routing/resolve`
+- `POST /api/agents/code/generate`
+- `POST /api/agents/spec/generate`
+- `POST /api/agents/doc/generate`
+- `POST /api/agents/review/generate`
+
+오류 응답 envelope:
+
+```json
+{
+  "code": "MISSING_REQUIRED_FIELD",
+  "message": "userRequest is required",
+  "path": "/api/agents/spec/generate",
+  "timestamp": "2026-02-19T02:40:56.123Z",
+  "details": [
+    {
+      "field": "userRequest",
+      "reason": "required",
+      "rejectedValue": null
+    }
+  ]
+}
+```
+
+- `code`: 오류 코드
+- `message`: 사람이 읽을 수 있는 오류 메시지
+- `path`: 요청 경로
+- `timestamp`: UTC 시각(ISO-8601)
+- `details[]`: 필드 단위 오류 상세(존재 시 포함)
+- 복합 필수조건 누락(any-of)은 `code=MISSING_REQUIRED_ANY_OF`를 사용하고, 후보 필드 각각을 `details[]`에 `reason=any_of_required`로 기록
+
+상태 코드/오류 코드 매핑:
+
+- `400`: `MISSING_REQUIRED_FIELD`, `MISSING_REQUIRED_ANY_OF`, `REQUEST_BODY_REQUIRED`, `INVALID_ENUM_VALUE`, `MALFORMED_JSON`, `INVALID_JSON_VALUE`, `INVALID_JSON_REQUEST`, `INVALID_ARGUMENT`
+- `500`: `INTERNAL_SERVER_ERROR`
+
+오류 케이스 예시:
+
+1) 필수 입력 누락/공백
+
+```json
+{
+  "code": "MISSING_REQUIRED_FIELD",
+  "message": "userRequest is required",
+  "path": "/api/agents/spec/generate",
+  "timestamp": "2026-02-19T02:40:56.123Z",
+  "details": [
+    {
+      "field": "userRequest",
+      "reason": "required",
+      "rejectedValue": null
+    }
+  ]
+}
+```
+
+2) 복합 필수조건(any-of) 누락
+
+```json
+{
+  "code": "MISSING_REQUIRED_ANY_OF",
+  "message": "userRequest or specInputPath is required",
+  "path": "/api/agents/code/generate",
+  "timestamp": "2026-02-19T03:17:11.300Z",
+  "details": [
+    {
+      "field": "userRequest",
+      "reason": "any_of_required",
+      "rejectedValue": null
+    },
+    {
+      "field": "specInputPath",
+      "reason": "any_of_required",
+      "rejectedValue": null
+    }
+  ]
+}
+```
+
+3) enum 오류
+
+```json
+{
+  "code": "INVALID_ENUM_VALUE",
+  "message": "Invalid enum value",
+  "path": "/api/agents/code/generate",
+  "timestamp": "2026-02-19T02:41:00.101Z",
+  "details": [
+    {
+      "field": "mode",
+      "reason": "must be one of [COST_SAVER, BALANCED, QUALITY, GEMINI3_CANARY]",
+      "rejectedValue": "NOT_A_MODE"
+    }
+  ]
+}
+```
+
+4) JSON 파싱 오류
+
+```json
+{
+  "code": "MALFORMED_JSON",
+  "message": "Malformed JSON request body",
+  "path": "/api/agents/review/generate",
+  "timestamp": "2026-02-19T02:41:03.550Z",
+  "details": []
+}
+```
+
+5) 서버 오류
+
+```json
+{
+  "code": "INTERNAL_SERVER_ERROR",
+  "message": "Internal server error",
+  "path": "/api/agents/review/generate",
+  "timestamp": "2026-02-19T02:41:10.777Z",
+  "details": []
+}
+```
 
 ## Doc Agent 요청 예시
 

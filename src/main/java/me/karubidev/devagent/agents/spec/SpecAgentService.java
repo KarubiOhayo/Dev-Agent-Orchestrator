@@ -80,7 +80,15 @@ public class SpecAgentService {
       runStateStore.appendEvent(runId, "LLM_DONE",
           execution.result().provider() + ":" + execution.result().model());
 
-      JsonNode specSchema = specOutputSchemaParser.parseOrFallback(execution.result().text(), request.getUserRequest());
+      SpecOutputSchemaParser.ParseResult parseResult = specOutputSchemaParser.parse(
+          execution.result().text(),
+          request.getUserRequest()
+      );
+      if (parseResult.source() != SpecOutputSchemaParser.ParseSource.DIRECT_JSON) {
+        runStateStore.appendEvent(runId, "SPEC_OUTPUT_FALLBACK_WARNING", "source=" + parseResult.source().name());
+      }
+
+      JsonNode specSchema = parseResult.spec();
       runStateStore.appendEvent(runId, "SPEC_SCHEMA_READY", "keys=" + specSchema.size());
 
       var chainedCodeResult = specCodeChainService.runChain(runId, request, specSchema, targetRoot);

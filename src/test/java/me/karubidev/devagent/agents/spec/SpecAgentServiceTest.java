@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -87,5 +88,142 @@ class SpecAgentServiceTest {
     assertThat(response.runId()).isEqualTo("spec-run-1");
     assertThat(response.spec().path("title").asText()).isEqualTo("Login");
     verify(runStateStore).appendEvent(eq("spec-run-1"), eq("SPEC_SCHEMA_READY"), contains("keys="));
+    verify(runStateStore, never()).appendEvent(
+        eq("spec-run-1"),
+        eq("SPEC_OUTPUT_FALLBACK_WARNING"),
+        contains("source=")
+    );
+  }
+
+  @Test
+  void generateRecordsFallbackWarningEventWhenJsonCodeBlockUsed() {
+    ModelRouter modelRouter = Mockito.mock(ModelRouter.class);
+    LlmOrchestratorService llmOrchestrator = Mockito.mock(LlmOrchestratorService.class);
+    ProjectContextManager contextManager = Mockito.mock(ProjectContextManager.class);
+    PromptRegistry promptRegistry = Mockito.mock(PromptRegistry.class);
+    RunStateStore runStateStore = Mockito.mock(RunStateStore.class);
+    SpecCodeChainService specCodeChainService = Mockito.mock(SpecCodeChainService.class);
+    SpecOutputSchemaParser schemaParser = new SpecOutputSchemaParser(new ObjectMapper());
+
+    SpecAgentService service = new SpecAgentService(
+        modelRouter,
+        llmOrchestrator,
+        contextManager,
+        promptRegistry,
+        runStateStore,
+        schemaParser,
+        specCodeChainService
+    );
+
+    SpecGenerateRequest request = new SpecGenerateRequest();
+    request.setProjectId("p1");
+    request.setTargetProjectRoot(".");
+    request.setUserRequest("로그인 API 명세 작성");
+
+    RouteDecision routeDecision = new RouteDecision(
+        AgentType.SPEC,
+        RoutingMode.BALANCED,
+        RiskLevel.MEDIUM,
+        new ModelRef("openai", "gpt-5.2"),
+        List.of(),
+        List.of("test")
+    );
+    when(modelRouter.resolve(any())).thenReturn(routeDecision);
+    when(runStateStore.startRun(eq("p1"), eq("SPEC"), eq("BALANCED"), anyString())).thenReturn("spec-run-code-block");
+    when(contextManager.buildCodeContext(eq("로그인 API 명세 작성"), eq("p1"), any(Path.class)))
+        .thenReturn(new ContextBundle("ctx", List.of()));
+    when(promptRegistry.buildPrompt(eq("spec"), any(Path.class), contains("Create a strict JSON specification"), eq("ctx")))
+        .thenReturn("spec-prompt");
+    when(llmOrchestrator.generate(eq(routeDecision), eq("spec-prompt"))).thenReturn(
+        new LlmExecutionResult(
+            new LlmGenerationResult(
+                "openai",
+                "gpt-5.2",
+                """
+                    사전 설명
+                    ```json
+                    {"title":"Login from block","overview":"Auth spec","tasks":[]}
+                    ```
+                    """,
+                "{}"
+            ),
+            List.of()
+        )
+    );
+    when(specCodeChainService.runChain(eq("spec-run-code-block"), eq(request), any(), any(Path.class))).thenReturn(null);
+    when(runStateStore.getProjectSummary("p1")).thenReturn("summary");
+
+    SpecGenerateResponse response = service.generate(request);
+
+    assertThat(response.spec().path("title").asText()).isEqualTo("Login from block");
+    verify(runStateStore).appendEvent(
+        eq("spec-run-code-block"),
+        eq("SPEC_OUTPUT_FALLBACK_WARNING"),
+        contains("JSON_CODE_BLOCK")
+    );
+  }
+
+  @Test
+  void generateRecordsFallbackWarningEventWhenFallbackSchemaUsed() {
+    ModelRouter modelRouter = Mockito.mock(ModelRouter.class);
+    LlmOrchestratorService llmOrchestrator = Mockito.mock(LlmOrchestratorService.class);
+    ProjectContextManager contextManager = Mockito.mock(ProjectContextManager.class);
+    PromptRegistry promptRegistry = Mockito.mock(PromptRegistry.class);
+    RunStateStore runStateStore = Mockito.mock(RunStateStore.class);
+    SpecCodeChainService specCodeChainService = Mockito.mock(SpecCodeChainService.class);
+    SpecOutputSchemaParser schemaParser = new SpecOutputSchemaParser(new ObjectMapper());
+
+    SpecAgentService service = new SpecAgentService(
+        modelRouter,
+        llmOrchestrator,
+        contextManager,
+        promptRegistry,
+        runStateStore,
+        schemaParser,
+        specCodeChainService
+    );
+
+    SpecGenerateRequest request = new SpecGenerateRequest();
+    request.setProjectId("p1");
+    request.setTargetProjectRoot(".");
+    request.setUserRequest("로그인 API 명세 작성");
+
+    RouteDecision routeDecision = new RouteDecision(
+        AgentType.SPEC,
+        RoutingMode.BALANCED,
+        RiskLevel.MEDIUM,
+        new ModelRef("openai", "gpt-5.2"),
+        List.of(),
+        List.of("test")
+    );
+    when(modelRouter.resolve(any())).thenReturn(routeDecision);
+    when(runStateStore.startRun(eq("p1"), eq("SPEC"), eq("BALANCED"), anyString())).thenReturn("spec-run-fallback");
+    when(contextManager.buildCodeContext(eq("로그인 API 명세 작성"), eq("p1"), any(Path.class)))
+        .thenReturn(new ContextBundle("ctx", List.of()));
+    when(promptRegistry.buildPrompt(eq("spec"), any(Path.class), contains("Create a strict JSON specification"), eq("ctx")))
+        .thenReturn("spec-prompt");
+    when(llmOrchestrator.generate(eq(routeDecision), eq("spec-prompt"))).thenReturn(
+        new LlmExecutionResult(
+            new LlmGenerationResult(
+                "openai",
+                "gpt-5.2",
+                "일반 텍스트 명세 초안입니다.",
+                "{}"
+            ),
+            List.of()
+        )
+    );
+    when(specCodeChainService.runChain(eq("spec-run-fallback"), eq(request), any(), any(Path.class))).thenReturn(null);
+    when(runStateStore.getProjectSummary("p1")).thenReturn("summary");
+
+    SpecGenerateResponse response = service.generate(request);
+
+    assertThat(response.spec().path("title").asText()).isEqualTo("로그인 API 명세 작성");
+    assertThat(response.spec().path("notes").isArray()).isTrue();
+    verify(runStateStore).appendEvent(
+        eq("spec-run-fallback"),
+        eq("SPEC_OUTPUT_FALLBACK_WARNING"),
+        contains("FALLBACK_SCHEMA")
+    );
   }
 }

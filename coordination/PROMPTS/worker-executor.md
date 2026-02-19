@@ -17,6 +17,7 @@
 10. 리뷰 입력 프롬프트는 `coordination/RELAYS/H-XXX-executor-to-review.md`로 저장한다.
 11. 리뷰 입력 프롬프트에는 최소한 `변경 파일/테스트 결과/리뷰 집중 포인트/알려진 리스크`를 포함한다.
 12. 포맷은 `coordination/RELAYS/TEMPLATE-executor-to-review.md`를 기본 템플릿으로 사용한다.
+13. 라운드 완료 전 구현 변경 + 결과 산출물(`coordination/REPORTS/`, `coordination/RELAYS/`)을 커밋하고 작업 브랜치로 푸시한다.
 
 반드시 보고할 것:
 - 변경 파일 목록

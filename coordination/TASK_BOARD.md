@@ -1,6 +1,6 @@
 # DevAgent Task Board
 
-Last Updated: 2026-02-13
+Last Updated: 2026-02-19
 Owner: Main Controller Thread
 Primary Reference: `docs/PROJECT_OVERVIEW.md`
 
@@ -8,8 +8,8 @@ Primary Reference: `docs/PROJECT_OVERVIEW.md`
 
 ## 현재 스냅샷
 - 목표: A(Context Engineering) 완성 후 C(Spec -> Code -> Doc) 체이닝 확장 안정화
-- 현재 상태: Spec -> Code -> Doc/Review 체이닝(1차), H-009(체인 실패 전파 정책/API 계약)까지 Go 완료
-- 핵심 리스크: `PARTIAL_SUCCESS` 사용 시 `chainFailures` 누락 확인 위험/입력검증·에러계약 표준화 미완료
+- 현재 상태: Spec -> Code -> Doc/Review 체이닝(1차), H-009(체인 실패 전파 정책/API 계약) Go 확정, H-010.1 오류 계약 정합성 보강 완료(Go), H-011 프롬프트 자산 보강 완료(Go), H-012 spec fallback warning 관측성 정합화 완료(Go), H-013 집계 기준 문서화 완료(Review `Conditional Go`), H-014 handoff/relay 생성 완료(Executor 착수 대기)
+- 핵심 리스크: `PARTIAL_SUCCESS` 사용 시 `chainFailures` 누락 확인 위험/`parseEligibleRunCount` 체인 포함 기준과 `INSUFFICIENT_SAMPLE` 제외 규칙이 문서 간 불일치해 경고율 해석이 흔들릴 수 있는 상태
 - 운영 정책: 3스레드 체계(메인 제어 + 리뷰 전담 + 실행 전담), 라운드별 stateless 운영
 
 ## 완료된 작업
@@ -31,6 +31,10 @@ Primary Reference: `docs/PROJECT_OVERVIEW.md`
 - [x] H-008 파일 적용 경계 입력 방어 강화
 - [x] H-008.1 심볼릭 링크 경계 우회 차단 보강
 - [x] H-009 체인 실패 전파 정책(API 계약) 확정
+- [x] H-010 API 입력검증/오류 응답 계약 표준화
+- [x] H-010.1 오류 계약 정합성 보강 (`INVALID_JSON_REQUEST` 매핑 + `MISSING_REQUIRED_ANY_OF` 계약)
+- [x] H-011 spec/doc/review 프롬프트 자산 보강
+- [x] H-012 spec fallback warning 관측성 정합화
 
 ## 3스레드 운영 분배
 
@@ -72,5 +76,4 @@ Primary Reference: `docs/PROJECT_OVERVIEW.md`
 9. 병합은 THREAD-A 최종 승인 이후에만 수행한다.
 
 ## 현재 우선순위
-- [~] H-010 진행중: API 입력검증/에러계약 표준화
-- [ ] H-011 후보: spec/doc/review 프롬프트 자산 보강
+- [~] H-014 진행중: fallback warning 집계 기준 문구 정합화 (`parseEligibleRunCount` 체인 포함 명시 + `INSUFFICIENT_SAMPLE` 임계치/알림 제외 규칙 동기화)

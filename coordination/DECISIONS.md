@@ -183,3 +183,44 @@
   - Automations 출력은 inbox 보고를 기본으로 한다.
   - 운영 템플릿은 버전관리 목적으로 레포에 보관한다.
   - 템플릿 경로: `coordination/AUTOMATIONS/A-001-nightly-test-report.md`, `coordination/AUTOMATIONS/A-002-doc-drift-check.md`, `coordination/AUTOMATIONS/A-003-relay-watch.md`
+
+## D-023 API 입력검증/오류 응답 계약 표준화
+- Date: 2026-02-19
+- Status: Approved (H-010 Scope)
+- Decision:
+  - Agent API(`POST /api/routing/resolve`, `POST /api/agents/*/generate`)의 입력 오류는 HTTP 400 + 공통 오류 envelope로 반환한다.
+  - 공통 오류 envelope는 최소 `code`, `message`, `path`, `timestamp`를 포함하고, 필드 단위 오류가 있으면 `details[]`를 포함한다.
+  - `chainFailurePolicy=PARTIAL_SUCCESS`는 실패 응답으로 격하하지 않고 기존 성공 응답 + `chainFailures[]` 계약을 유지한다.
+- Rationale: endpoint/예외 유형별로 분산된 오류 포맷을 통일해 클라이언트 분기 비용과 운영 해석 불일치를 줄이기 위함.
+- Consequence:
+  - H-010에서 컨트롤러/예외 핸들러/테스트/문서를 함께 갱신한다.
+  - API 문서에 `PARTIAL_SUCCESS` 사용 시 `chainFailures[]` 필수 확인 규약을 명시한다.
+  - 빌드 설정/공통 설정 파일 변경이 필요하면 범위를 분리해 Main 사전 승인 후 진행한다.
+  - H-010 리뷰에서 문서-구현 오류 코드 매핑(`INVALID_JSON_REQUEST`) 및 복합 필수조건 `details.field` 표현 정합성 보강이 후속 라운드(H-010.1) 과제로 확정되었다.
+
+## D-024 필수값 오류 코드 세분화 및 any-of details 규약
+- Date: 2026-02-19
+- Status: Approved (H-010.1 Scope)
+- Decision:
+  - 필수값 누락 오류는 단일 필드와 복합(any-of) 조건을 분리해 표준화한다.
+  - 단일 필드 누락은 `MISSING_REQUIRED_FIELD`를 유지한다.
+  - 복합(any-of) 필수 누락은 `MISSING_REQUIRED_ANY_OF`를 사용한다.
+  - 복합(any-of) 오류의 `details[]`는 후보 필드별 항목으로 생성하고 `reason=any_of_required`를 사용한다.
+  - API 문서 400 매핑 표에는 `INVALID_JSON_REQUEST`를 구현 반환 코드와 동기화해 누락 없이 유지한다.
+- Rationale: H-010 review에서 확인된 문서-구현 코드 집합 불일치와 복합 필수조건 파싱 모호성을 제거해 클라이언트 분기 일관성을 확보하기 위함.
+- Consequence:
+  - 예외 처리와 테스트가 단일/복합 필수 누락을 구분해 검증하도록 고정된다.
+  - 오류 응답 소비자는 any-of 케이스에서 `details[]`의 다중 필드 정보를 안정적으로 파싱할 수 있다.
+  - H-010.1 완료로 H-010 보류 이슈(P2/P3)가 해소되어 Main 승인(Go) 판단이 가능해졌다.
+
+## D-025 Spec fallback warning 관측성 계약
+- Date: 2026-02-19
+- Status: Approved (H-012 Scope)
+- Decision:
+  - spec 출력 파싱 source는 `DIRECT_JSON`, `JSON_CODE_BLOCK`, `FALLBACK_SCHEMA` 3종으로 구분한다.
+  - run-state 경고 이벤트 `SPEC_OUTPUT_FALLBACK_WARNING`은 `DIRECT_JSON`이 아닌 source에서만 기록한다.
+  - 이벤트 메시지 형식은 `source=<PARSE_SOURCE>`로 고정한다.
+- Rationale: code/doc/review 대비 비어 있던 spec fallback 관측 경로를 동일 계약으로 정렬해 에이전트 간 운영 지표 비교 가능성을 확보하기 위함.
+- Consequence:
+  - spec fallback 경로가 run-state 이벤트로 남아 운영 점검 범위가 `CODE/SPEC/DOC/REVIEW` 4종으로 정합화된다.
+  - 다음 라운드(H-013)에서 warning 이벤트 집계 기준(모수/경고율/임계치/알림 룰) 문서화 작업이 가능해졌다.

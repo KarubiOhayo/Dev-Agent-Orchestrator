@@ -18,11 +18,12 @@
 - Main/Review 금지:
   - 구현 코드/테스트 코드 수정 (`src/`, `src/test/` 등)
   - 빌드/런타임 설정 변경 (`build.gradle`, `settings.gradle`, `gradle/wrapper/**`, `src/main/resources/application.yml`)
-  - git add/commit/push/merge
+  - 코드/설정 파일에 대한 git add/commit/push/merge
   - 테스트 실행(Executor 승인 게이트 전용)
 - Main/Review 허용/필수:
   - `coordination/` 산출물 작성/갱신(RELAYS/REPORTS/HANDOFFS 포함)
   - `docs/`, `.agents/` 운영 문서 작성/갱신
+  - 라운드 종료 시 본인이 생성/수정한 운영 문서(`coordination/`, `docs/`, `.agents/`) 커밋/푸시
 
 ## 2) Stateless 라운드 원칙
 
@@ -43,8 +44,8 @@
 ## 4) 승인 게이트
 
 - Executor는 라운드 완료 전에 반드시 `./gradlew clean test --no-daemon`를 실행한다.
-- Main/Review는 구현 실행 스레드가 아니므로 **코드 수정/커밋/테스트 실행**을 하지 않는다.
-  - 단, `coordination/` 및 운영 문서 산출물(릴레이/리포트)은 작성/갱신한다.
+- Main/Review는 구현 실행 스레드가 아니므로 **코드 수정/코드 테스트 실행**을 하지 않는다.
+  - 단, `coordination/` 및 운영 문서 산출물(릴레이/리포트)은 작성/갱신하고 라운드 단위 커밋/푸시를 수행한다.
 - Main 최종 판단은 `테스트 통과 + result + review` 3종 근거로 확정한다.
 
 ## 5) 공통 파일 변경 승인 절차
@@ -69,3 +70,13 @@
 - 구현 지시: `coordination/HANDOFFS/`
 - 신규 운영 템플릿/자동화 프롬프트는 해당 전용 폴더(`coordination/AUTOMATIONS/`, `.agents/skills/`)에 저장한다.
 
+## 8) 스레드별 커밋/푸시 규칙
+
+- 공통:
+  - 각 스레드는 라운드 산출물 작성 완료 직후 `git add -> git commit -> git push`를 수행한다.
+  - 커밋 메시지는 라운드/역할이 드러나게 작성한다(권장: `[H-00N][main|review|executor] ...`).
+- Main/Review:
+  - 커밋 가능 범위는 운영 문서(`coordination/`, `docs/`, `.agents/`)로 한정한다.
+  - 구현 코드/테스트 코드/빌드·런타임 설정 파일 커밋은 금지한다.
+- Executor:
+  - handoff 범위 내 구현 변경과 라운드 산출물(`REPORTS/RELAYS`)을 함께 커밋/푸시한다.

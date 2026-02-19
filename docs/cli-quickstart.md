@@ -134,6 +134,11 @@ file results
 }
 ```
 
+주의:
+
+- API에서 `chainFailurePolicy=PARTIAL_SUCCESS`를 사용한 경우, HTTP/API 호출 자체가 성공이어도 `chainFailures[]`를 반드시 확인해야 합니다.
+- `chainFailures[]`가 비어 있지 않으면 Doc/Review 체인 중 일부가 실패한 상태입니다.
+
 ### 실패 (`--json` + 잘못된 옵션)
 
 ```json

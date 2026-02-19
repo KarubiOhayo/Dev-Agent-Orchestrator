@@ -7,7 +7,7 @@
   - Issue -> Spec -> Code -> Doc 체이닝
   - PR Review/Refactor 자동화(후순위)
 
-## 2) 현재 구현 상태 (2026-02-13)
+## 2) 현재 구현 상태 (2026-02-19)
 - 완료:
   - 모델 라우팅 엔진 + 라우팅 API
   - 벤더 어댑터(OpenAI/Anthropic/Google) + fallback 실행
@@ -29,10 +29,14 @@
   - H-008 파일 적용 경계 입력 방어 강화 완료
   - H-008.1 심볼릭 링크 경계 우회 차단 보강 완료(Go)
   - H-009 체인 실패 전파 정책(API 계약) 확정 완료(Go)
+  - H-010 API 입력검증/오류 응답 계약 표준화 완료(Go)
+  - H-010.1 오류 계약 정합성 보강 완료(`INVALID_JSON_REQUEST` 매핑 동기화 + `MISSING_REQUIRED_ANY_OF` 계약 고정)
+  - H-011 spec/doc/review 프롬프트 자산 보강 완료(Go)
+  - H-012 spec fallback warning 관측성 정합화 완료(Go)
+  - H-013 fallback warning run-state 집계 기준 문서화 완료(모수/경고율/임계치/알림 룰 + 야간 점검 템플릿 정합화)
   - apply/dry-run 파일 반영
 - 미완료:
-  - API 입력검증/에러계약 표준화
-  - spec/doc/review 프롬프트 자산 보강
+  - fallback warning 임계치/알림 룰의 실측 기반 보정(운영 데이터 누적 필요)
 
 ## 3) 핵심 아키텍처
 - `api/`: 엔드포인트
@@ -95,13 +99,13 @@
 
 ## 7) 현재 운영 리스크
 - 모델 출력 비정형 시 fallback 비율이 상승할 수 있음
+- fallback warning 임계치는 초기 기준값이므로 트래픽/모델 분포 변화 시 오탐/미탐 가능성이 있음
 - `files[]`/`document`/`review` 구조는 보정되지만 의미 품질 검증은 아직 제한적
 - `PARTIAL_SUCCESS` 사용 시 클라이언트가 `chainFailures`를 확인하지 않으면 체인 실패를 간과할 수 있음
 - CLI JSON 출력은 지원되지만, 옵션 파싱 경계 케이스는 지속 회귀 점검 필요
 
 ## 8) 다음 우선순위
-1. H-010: API 입력검증/에러계약 표준화
-2. H-011: spec/doc/review 프롬프트 자산 보강
+1. fallback warning 운영 데이터(최소 2주) 기반 임계치/알림 룰 보정 및 오탐/미탐 점검
 
 ## 9) 라운드 시작 체크 (Stateless)
 1. `docs/PROJECT_OVERVIEW.md` 읽기
