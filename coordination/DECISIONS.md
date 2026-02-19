@@ -378,3 +378,15 @@
 - Consequence:
   - H-025 결과는 리뷰 `Go`로 승인되며, 체이닝/CLI 계약이 운영 기준으로 승격된다.
   - 다음 라운드(H-026)는 Spec/CLI 원샷 체이닝 경로의 E2E 계약 테스트(특히 `PARTIAL_SUCCESS` + `chainFailures[]` 소비 검증) 보강으로 진행한다.
+
+## D-038 Spec/CLI 원샷 체이닝 E2E 계약 테스트 기준 고정
+- Date: 2026-02-19
+- Status: Approved (H-026 Scope)
+- Decision:
+  - Spec -> Code -> (Doc/Review) 원샷 체이닝 E2E 회귀 테스트는 `PARTIAL_SUCCESS` 사용 시 `chainFailures[]` 노출을 API 응답(`chainedCodeResult`)과 CLI 출력(human/json) 양쪽에서 검증한다.
+  - CLI `generate/spec` 테스트는 `summary`(`chainedDoc`, `chainedReview`, `chainFailures`)와 JSON `data.chainFailures[]`를 함께 검증한다.
+  - 신규 옵션 미사용(default) 경로는 `FAIL_FAST` 및 체인 off 기본값 유지 회귀를 필수 검증 항목으로 고정한다.
+- Rationale: H-025에서 계약을 확장했어도 E2E 회귀 검증이 약하면 `PARTIAL_SUCCESS`의 체인 실패 신호가 경로별(API/CLI)로 누락될 위험이 남기 때문이다.
+- Consequence:
+  - H-026 결과는 테스트 게이트 통과 + 리뷰 `Go`로 Main 승인 조건을 충족한다.
+  - 다음 라운드(H-027)는 소비자 누락 리스크를 더 줄이기 위해 CLI 소비 가드레일(`--fail-on-chain-failures`)과 운영 문서 체크리스트를 보강한다.
