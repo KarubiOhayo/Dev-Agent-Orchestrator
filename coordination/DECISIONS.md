@@ -289,3 +289,17 @@
   - H-018.1에서 산식/게이트 문구가 정합화되어 Review `Go`가 확정되었다.
   - 이후 라운드는 동일 산식/게이트 계약을 기준으로 재보정 착수 가능/보류를 판단한다.
   - 계약 드리프트 발생 시 Main은 후속 정합화 라운드를 우선 배정한다.
+
+## D-031 fallback warning 실행률 추적 계약(샘플 확보 단계)
+- Date: 2026-02-19
+- Status: Approved (H-019 Scope)
+- Decision:
+  - H-019 결과에서 `recalibrationReadiness=HOLD`가 유지되더라도 `READY/HOLD + unmetGates` 보고 계약은 변경하지 않는다.
+  - 샘플 확보 단계의 실행력 측정을 위해 일일 목표(`CODE 16`, `SPEC 4`, `DOC 6`, `REVIEW 6`) 대비 실제 실행량/달성률을 운영 문서에 고정한다.
+  - 실행률 산식은 agent별 `achievementRate = min(1, actualRuns/targetRuns)`, 전체 `overallExecutionRate = min(1, totalActualRuns/32)`로 고정한다.
+  - Projection은 기존 전제조건(`최근 3일 평균 전체 모수 >= 32`) 미충족 시 `예상 재보정 착수 가능일`을 미산정 처리하고 사유를 명시한다.
+  - 임계치/알림 룰 수치(`0.05`, `0.15`, `+0.10p`, `0.10`) 및 `INSUFFICIENT_SAMPLE` 제외 규칙은 유지한다.
+- Rationale: H-019에서 게이트 미충족이 지속된 원인이 임계치 조정 문제가 아니라 샘플 유입 부족(`LOW_TRAFFIC`, `CHAIN_COVERAGE_GAP`)임이 재확인되어, 재보정 착수 전 실행률 지표를 표준 출력으로 고정할 필요가 있다.
+- Consequence:
+  - H-020은 `docs/code-agent-api.md`와 `coordination/AUTOMATIONS/A-001-nightly-test-report.md`에 실행률 필드/산식을 동기화하는 라운드로 진행한다.
+  - 이후 Main 판단은 게이트 충족 여부와 실행률 추세를 함께 비교해 `READY/HOLD`를 확정한다.
