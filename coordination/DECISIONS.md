@@ -390,3 +390,16 @@
 - Consequence:
   - H-026 결과는 테스트 게이트 통과 + 리뷰 `Go`로 Main 승인 조건을 충족한다.
   - 다음 라운드(H-027)는 소비자 누락 리스크를 더 줄이기 위해 CLI 소비 가드레일(`--fail-on-chain-failures`)과 운영 문서 체크리스트를 보강한다.
+
+## D-039 CLI `PARTIAL_SUCCESS` 소비 가드레일/종료코드 계약 고정
+- Date: 2026-02-19
+- Status: Approved (H-027 Scope)
+- Decision:
+  - CLI `generate/spec`는 `--fail-on-chain-failures=<true|false>` 옵션을 지원하고 기본값은 `false`로 유지한다.
+  - `--fail-on-chain-failures=true` + `chainFailures[] > 0` 조합에서는 성공 출력(human/json)을 유지하면서 종료코드 `3`을 반환한다.
+  - `chainFailures[] = 0`이거나 옵션 미사용/`false`인 경로는 기존 성공 종료코드(`0`)를 유지한다.
+  - human 출력은 체인 실패 존재 시 경고 1줄을 추가하고, json 출력은 기존 필드 호환을 유지하면서 `data.hasChainFailures` 보조 필드를 제공한다.
+- Rationale: `PARTIAL_SUCCESS`의 성공 응답 유지 정책 때문에 소비자가 `chainFailures[]`를 누락 확인하면 실패를 간과할 수 있어, 자동화에서 선택적으로 강제 실패 신호를 사용할 수 있는 계약이 필요하다.
+- Consequence:
+  - H-027 결과는 테스트 게이트 통과 + 리뷰 `Go`로 Main 승인 조건을 충족한다.
+  - 다음 라운드(H-028)는 자동화/CI 소비자 관점에서 `exit code 3` 처리 체크리스트와 샘플 파이프라인 검증을 고정한다.

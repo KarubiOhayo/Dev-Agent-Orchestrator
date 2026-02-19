@@ -8,7 +8,7 @@ Primary Reference: `docs/PROJECT_OVERVIEW.md`
 
 ## 현재 스냅샷
 - 목표: A(Context Engineering) 완성 후 C(Spec -> Code -> Doc) 체이닝 확장 안정화
-- 현재 상태: Spec -> Code -> Doc/Review 체이닝(1차), H-009(체인 실패 전파 정책/API 계약) Go 확정, H-010.1 오류 계약 정합성 보강 완료(Go), H-011 프롬프트 자산 보강 완료(Go), H-012 spec fallback warning 관측성 정합화 완료(Go), H-013 집계 기준 문서화 완료(Review `Conditional Go`), H-014 집계 기준 문구 정합화 완료(H-014.1 보강 반영), H-014.1 Code 모수 정의 정합화 완료(Go), H-015 실측 보정 준비 완료(Go), H-016 실측 기반 보정 실행 완료(Go, 보정 보류 + 수치 유지), H-017 샘플 확보 계획 수립 완료(Go), H-018 운영 적용 점검 완료(Review `Conditional Go`, 테스트 게이트 통과), H-018.1 운영 문서 산식/게이트 정합화 완료(Review `Go`, 테스트 게이트 통과), H-019 재보정 착수 가능 시점 재점검 완료(Review `Go`, 테스트 게이트 통과, `HOLD` 유지), H-020 샘플 확보 실행률 추적 정합화 완료(Review `Go`, 테스트 게이트 통과, `HOLD` 유지), H-021 호출 믹스 추적 정합화 완료(Review `Go`, 테스트 게이트 통과, `HOLD` 유지), H-022 실행량 회복 액션 플랜 수립/운영 점검 완료(Review `Go`, 테스트 게이트 통과, `HOLD` 유지), H-023 실행량 회복 액션 이행률 추적/검증 완료(Review `Go`, 테스트 게이트 통과, `HOLD` 유지), H-024 동결(Frozen/Backlog) 유지 + H-025 완료(Review `Go`) + H-026 완료(Review `Go`) + H-027 handoff/relay 준비
+- 현재 상태: Spec -> Code -> Doc/Review 체이닝(1차), H-009(체인 실패 전파 정책/API 계약) Go 확정, H-010.1 오류 계약 정합성 보강 완료(Go), H-011 프롬프트 자산 보강 완료(Go), H-012 spec fallback warning 관측성 정합화 완료(Go), H-013 집계 기준 문서화 완료(Review `Conditional Go`), H-014 집계 기준 문구 정합화 완료(H-014.1 보강 반영), H-014.1 Code 모수 정의 정합화 완료(Go), H-015 실측 보정 준비 완료(Go), H-016 실측 기반 보정 실행 완료(Go, 보정 보류 + 수치 유지), H-017 샘플 확보 계획 수립 완료(Go), H-018 운영 적용 점검 완료(Review `Conditional Go`, 테스트 게이트 통과), H-018.1 운영 문서 산식/게이트 정합화 완료(Review `Go`, 테스트 게이트 통과), H-019 재보정 착수 가능 시점 재점검 완료(Review `Go`, 테스트 게이트 통과, `HOLD` 유지), H-020 샘플 확보 실행률 추적 정합화 완료(Review `Go`, 테스트 게이트 통과, `HOLD` 유지), H-021 호출 믹스 추적 정합화 완료(Review `Go`, 테스트 게이트 통과, `HOLD` 유지), H-022 실행량 회복 액션 플랜 수립/운영 점검 완료(Review `Go`, 테스트 게이트 통과, `HOLD` 유지), H-023 실행량 회복 액션 이행률 추적/검증 완료(Review `Go`, 테스트 게이트 통과, `HOLD` 유지), H-024 동결(Frozen/Backlog) 유지 + H-025 완료(Review `Go`) + H-026 완료(Review `Go`) + H-027 완료(Review `Go`) + H-028 handoff/relay 준비
 - 핵심 리스크: `PARTIAL_SUCCESS` 사용 시 `chainFailures` 누락 확인 위험/ fallback warning 임계치(`0.05`, `0.15`)와 알림 룰이 초기 기준값이라 실측 데이터(최소 2주) 기반 보정 전까지 오탐/미탐 가능성이 남아 있는 상태
 - 운영 정책: 3스레드 체계(메인 제어 + 리뷰 전담 + 실행 전담), 라운드별 stateless 운영
 
@@ -50,6 +50,7 @@ Primary Reference: `docs/PROJECT_OVERVIEW.md`
 - [x] H-023 fallback warning 실행량 회복 액션 이행률 추적/검증(최근 7일 절대 gap + delta + `executionRecoveryTrend`/`recoveryActionStatus` 계약 동기화, Review `Go`)
 - [x] H-025 Spec -> Code 체인에서 Code의 Doc/Review 체인 옵션 전파 + CLI 옵션/출력 보강(Review `Go`)
 - [x] H-026 Spec/CLI 원샷 체이닝 E2E 계약 테스트 보강(`PARTIAL_SUCCESS` + `chainFailures[]` 소비 검증, Review `Go`)
+- [x] H-027 CLI `PARTIAL_SUCCESS` 소비 가드레일 보강(`--fail-on-chain-failures`, 종료코드 `3`, human/json 가시성 보강, Review `Go`)
 
 ## 3스레드 운영 분배
 
@@ -91,7 +92,7 @@ Primary Reference: `docs/PROJECT_OVERVIEW.md`
 9. 병합은 THREAD-A 최종 승인 이후에만 수행한다.
 
 ## 현재 우선순위
-- [~] H-027 진행중: CLI `PARTIAL_SUCCESS` 소비 가드레일 보강(`--fail-on-chain-failures` + 종료코드/출력 계약 검증)
+- [~] H-028 진행중: CLI 가드레일 실사용성 점검(자동화/CI 소비자 `exit code 3` 처리 체크리스트 + 샘플 파이프라인 검증)
 
 ## Frozen/Backlog
 - [ ] H-024 동결: fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정
