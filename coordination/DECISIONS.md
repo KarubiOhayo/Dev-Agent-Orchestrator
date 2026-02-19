@@ -431,3 +431,17 @@
   - H-024는 Frozen/Backlog 상태를 유지하고 `RESUME_H024` 근거 확보 전까지 재개하지 않는다.
   - H-030은 `docs/code-agent-api.md`와 `coordination/AUTOMATIONS/A-001-nightly-test-report.md` 중심의 운영 계약 정합화 라운드로 진행한다.
   - Main 판단은 기존 게이트 충족 여부와 함께 신호별 이행 증거 누적 상태를 공동 근거로 사용한다.
+
+## D-042 fallback-warning `KEEP_FROZEN` 후속 점검/재개 판정 정책 고정
+- Date: 2026-02-19
+- Status: Approved (H-030 Scope)
+- Decision:
+  - H-030 결과 기준선(`resumeDecision=KEEP_FROZEN`, `recoveryActionCompletionRate=0.00`, `blockedActionCount=2`, `executionGapDelta=+3`, `chainShareGapDelta=0.00%p`)을 유지 기준으로 고정한다.
+  - 다음 라운드(H-031)는 최신 14일/7일 실측을 재집계해 `RESUME_H024|KEEP_FROZEN` 단일 판정을 유지하되, 게이트 4종 + 회복 액션 상태(`recoveryActionTracking[]`)를 동시에 검증한다.
+  - `RESUME_H024` 전환은 게이트 4종 충족과 함께 `LOW_TRAFFIC`/`CHAIN_COVERAGE_GAP` 신호가 `BLOCKED`가 아님(`IN_PROGRESS|DONE`)을 근거로 판단한다.
+  - 게이트 미충족 또는 핵심 신호 `BLOCKED` 지속 시 `KEEP_FROZEN`을 유지하고, 임계치/알림 룰 수치(`0.05`, `0.15`, `+0.10p`, `0.10`) 및 `INSUFFICIENT_SAMPLE` 제외 규칙은 변경하지 않는다.
+- Rationale: H-030에서 운영 계약 동기화는 완료되었지만 실행량/체인 커버리지 회복 신호가 여전히 개선되지 않아, H-024 재개 판단을 위해서는 게이트 충족 여부와 액션 상태를 함께 보는 후속 점검 기준이 필요하기 때문이다.
+- Consequence:
+  - H-031은 `docs/code-agent-api.md`와 `coordination/AUTOMATIONS/A-001-nightly-test-report.md`의 기존 계약을 유지한 채 최신 실측/판정 근거를 갱신하는 추적 라운드로 진행한다.
+  - Main 판단 문서(`CURRENT_STATUS`, `TASK_BOARD`, `RELAYS`)는 H-031 결과를 기준으로 `RESUME_H024` 재개 여부를 단일값으로 고정한다.
+  - H-024는 `RESUME_H024` 판정이 확정되기 전까지 Frozen/Backlog 상태를 유지한다.
