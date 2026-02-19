@@ -317,3 +317,16 @@
 - Consequence:
   - H-021은 `docs/code-agent-api.md`와 `coordination/AUTOMATIONS/A-001-nightly-test-report.md`에 호출 믹스 출력 계약을 동기화하는 라운드로 진행한다.
   - 이후 Main 판단은 14일 게이트와 함께 `direct vs chain` 비중 추세를 비교해 `READY/HOLD` 전환 가능성을 평가한다.
+
+## D-033 fallback warning 실행량 회복 액션 플랜 운영 정책
+- Date: 2026-02-19
+- Status: Approved (H-021 Scope)
+- Decision:
+  - H-021 결과에서 `recalibrationReadiness=HOLD`가 유지되면, 다음 라운드는 호출 믹스 관측 자체보다 실행량 회복 액션 플랜 수립/추적을 우선한다.
+  - 실행량 회복 평가는 최근 7일 agent별 `directRuns`, `chainRuns`, `totalActualRuns`, `chainShare`를 목표 대비 gap으로 함께 보고한다.
+  - `LOW_TRAFFIC`/`CHAIN_COVERAGE_GAP` 분류는 유지하되, `HOLD` 지속 시에는 일일 실행 목표 증량 액션(직접 호출 + 체인 호출)을 우선순위로 제시한다.
+  - 임계치/알림 룰 수치(`0.05`, `0.15`, `+0.10p`, `0.10`)와 `INSUFFICIENT_SAMPLE` 제외 규칙은 변경하지 않는다.
+- Rationale: H-021에서 호출 믹스 분리 근거는 확보되었지만 최근 7일 누적 실행률 `0.45%`와 `DOC/REVIEW chainRuns=0` 상태가 유지되어, 지표 관측만으로는 `HOLD` 해소가 어렵기 때문이다.
+- Consequence:
+  - H-022는 실행량 회복 액션 플랜(일일 목표, 목표-실적 gap, 우선순위 액션)을 `docs/code-agent-api.md`와 `coordination/AUTOMATIONS/A-001-nightly-test-report.md`에 동기화한다.
+  - Main 판단은 14일 게이트 + 실행량 회복 진행률(gap 축소 여부)을 함께 근거로 사용한다.
