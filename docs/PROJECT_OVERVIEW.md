@@ -39,9 +39,10 @@
   - H-015 fallback warning 임계치/알림 룰 실측 보정 준비 완료(14일 가용성/집계 불가/보정 보류 조건 문서화, Go)
   - H-016 fallback warning 임계치/알림 룰 실측 기반 보정 실행 완료(게이트 미충족으로 보정 보류 확정, 임계치/알림 룰 수치 유지)
   - H-017 fallback warning 보정 재착수용 샘플 확보 계획 수립 완료(기준선/정량 목표/Projection/착수·보류 분기 규칙 문서화, Go)
+  - H-018 fallback warning 샘플 확보 계획 운영 적용 점검 수행 완료(실측/Projection 오차/보류 판정 보고, Review `Conditional Go`)
   - apply/dry-run 파일 반영
 - 미완료:
-  - H-018 fallback warning 샘플 확보 계획 운영 적용 점검(최근 14일 실측 추세/Projection 오차/재보정 착수 시점 추적)
+  - H-018.1 fallback warning 운영 문서 산식/게이트 정합화(진행률 산식 상한 + 재보정 착수 게이트 4종 기준 동기화)
   - fallback warning 임계치/알림 룰 보정안의 운영 적용 후 회귀 점검(지속 데이터 누적 필요)
 
 ## 3) 핵심 아키텍처
