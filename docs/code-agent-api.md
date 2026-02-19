@@ -124,8 +124,9 @@ curl -X POST http://localhost:8080/api/agents/code/generate \
 - `parseEligibleRunCount`:
   - 동일 집계 단위에서 파싱 대상 출력을 생성한 **agent 서비스 run 수**
   - 해석 기준: API 직접 호출 run + 체인 호출로 내부 서비스가 실행된 run을 모두 포함
-  - Code: Code 서비스 run 기준(직접 `POST /api/agents/code/generate` 호출 run)
-  - Spec: Spec 서비스 run 기준(직접 `POST /api/agents/spec/generate` 호출 run)
+  - 체인 포함 원칙: 다른 agent 요청 흐름에서 내부적으로 해당 agent 서비스가 실행된 경우도 해당 agent의 모수에 포함
+  - Code: Code 서비스 run 기준(직접 `POST /api/agents/code/generate` 호출 run + Spec `chainToCode=true`로 내부 Code 서비스가 실행된 run)
+  - Spec: Spec 서비스 run 기준(직접 `POST /api/agents/spec/generate` 호출 run; 현재 체인 유입 경로 없음)
   - Doc: Doc 서비스 run 기준(직접 `POST /api/agents/doc/generate` 호출 run + `chainToDoc=true` 체인 run)
   - Review: Review 서비스 run 기준(직접 `POST /api/agents/review/generate` 호출 run + `chainToReview=true` 체인 run)
 - 최소 샘플 수 조건:

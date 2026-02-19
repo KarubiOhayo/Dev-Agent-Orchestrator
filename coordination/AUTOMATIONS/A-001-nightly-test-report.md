@@ -23,6 +23,11 @@
      - `REVIEW_OUTPUT_FALLBACK_WARNING`
    - 집계 단위: agent별 일 단위 + 전체 집계
    - 경고율 산식: `warningRate = warningEventCount / parseEligibleRunCount`
+   - `parseEligibleRunCount` 해석 기준: agent 서비스 run 수(직접 API 호출 run + 체인 호출로 내부 서비스가 실행된 run 포함)
+     - Code: 직접 `POST /api/agents/code/generate` 호출 run + Spec `chainToCode=true`로 내부 Code 서비스가 실행된 run
+     - Spec: 직접 `POST /api/agents/spec/generate` 호출 run(현재 체인 유입 경로 없음)
+     - Doc: 직접 `POST /api/agents/doc/generate` 호출 run + `chainToDoc=true` 체인 run
+     - Review: 직접 `POST /api/agents/review/generate` 호출 run + `chainToReview=true` 체인 run
    - 최소 샘플 수: `parseEligibleRunCount < 20`이면 `INSUFFICIENT_SAMPLE`
    - `INSUFFICIENT_SAMPLE` 대상은 임계치 판정/알림 룰 계산에서 제외하고, 제외 사실과 사유를 보고서에 별도 표기한다.
    - 임계치:
