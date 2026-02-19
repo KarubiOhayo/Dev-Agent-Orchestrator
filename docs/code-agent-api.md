@@ -450,6 +450,105 @@ curl -X POST http://localhost:8080/api/agents/code/generate \
    - 근거: `집계 불가 0일`로 현재 미발생
    - 액션: run-state 조회/파싱 실패 감시 규칙 유지(발생 시 당일 원인 분류/복구)
 
+### H-020 샘플 확보 실행률 추적 정합화 (최근 7일 + 최신 14일 게이트 연계)
+
+- 실행일(KST):
+  - `2026-02-19`
+- 점검 구간:
+  - 최신 14일 KST `2026-02-06 ~ 2026-02-19` (`today-13 ~ today`)
+  - 최근 7일 KST `2026-02-13 ~ 2026-02-19`
+- 데이터 소스:
+  - `storage/devagent.db` (`runs`, `run_events`)
+
+#### 실행률 산식 (H-020 추가)
+
+- agent별 달성률:
+  - `achievementRate = min(1, actualRuns / targetRuns)`
+- 전체 실행률:
+  - `overallExecutionRate = min(1, totalActualRuns / 32)`
+- 일일 목표(`targetRuns`) 고정값:
+  - `CODE 16`, `SPEC 4`, `DOC 6`, `REVIEW 6` (합계 32)
+
+#### 최신 14일 게이트 실측 + 판정 (유지)
+
+| 항목 | 실측값 | 게이트 기준 | 결과 |
+|---|---:|---:|---|
+| 집계 성공 일수 | 14일 | >= 10일 | PASS |
+| `INSUFFICIENT_SAMPLE` 일수/비율 | 14일 / 1.00 | <= 0.50 | FAIL |
+| `집계 불가` 일수 | 0일 | < 3일 | PASS |
+| 샘플 충분 일수(`parseEligibleRunCount >= 20`) | 0일 | >= 7일 | FAIL |
+
+#### 최근 7일 목표 대비 실제 실행량/달성률 (agent별 + 전체)
+
+| 일자(KST) | CODE (`actual/16`) | SPEC (`actual/4`) | DOC (`actual/6`) | REVIEW (`actual/6`) | `totalActualRuns` | `overallExecutionRate` |
+|---|---:|---:|---:|---:|---:|---:|
+| `2026-02-13` | `1/16 (6.25%)` | `0/4 (0.00%)` | `0/6 (0.00%)` | `0/6 (0.00%)` | 1 | 3.13% |
+| `2026-02-14` | `0/16 (0.00%)` | `0/4 (0.00%)` | `0/6 (0.00%)` | `0/6 (0.00%)` | 0 | 0.00% |
+| `2026-02-15` | `0/16 (0.00%)` | `0/4 (0.00%)` | `0/6 (0.00%)` | `0/6 (0.00%)` | 0 | 0.00% |
+| `2026-02-16` | `0/16 (0.00%)` | `0/4 (0.00%)` | `0/6 (0.00%)` | `0/6 (0.00%)` | 0 | 0.00% |
+| `2026-02-17` | `0/16 (0.00%)` | `0/4 (0.00%)` | `0/6 (0.00%)` | `0/6 (0.00%)` | 0 | 0.00% |
+| `2026-02-18` | `0/16 (0.00%)` | `0/4 (0.00%)` | `0/6 (0.00%)` | `0/6 (0.00%)` | 0 | 0.00% |
+| `2026-02-19` | `0/16 (0.00%)` | `0/4 (0.00%)` | `0/6 (0.00%)` | `0/6 (0.00%)` | 0 | 0.00% |
+
+#### 최근 7일 누적 실행률 요약 (`agentExecution`)
+
+| 구분 | targetRuns(7d) | actualRuns(7d) | achievementRate(7d) |
+|---|---:|---:|---:|
+| CODE | 112 | 1 | 0.89% |
+| SPEC | 28 | 0 | 0.00% |
+| DOC | 42 | 0 | 0.00% |
+| REVIEW | 42 | 0 | 0.00% |
+| 전체 | 224 | 1 | 0.45% |
+
+#### `LOW_TRAFFIC` 정량 근거 (최근 3일)
+
+- 최근 3일 평균 전체 모수(`parseEligibleRunCount`): `0.0000` (기준 `>= 32` 미충족)
+- 최근 3일 평균 `overallExecutionRate`: `0.0000`
+- 해석:
+  - 실행률 추세가 3일 연속 `0.00%`로 유지되어 샘플 충분 일수(`>=20`) 전환 신호가 없다.
+
+#### `CHAIN_COVERAGE_GAP` 정량 근거 (실행률 기반)
+
+- 최근 7일 `DOC`/`REVIEW` 실행량:
+  - `DOC actualRuns=0`, `achievementRate=0.00%`
+  - `REVIEW actualRuns=0`, `achievementRate=0.00%`
+- 해석:
+  - Code->Doc/Review 체인 유입이 관측되지 않아 agent 간 모수 균형이 붕괴된 상태가 지속된다.
+
+#### Projection 재산정 (H-020)
+
+- `requiredSufficientDays = max(0, insufficientDays - 7) = max(0, 14-7) = 7일`
+- `예상 재보정 착수 가능일`:
+  - **미산정** (최근 3일 평균 전체 모수 전제조건 `>= 32` 미충족)
+  - 참고: 전제조건 충족을 가정한 조건부 최소값은 `2026-02-26`(`2026-02-19 + 7일`)
+
+#### READY/HOLD 최종 판정
+
+- `recalibrationReadiness`: **HOLD**
+- `unmetGates`:
+  - `INSUFFICIENT_SAMPLE_RATIO` (`1.00 > 0.50`)
+  - `SUFFICIENT_DAYS` (`0 < 7`)
+- 판정 근거:
+  - 최신 14일 게이트 4개 중 2개 미충족이 지속되고, 최근 7일 실행률 및 최근 3일 평균 실행률이 모두 저조해 `LOW_TRAFFIC`/`CHAIN_COVERAGE_GAP` 해소 신호가 부재하다.
+
+#### HOLD 원인 분류 및 보완 액션 우선순위 (실행률 반영)
+
+1. `LOW_TRAFFIC` (우선순위 1)
+   - 근거: 최근 3일 평균 `parseEligibleRunCount=0.0000`, 최근 3일 평균 `overallExecutionRate=0.0000`
+   - 액션: CODE/SPEC 직접 호출과 체인 호출을 일일 목표(`16/4`)까지 우선 증량
+2. `CHAIN_COVERAGE_GAP` (우선순위 2)
+   - 근거: 최근 7일 `DOC/REVIEW` 실행률 `0.00%` 지속
+   - 액션: `chainToDoc=true`, `chainToReview=true` 실행 비중을 늘리고 `DOC/REVIEW` 일일 목표(`6/6`) 추적을 고정
+3. `COLLECTION_FAILURE` (우선순위 3)
+   - 근거: 최신 14일 `집계 불가 0일`
+   - 액션: 현재 모니터링 규칙 유지(집계 실패 발생 시 당일 원인 분류/복구)
+
+#### 유지 원칙 재확인
+
+- 임계치/알림 룰 수치(`0.05`, `0.15`, `+0.10p`, `0.10`)는 변경하지 않는다.
+- `parseEligibleRunCount < 20`의 `INSUFFICIENT_SAMPLE` 제외 규칙을 유지한다.
+- 이벤트 정의(`*_OUTPUT_FALLBACK_WARNING`)와 모수 정의(직접 호출 + 체인 호출 포함)는 변경하지 않는다.
+
 ## 공통 오류 응답 계약 (Routing + Agent API)
 
 다음 엔드포인트는 입력 오류를 동일한 오류 envelope로 반환합니다.
