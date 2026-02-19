@@ -303,3 +303,17 @@
 - Consequence:
   - H-020은 `docs/code-agent-api.md`와 `coordination/AUTOMATIONS/A-001-nightly-test-report.md`에 실행률 필드/산식을 동기화하는 라운드로 진행한다.
   - 이후 Main 판단은 게이트 충족 여부와 실행률 추세를 함께 비교해 `READY/HOLD`를 확정한다.
+
+## D-032 fallback warning 실행량 증대 검증용 호출 믹스 추적 정책
+- Date: 2026-02-19
+- Status: Approved (H-020 Scope)
+- Decision:
+  - H-020에서 고정한 `READY/HOLD + unmetGates + executionRate` 보고 계약은 유지한다.
+  - 최근 7일 실행량은 `직접 호출`과 `체인 호출`로 분리 집계하고, agent별 `directRuns`, `chainRuns`, `chainShare`를 필수 보고 항목으로 고정한다.
+  - `chainShare`는 `chainRuns / (directRuns + chainRuns)`로 계산하며, 분모가 `0`이면 `0`으로 처리한다.
+  - `LOW_TRAFFIC`는 전체 실행량/실행률 추세로, `CHAIN_COVERAGE_GAP`는 `DOC/REVIEW`의 `chainRuns`·`chainShare`로 분리 판정한다.
+  - 임계치/알림 룰 수치(`0.05`, `0.15`, `+0.10p`, `0.10`)와 `INSUFFICIENT_SAMPLE` 제외 규칙은 변경하지 않는다.
+- Rationale: H-020 결과에서 최근 7일 누적 실행률이 `0.45%`(`1/224`), `DOC/REVIEW` 실행이 `0`으로 확인되어 총량 지표만으로는 병목(직접 호출 부족 vs 체인 커버리지 부족)을 분리 판단하기 어렵다.
+- Consequence:
+  - H-021은 `docs/code-agent-api.md`와 `coordination/AUTOMATIONS/A-001-nightly-test-report.md`에 호출 믹스 출력 계약을 동기화하는 라운드로 진행한다.
+  - 이후 Main 판단은 14일 게이트와 함께 `direct vs chain` 비중 추세를 비교해 `READY/HOLD` 전환 가능성을 평가한다.
