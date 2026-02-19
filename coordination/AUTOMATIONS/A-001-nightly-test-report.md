@@ -39,7 +39,7 @@
      - 전일 대비 warningRate +0.10p 이상 상승 + warningEventCount 5건 이상 증가
      - 전체 집계 warningRate >= 0.10
    - run-state 데이터를 찾지 못하면 원인과 함께 `집계 불가`로 보고한다.
-   - H-030 `KEEP_FROZEN` 상태 실행량/체인 커버리지 회복 액션 이행 추적 + 재보정 readiness 점검(최근 14일 KST 기준)을 추가한다.
+   - H-031 `KEEP_FROZEN` 후속 점검 + `RESUME_H024` 재개 근거 재검증(최근 14일 KST 기준)을 추가한다.
      - 기준선(H-016)을 고정해 함께 보고한다.
        - 집계 성공 `14일`, `INSUFFICIENT_SAMPLE` `14일/1.00`, `집계 불가` `0일`
        - `parseEligibleRunCount(14d)`: `CODE 4`, `SPEC 1`, `DOC 0`, `REVIEW 0`, `전체 5`
