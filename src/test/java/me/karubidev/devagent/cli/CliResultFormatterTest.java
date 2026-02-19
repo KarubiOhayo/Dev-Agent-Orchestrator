@@ -93,6 +93,7 @@ class CliResultFormatterTest {
     assertThat(json.path("data").path("summary").path("chainedReview").asBoolean()).isFalse();
     assertThat(json.path("data").path("summary").path("chainFailures").asInt()).isZero();
     assertThat(json.path("data").path("hasChainFailures").asBoolean()).isFalse();
+    assertThat(json.path("data").path("guardrailTriggered").asBoolean()).isFalse();
     assertThat(json.path("data").path("fileResults")).hasSize(1);
     assertThat(json.path("data").path("chainFailures")).hasSize(0);
     assertThat(json.path("error").isNull()).isTrue();
@@ -131,6 +132,7 @@ class CliResultFormatterTest {
     assertThat(json.path("data").path("summary").path("chainedReview").asBoolean()).isFalse();
     assertThat(json.path("data").path("summary").path("chainFailures").asInt()).isZero();
     assertThat(json.path("data").path("hasChainFailures").asBoolean()).isFalse();
+    assertThat(json.path("data").path("guardrailTriggered").asBoolean()).isFalse();
     assertThat(json.path("data").path("spec").path("title").asText()).isEqualTo("로그인 명세");
     assertThat(json.path("data").path("chainedCode").isNull()).isTrue();
     assertThat(json.path("data").path("chainFailures")).hasSize(0);
@@ -169,10 +171,95 @@ class CliResultFormatterTest {
 
     assertThat(json.path("data").path("summary").path("chainFailures").asInt()).isEqualTo(1);
     assertThat(json.path("data").path("hasChainFailures").asBoolean()).isTrue();
+    assertThat(json.path("data").path("guardrailTriggered").asBoolean()).isFalse();
     assertThat(json.path("data").path("chainFailures")).hasSize(1);
     assertThat(json.path("data").path("chainFailures").get(0).path("agent").asText()).isEqualTo("DOC");
     assertThat(json.path("data").path("chainFailures").get(0).path("failedStage").asText()).isEqualTo("CHAIN_DOC");
     assertThat(json.path("data").path("chainFailures").get(0).path("errorMessage").asText()).isEqualTo("doc failure");
+  }
+
+  @Test
+  void formatGenerateJsonSetsGuardrailTriggeredWhenEnabledAndFailuresExist() throws Exception {
+    ObjectMapper mapper = new ObjectMapper();
+    CliResultFormatter formatter = new CliResultFormatter(mapper);
+    CodeGenerateResponse response = new CodeGenerateResponse(
+        "run-456",
+        "demo-auth",
+        ".",
+        null,
+        "openai",
+        "gpt-5.2-codex",
+        "{}",
+        List.of(),
+        List.of(),
+        "summary",
+        List.of(new GeneratedFile("src/main/java/AuthController.java", "class AuthController {}")),
+        new FileApplyResult(
+            true,
+            1,
+            0,
+            0,
+            List.of(new FileApplyItem("src/main/java/AuthController.java", "DRY_RUN", "planned"))
+        ),
+        null,
+        null,
+        List.of(new CodeGenerateResponse.ChainFailure("DOC", "CHAIN_DOC", "doc failure"))
+    );
+
+    String output = formatter.formatGenerateJson(response, true);
+    var json = mapper.readTree(output);
+
+    assertThat(json.path("data").path("guardrailTriggered").asBoolean()).isTrue();
+  }
+
+  @Test
+  void formatSpecJsonSetsGuardrailTriggeredWhenEnabledAndChainedCodeFailuresExist() throws Exception {
+    ObjectMapper mapper = new ObjectMapper();
+    CliResultFormatter formatter = new CliResultFormatter(mapper);
+
+    ObjectNode spec = mapper.createObjectNode();
+    spec.put("title", "로그인 명세");
+    CodeGenerateResponse chainedCode = new CodeGenerateResponse(
+        "run-456",
+        "demo-auth",
+        ".",
+        null,
+        "openai",
+        "gpt-5.2-codex",
+        "{}",
+        List.of(),
+        List.of(),
+        "summary",
+        List.of(new GeneratedFile("src/main/java/AuthController.java", "class AuthController {}")),
+        new FileApplyResult(
+            true,
+            1,
+            0,
+            0,
+            List.of(new FileApplyItem("src/main/java/AuthController.java", "DRY_RUN", "planned"))
+        ),
+        null,
+        null,
+        List.of(new CodeGenerateResponse.ChainFailure("DOC", "CHAIN_DOC", "doc failure"))
+    );
+    SpecGenerateResponse response = new SpecGenerateResponse(
+        "spec-run-1",
+        "demo-auth",
+        ".",
+        null,
+        "openai",
+        "gpt-5.2",
+        spec,
+        List.of(),
+        List.of(),
+        "summary",
+        chainedCode
+    );
+
+    String output = formatter.formatSpecJson(response, true);
+    var json = mapper.readTree(output);
+
+    assertThat(json.path("data").path("guardrailTriggered").asBoolean()).isTrue();
   }
 
   @Test
@@ -204,7 +291,41 @@ class CliResultFormatterTest {
 
     String output = formatter.formatGenerate(response);
 
-    assertThat(output).contains("[warning] chainFailures detected: 1");
+    assertThat(output)
+        .contains("[warning] chainFailures detected: 1")
+        .contains("guardrail=disabled");
+  }
+
+  @Test
+  void formatGenerateRendersChainFailureWarningWhenGuardrailEnabled() {
+    CliResultFormatter formatter = new CliResultFormatter(new ObjectMapper());
+    CodeGenerateResponse response = new CodeGenerateResponse(
+        "run-456",
+        "demo-auth",
+        ".",
+        null,
+        "openai",
+        "gpt-5.2-codex",
+        "{}",
+        List.of(),
+        List.of(),
+        "summary",
+        List.of(new GeneratedFile("src/main/java/AuthController.java", "class AuthController {}")),
+        new FileApplyResult(
+            true,
+            1,
+            0,
+            0,
+            List.of(new FileApplyItem("src/main/java/AuthController.java", "DRY_RUN", "planned"))
+        ),
+        null,
+        null,
+        List.of(new CodeGenerateResponse.ChainFailure("DOC", "CHAIN_DOC", "doc failure"))
+    );
+
+    String output = formatter.formatGenerate(response, true);
+
+    assertThat(output).contains("guardrail=enabled");
   }
 
   @Test

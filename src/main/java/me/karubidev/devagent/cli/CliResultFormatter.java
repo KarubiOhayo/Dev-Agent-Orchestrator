@@ -20,10 +20,18 @@ public class CliResultFormatter {
   }
 
   public String formatGenerate(CodeGenerateResponse response) {
-    return formatGenerate(response, true);
+    return formatGenerate(response, false);
   }
 
-  private String formatGenerate(CodeGenerateResponse response, boolean includeChainFailureWarning) {
+  public String formatGenerate(CodeGenerateResponse response, boolean guardrailEnabled) {
+    return formatGenerate(response, true, guardrailEnabled);
+  }
+
+  private String formatGenerate(
+      CodeGenerateResponse response,
+      boolean includeChainFailureWarning,
+      boolean guardrailEnabled
+  ) {
     FileApplyResult applyResult = response.applyResult();
     int parsedFiles = applyResult != null ? applyResult.parsedFiles() : safeSize(response.files());
     int writtenFiles = applyResult != null ? applyResult.writtenFiles() : 0;
@@ -52,7 +60,7 @@ public class CliResultFormatter {
     sb.append("== generate summary ==\n");
     sb.append(renderTable(rows));
     if (includeChainFailureWarning) {
-      appendChainFailureWarning(sb, chainFailureCount);
+      appendChainFailureWarning(sb, chainFailureCount, guardrailEnabled);
     }
     appendFileItems(sb, applyResult);
     appendChainFailures(sb, response.chainFailures());
@@ -60,6 +68,10 @@ public class CliResultFormatter {
   }
 
   public String formatSpec(SpecGenerateResponse response) {
+    return formatSpec(response, false);
+  }
+
+  public String formatSpec(SpecGenerateResponse response, boolean guardrailEnabled) {
     CodeGenerateResponse chainedCode = response.chainedCodeResult();
     boolean chainedDoc = chainedCode != null && chainedCode.chainedDocResult() != null;
     boolean chainedReview = chainedCode != null && chainedCode.chainedReviewResult() != null;
@@ -77,24 +89,35 @@ public class CliResultFormatter {
     StringBuilder sb = new StringBuilder();
     sb.append("== spec summary ==\n");
     sb.append(renderTable(rows));
-    appendChainFailureWarning(sb, chainFailureCount);
+    appendChainFailureWarning(sb, chainFailureCount, guardrailEnabled);
     if (chainedCode != null) {
       sb.append("\n");
-      sb.append(formatGenerate(chainedCode, false));
+      sb.append(formatGenerate(chainedCode, false, guardrailEnabled));
     }
     return sb.toString();
   }
 
   public String formatGenerateJson(CodeGenerateResponse response) {
+    return formatGenerateJson(response, false);
+  }
+
+  public String formatGenerateJson(CodeGenerateResponse response, boolean guardrailEnabled) {
     ObjectNode root = baseSuccess("generate", response.runId(), response.usedProvider(), response.usedModel());
-    root.set("data", buildGenerateDataNode(response));
+    ObjectNode data = buildGenerateDataNode(response);
+    data.put("guardrailTriggered", isGuardrailTriggered(guardrailEnabled, safeSize(response.chainFailures())));
+    root.set("data", data);
     root.set("error", objectMapper.nullNode());
     return toJson(root);
   }
 
   public String formatSpecJson(SpecGenerateResponse response) {
+    return formatSpecJson(response, false);
+  }
+
+  public String formatSpecJson(SpecGenerateResponse response, boolean guardrailEnabled) {
     ObjectNode root = baseSuccess("spec", response.runId(), response.usedProvider(), response.usedModel());
     ObjectNode data = objectMapper.createObjectNode();
+    int chainFailureCount = response.chainedCodeResult() == null ? 0 : safeSize(response.chainedCodeResult().chainFailures());
 
     ObjectNode summary = objectMapper.createObjectNode();
     summary.put("specKeys", response.spec() == null ? 0 : response.spec().size());
@@ -104,12 +127,10 @@ public class CliResultFormatter {
         "chainedReview",
         response.chainedCodeResult() != null && response.chainedCodeResult().chainedReviewResult() != null
     );
-    summary.put(
-        "chainFailures",
-        response.chainedCodeResult() == null ? 0 : safeSize(response.chainedCodeResult().chainFailures())
-    );
+    summary.put("chainFailures", chainFailureCount);
     data.set("summary", summary);
-    data.put("hasChainFailures", response.chainedCodeResult() != null && safeSize(response.chainedCodeResult().chainFailures()) > 0);
+    data.put("hasChainFailures", chainFailureCount > 0);
+    data.put("guardrailTriggered", isGuardrailTriggered(guardrailEnabled, chainFailureCount));
     if (response.spec() != null) {
       data.set("spec", response.spec());
     } else {
@@ -312,13 +333,21 @@ public class CliResultFormatter {
     return data;
   }
 
-  private void appendChainFailureWarning(StringBuilder sb, int chainFailureCount) {
+  private void appendChainFailureWarning(StringBuilder sb, int chainFailureCount, boolean guardrailEnabled) {
     if (chainFailureCount <= 0) {
       return;
     }
     sb.append("\n[warning] chainFailures detected: ")
-        .append(chainFailureCount)
-        .append(" (use --fail-on-chain-failures=true to return exit code 3)\n");
+        .append(chainFailureCount);
+    if (guardrailEnabled) {
+      sb.append(" (guardrail=enabled, exit code 3 will be returned)\n");
+      return;
+    }
+    sb.append(" (guardrail=disabled, use --fail-on-chain-failures=true to return exit code 3)\n");
+  }
+
+  private boolean isGuardrailTriggered(boolean guardrailEnabled, int chainFailureCount) {
+    return guardrailEnabled && chainFailureCount > 0;
   }
 
   private ArrayNode buildChainFailuresNode(List<CodeGenerateResponse.ChainFailure> chainFailures) {

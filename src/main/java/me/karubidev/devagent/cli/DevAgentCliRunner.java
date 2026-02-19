@@ -166,9 +166,9 @@ public class DevAgentCliRunner implements ApplicationRunner, ExitCodeGenerator {
 
     var response = codeAgentService.generate(request);
     if (jsonMode) {
-      out.print(formatter.formatGenerateJson(response));
+      out.print(formatter.formatGenerateJson(response, failOnChainFailures));
     } else {
-      out.print(formatter.formatGenerate(response));
+      out.print(formatter.formatGenerate(response, failOnChainFailures));
     }
     applyChainFailureGuardrail(failOnChainFailures, response);
   }
@@ -215,9 +215,9 @@ public class DevAgentCliRunner implements ApplicationRunner, ExitCodeGenerator {
 
     var response = specAgentService.generate(request);
     if (jsonMode) {
-      out.print(formatter.formatSpecJson(response));
+      out.print(formatter.formatSpecJson(response, failOnChainFailures));
     } else {
-      out.print(formatter.formatSpec(response));
+      out.print(formatter.formatSpec(response, failOnChainFailures));
     }
     applyChainFailureGuardrail(failOnChainFailures, response.chainedCodeResult());
   }

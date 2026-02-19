@@ -108,6 +108,9 @@ curl -X POST http://localhost:8080/api/agents/spec/generate \
 - `PARTIAL_SUCCESS`에서도 run-state 이벤트(`CHAIN_*_TRIGGERED/DONE/FAILED`) 기록 계약은 동일하게 유지됨
 - `PARTIAL_SUCCESS`를 사용하는 클라이언트는 HTTP 200이어도 `chainFailures[]`를 반드시 확인해야 함
 - CLI(`devagent generate/spec`)에서는 `--fail-on-chain-failures=true` 가드레일로 `chainFailures[]` 존재 시 종료코드 `3`을 강제할 수 있음(출력/응답 계약은 유지).
+- CLI JSON 출력은 `data.hasChainFailures`와 `data.guardrailTriggered`를 함께 제공하며, 소비자는 다음 규약을 따른다.
+  - 기본 모드(`--fail-on-chain-failures` 미사용/`false`): 종료코드가 `0`이어도 `data.chainFailures[]` 또는 `data.hasChainFailures`를 확인한다.
+  - 가드레일 모드(`--fail-on-chain-failures=true`): `exit code == 3`과 `data.guardrailTriggered == true`를 함께 확인하고 실패 처리한다.
 
 ## 출력 파싱 fallback 관측 이벤트 (run-state)
 

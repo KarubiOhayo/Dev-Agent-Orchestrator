@@ -142,7 +142,7 @@ devagent generate --user-request "로그인 API 스켈레톤을 만들어줘"
 | chainFailures| 1                   |
 +-------------+----------------------+
 
-[warning] chainFailures detected: 1 (use --fail-on-chain-failures=true to return exit code 3)
+[warning] chainFailures detected: 1 (guardrail=disabled, use --fail-on-chain-failures=true to return exit code 3)
 
 file results
 - DRY_RUN src/main/java/AuthController.java (planned)
@@ -174,6 +174,7 @@ file results
       "chainFailures": 1
     },
     "hasChainFailures": true,
+    "guardrailTriggered": false,
     "fileResults": [
       {
         "path": "src/main/java/AuthController.java",
@@ -198,7 +199,76 @@ file results
 - 기본 모드(기본값): `--fail-on-chain-failures` 미사용 또는 `false`면, `chainFailures[]`가 있어도 종료코드는 `0`입니다.
 - 가드레일 모드: `--fail-on-chain-failures=true`면, `chainFailures[]`가 비어 있지 않을 때 종료코드 `3`을 반환합니다.
 - API에서 `chainFailurePolicy=PARTIAL_SUCCESS`를 사용한 경우, HTTP/API 호출 자체가 성공이어도 `chainFailures[]`를 반드시 확인해야 합니다.
-- JSON 출력에서는 `data.hasChainFailures` 보조 필드로 빠른 분기 처리가 가능합니다.
+- JSON 출력에서는 `data.hasChainFailures`와 `data.guardrailTriggered` 보조 필드로 빠른 분기 처리가 가능합니다.
+
+### 자동화/CI 소비 체크리스트
+
+| 모드 | 실행 옵션 | `chainFailures[] > 0` 시 종료코드 | 필수 점검 항목 |
+|---|---|---:|---|
+| 기본 모드 | `--fail-on-chain-failures` 미사용 또는 `false` | `0` | `data.chainFailures[]` 또는 `data.hasChainFailures`를 직접 확인 |
+| 가드레일 모드 | `--fail-on-chain-failures=true` | `3` | 종료코드 + `data.guardrailTriggered=true` + `data.chainFailures[]` 동시 확인 |
+
+권장 shell 파이프라인 예시:
+
+```bash
+./devagent generate \
+  --user-request "로그인 API 코드를 생성해줘" \
+  --chain-to-doc true \
+  --chain-to-review true \
+  --chain-failure-policy PARTIAL_SUCCESS \
+  --fail-on-chain-failures true \
+  --json > devagent-result.json
+exit_code=$?
+
+if [ "$exit_code" -eq 3 ]; then
+  echo "chain failures detected (guardrail triggered)"
+  cat devagent-result.json
+  exit 1
+fi
+
+if [ "$exit_code" -ne 0 ]; then
+  echo "cli failed with exit code: $exit_code"
+  exit "$exit_code"
+fi
+```
+
+권장 GitHub Actions 예시:
+
+```yaml
+- name: Run devagent
+  id: devagent
+  run: |
+    set +e
+    ./devagent generate \
+      --user-request "로그인 API 코드를 생성해줘" \
+      --chain-to-doc true \
+      --chain-to-review true \
+      --chain-failure-policy PARTIAL_SUCCESS \
+      --fail-on-chain-failures true \
+      --json > devagent-result.json
+    code=$?
+    echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+    exit 0
+
+- name: Check devagent exit code
+  run: |
+    code="${{ steps.devagent.outputs.exit_code }}"
+    if [ "$code" = "3" ]; then
+      echo "chain failures detected (guardrail triggered)"
+      cat devagent-result.json
+      exit 1
+    fi
+    if [ "$code" != "0" ]; then
+      echo "cli failed with exit code: $code"
+      exit "$code"
+    fi
+```
+
+안티패턴:
+
+- `continue-on-error: true`로 종료코드 `3`을 무시하고 다음 단계를 계속 진행
+- stdout 로그만 확인하고 실제 프로세스 종료코드를 확인하지 않음
+- `PARTIAL_SUCCESS` 사용 시 `chainFailures[]`를 확인하지 않음
 
 ### 실패 (`--json` + 잘못된 옵션)
 
