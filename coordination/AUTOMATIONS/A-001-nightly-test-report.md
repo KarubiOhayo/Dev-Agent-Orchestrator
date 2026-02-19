@@ -39,7 +39,7 @@
      - 전일 대비 warningRate +0.10p 이상 상승 + warningEventCount 5건 이상 증가
      - 전체 집계 warningRate >= 0.10
    - run-state 데이터를 찾지 못하면 원인과 함께 `집계 불가`로 보고한다.
-   - H-022 실행량 회복 액션 플랜/진행률 점검 + 재보정 readiness 점검(최근 14일 KST 기준)을 추가한다.
+   - H-023 실행량 회복 액션 이행률 추적/검증 + 재보정 readiness 점검(최근 14일 KST 기준)을 추가한다.
      - 기준선(H-016)을 고정해 함께 보고한다.
        - 집계 성공 `14일`, `INSUFFICIENT_SAMPLE` `14일/1.00`, `집계 불가` `0일`
        - `parseEligibleRunCount(14d)`: `CODE 4`, `SPEC 1`, `DOC 0`, `REVIEW 0`, `전체 5`
@@ -58,6 +58,10 @@
        - `actualChainShare = actualChainRuns / actualTotalRuns` 산식을 사용한다. (단, `actualTotalRuns = 0`이면 `0` 처리)
        - `executionGap = targetTotalRuns - actualTotalRuns` 산식을 사용한다.
        - `chainShareGap = targetChainShare - actualChainShare` 산식을 사용한다.
+       - agent별 `executionRecoveryTrend` 항목을 고정 출력한다. (`executionGap`, `executionGapDelta`, `chainShareGap`, `chainShareGapDelta`)
+       - `executionGapDelta = executionGap(최근7일) - executionGap(직전7일)` 산식을 사용한다.
+       - `chainShareGapDelta = chainShareGap(최근7일) - chainShareGap(직전7일)` 산식을 사용한다.
+       - `executionGapDelta < 0` 또는 `chainShareGapDelta < 0`이면 개선, 둘 다 `>= 0`이면 미개선으로 해석한다.
      - `INSUFFICIENT_SAMPLE` 비율을 계산한다. (`INSUFFICIENT_SAMPLE 일수 / 14`)
      - `집계 불가` 원인을 분류한다. (예: run-state 부재, 조회/파싱 실패, 필수 필드 누락)
      - 최근 14일 `parseEligibleRunCount` 추세를 전체 + agent별로 계산한다.
@@ -84,9 +88,12 @@
        - 미충족 게이트는 `unmetGates` 목록으로 명시한다. (예: `INSUFFICIENT_SAMPLE_RATIO`, `SUFFICIENT_DAYS`)
        - 오차 초과 또는 게이트 4개 중 1개라도 미충족: `HOLD` + 원인 분류(`LOW_TRAFFIC`, `CHAIN_COVERAGE_GAP`, `COLLECTION_FAILURE`) + 우선순위 액션
        - `HOLD`일 때 원인 우선순위는 목표-실적 gap + 실행률 지표 기반으로 정한다.
-         - `LOW_TRAFFIC`: 최근 7일 `executionRecoveryProgress.executionGap` + 최근 3일 평균 `overallExecutionRate` 기준
-         - `CHAIN_COVERAGE_GAP`: 최근 7일 `DOC`/`REVIEW` `executionRecoveryProgress.chainShareGap` + `actualChainRuns` 기준
+         - `LOW_TRAFFIC`: 최근 7일 `executionRecoveryTrend.executionGap` + `executionGapDelta` + 최근 3일 평균 `overallExecutionRate` 기준
+         - `CHAIN_COVERAGE_GAP`: 최근 7일 `DOC`/`REVIEW` `executionRecoveryTrend.chainShareGap` + `chainShareGapDelta` + `actualChainRuns` 기준
          - `COLLECTION_FAILURE`: 최근 14일 `집계 불가` 원인 분류 기준
+       - `HOLD`일 때 원인별 `recoveryActionStatus`를 고정 출력한다. (`cause`, `priority`, `status`, `evidence`)
+         - `status`는 `IN_PROGRESS|BLOCKED|DONE` 중 하나로 표기한다.
+         - `evidence`에는 runId 또는 집계표 근거를 반드시 포함한다.
        - 게이트 4개 모두 충족 + 오차 허용 범위 내: `READY` + 다음 라운드 문구를 `임계치 후보 산정 라운드 착수 제안`으로 고정한다.
      - `HOLD`일 때 임계치/알림 룰 수치(`0.05`, `0.15`, `+0.10p`, `0.10`)는 유지한다.
      - `HOLD`일 때 일일 우선 액션(직접 호출 증량, 체인 호출 증량, 점검 시각/담당)을 목표-실적 gap 근거와 함께 제시한다.
@@ -119,9 +126,11 @@
   - `agentExecution`(agent별 `targetRuns`, `totalActualRuns`, `achievementRate`)
   - `executionRecoveryPlan`(agent별 `targetDirectRuns`, `targetChainRuns`, `targetTotalRuns`, `targetChainShare`)
   - `executionRecoveryProgress`(agent별 `actualDirectRuns`, `actualChainRuns`, `actualTotalRuns`, `executionGap`, `chainShareGap`)
+  - `executionRecoveryTrend`(agent별 `executionGap`, `executionGapDelta`, `chainShareGap`, `chainShareGapDelta`)
+  - `recoveryActionStatus`(원인별 `cause`, `priority`, `status`, `evidence`)
   - `overallExecutionRate`(일자별 + 최근 3일 평균)
   - H-017 게이트 목표 대비 진행률/미달률(집계 성공 달성률 `min(1, 집계 성공 일수 / 10)` + 목표 초과 일수 포함, 샘플 부족/집계 불가/샘플 충분 일수)
-  - 최근 7일 목표-실적 gap 요약(`executionGap`, `chainShareGap`, `DOC/REVIEW actualChainRuns`)
+  - 최근 7일 목표-실적 gap + delta 요약(`executionGap`, `executionGapDelta`, `chainShareGap`, `chainShareGapDelta`, `DOC/REVIEW actualChainRuns`)
   - Projection 대비 실측 오차(`deltaSufficientDays`, `deltaInsufficientRatio`, `deltaStartDate`)
   - `recalibrationReadiness` (`READY`/`HOLD`)
   - 미충족 게이트 목록(`unmetGates`)
