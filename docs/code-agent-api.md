@@ -122,11 +122,12 @@ curl -X POST http://localhost:8080/api/agents/code/generate \
 - `warningEventCount`:
   - 해당 집계 단위(일/agent 또는 전체)에서 발생한 `*_OUTPUT_FALLBACK_WARNING` 이벤트 수
 - `parseEligibleRunCount`:
-  - 동일 집계 단위에서 파싱 대상 출력을 생성한 실행 수
-  - Code: `POST /api/agents/code/generate` 실행 중 출력 파싱 단계에 진입한 run 수
-  - Spec: `POST /api/agents/spec/generate` 실행 중 출력 파싱 단계에 진입한 run 수
-  - Doc: `POST /api/agents/doc/generate` 실행 중 출력 파싱 단계에 진입한 run 수
-  - Review: `POST /api/agents/review/generate` 실행 중 출력 파싱 단계에 진입한 run 수
+  - 동일 집계 단위에서 파싱 대상 출력을 생성한 **agent 서비스 run 수**
+  - 해석 기준: API 직접 호출 run + 체인 호출로 내부 서비스가 실행된 run을 모두 포함
+  - Code: Code 서비스 run 기준(직접 `POST /api/agents/code/generate` 호출 run)
+  - Spec: Spec 서비스 run 기준(직접 `POST /api/agents/spec/generate` 호출 run)
+  - Doc: Doc 서비스 run 기준(직접 `POST /api/agents/doc/generate` 호출 run + `chainToDoc=true` 체인 run)
+  - Review: Review 서비스 run 기준(직접 `POST /api/agents/review/generate` 호출 run + `chainToReview=true` 체인 run)
 - 최소 샘플 수 조건:
   - `parseEligibleRunCount < 20`이면 판정 등급을 `INSUFFICIENT_SAMPLE`로 표시하고 임계치 판정/알림 트리거에서 제외한다.
 

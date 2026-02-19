@@ -24,6 +24,7 @@
    - 집계 단위: agent별 일 단위 + 전체 집계
    - 경고율 산식: `warningRate = warningEventCount / parseEligibleRunCount`
    - 최소 샘플 수: `parseEligibleRunCount < 20`이면 `INSUFFICIENT_SAMPLE`
+   - `INSUFFICIENT_SAMPLE` 대상은 임계치 판정/알림 룰 계산에서 제외하고, 제외 사실과 사유를 보고서에 별도 표기한다.
    - 임계치:
      - `NORMAL`: warningRate < 0.05
      - `CAUTION`: 0.05 <= warningRate < 0.15
@@ -51,6 +52,7 @@
   - 이벤트별 건수
   - agent별 `parseEligibleRunCount`, `warningRate`, 임계치 판정
   - 전체 집계 `parseEligibleRunCount`, `warningRate`, 임계치 판정
+  - `INSUFFICIENT_SAMPLE` 제외 내역(대상 agent, 제외 사유)
   - 알림 룰 충족 여부(연속 초과/급증/전체 집계)
 - 권장 후속조치(수동)
 ```
