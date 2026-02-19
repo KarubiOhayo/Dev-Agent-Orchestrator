@@ -36,10 +36,11 @@
   - H-013 fallback warning run-state 집계 기준 문서화 완료(모수/경고율/임계치/알림 룰 + 야간 점검 템플릿 정합화)
   - H-014 fallback warning 집계 기준 문구 정합화 완료(`INSUFFICIENT_SAMPLE` 제외 규칙 동기화, H-014.1 보강 반영)
   - H-014.1 Code `parseEligibleRunCount` 모수 정의 정합화 완료(직접 호출 + Spec 체인 호출 포함 기준 고정, Go)
+  - H-015 fallback warning 임계치/알림 룰 실측 보정 준비 완료(14일 가용성/집계 불가/보정 보류 조건 문서화, Go)
   - apply/dry-run 파일 반영
 - 미완료:
-  - H-015 fallback warning 임계치/알림 룰 실측 보정 준비(운영 데이터 수집 가능 구간 점검 + 보정 라운드 입력 템플릿 확정)
-  - fallback warning 임계치/알림 룰의 실측 기반 보정(운영 데이터 누적 필요)
+  - H-016 fallback warning 임계치/알림 룰 실측 기반 보정 실행(최근 14일 데이터 기반 후보값 도출 + 오탐/미탐 영향 비교)
+  - fallback warning 임계치/알림 룰 보정안의 운영 적용 후 회귀 점검(지속 데이터 누적 필요)
 
 ## 3) 핵심 아키텍처
 - `api/`: 엔드포인트
