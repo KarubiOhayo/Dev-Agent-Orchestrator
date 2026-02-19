@@ -150,6 +150,26 @@ curl -X POST http://localhost:8080/api/agents/code/generate \
   - 전체 집계 `warningRate >= 0.10`이면 agent별 상태와 별개로 일괄 점검 알림을 발생시킨다.
 - `INSUFFICIENT_SAMPLE`은 알림 대상에서 제외하되, 보고서에 `표본 부족` 상태를 명시한다.
 
+### 실측 보정 준비 체크 (H-015)
+
+- 목적:
+  - 임계치/알림 룰 수치 조정 전에 최근 14일 운영 데이터의 가용성과 해석 가능성을 먼저 검증한다.
+- 관측 구간:
+  - 최근 14일 `KST 00:00~23:59` 일 단위 집계를 기준으로 agent별/전체 집계를 함께 점검한다.
+- 일별 상태 분류:
+  - `집계 성공`: `parseEligibleRunCount`, `warningEventCount` 산출이 모두 성공한 경우
+  - `집계 불가`: run-state 조회 실패, 기간 변환 실패, 필수 필드 누락/파싱 오류 등으로 산출이 불가능한 경우
+  - `INSUFFICIENT_SAMPLE`: 집계 성공이지만 `parseEligibleRunCount < 20`인 경우(임계치 판정/알림 계산 제외)
+- 보정 후보 수집 기준(수치 변경 없음):
+  - `집계 성공` + 샘플 충분(`parseEligibleRunCount >= 20`) 구간에서 agent별 `warningRate` 분포(최소/중앙/상위 분위/최대)와 `warningEventCount` 추세를 기록한다.
+  - 연속 `WARNING` 발생 빈도, 급증 규칙 충족 빈도, 전체 집계 보호 규칙 트리거 빈도를 기록한다.
+  - `INSUFFICIENT_SAMPLE` 및 `집계 불가`는 임계치 후보 산정과 분리해 별도 통계(일수/비율/원인)로 관리한다.
+- 보고 권장 항목:
+  - 최근 14일 집계 성공/실패 일수
+  - `INSUFFICIENT_SAMPLE` 일수 및 비율
+  - `집계 불가` 원인 분류별 건수
+  - 임계치 보정 판단 보류 여부와 근거
+
 ## 공통 오류 응답 계약 (Routing + Agent API)
 
 다음 엔드포인트는 입력 오류를 동일한 오류 envelope로 반환합니다.
