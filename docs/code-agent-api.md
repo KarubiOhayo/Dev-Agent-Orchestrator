@@ -170,6 +170,56 @@ curl -X POST http://localhost:8080/api/agents/code/generate \
   - `집계 불가` 원인 분류별 건수
   - 임계치 보정 판단 보류 여부와 근거
 
+### 실측 보정 실행 결과 (H-016)
+
+- 실행 라운드 기준 구간:
+  - `2026-02-06 ~ 2026-02-19` (KST, 14일)
+- 데이터 소스:
+  - `storage/devagent.db` (`runs`, `run_events`)
+- 대상 fallback warning 이벤트:
+  - `CODE_OUTPUT_FALLBACK_WARNING`
+  - `SPEC_OUTPUT_FALLBACK_WARNING`
+  - `DOC_OUTPUT_FALLBACK_WARNING`
+  - `REVIEW_OUTPUT_FALLBACK_WARNING`
+
+#### 14일 가용성 게이트 판정 (전체)
+
+| 항목 | 실측값 | 게이트 기준 | 결과 |
+|---|---:|---:|---|
+| 집계 성공 일수 | 14일 | >= 10일 | PASS |
+| `INSUFFICIENT_SAMPLE` 일수/비율 | 14일 / 1.00 | <= 0.50 | FAIL |
+| `집계 불가` 일수 | 0일 | < 3일 | PASS |
+
+- 최종 판정:
+  - **보정 보류**
+- 보류 사유:
+  - 최근 14일 모두 `parseEligibleRunCount < 20`으로 샘플 부족 상태
+  - 샘플 충분(`parseEligibleRunCount >= 20`) 구간이 없어 후보값 신뢰도 검증 불가
+- `집계 불가` 원인 분류:
+  - 해당 없음 (`0일`)
+
+#### 14일 누적 요약 (agent별/전체)
+
+| 구분 | parseEligibleRunCount(14d) | warningEventCount(14d) | warningRate(14d) | 샘플 충분 일수(>=20) |
+|---|---:|---:|---:|---:|
+| CODE | 4 | 0 | 0.0000 | 0 |
+| SPEC | 1 | 0 | 0.0000 | 0 |
+| DOC | 0 | 0 | N/A | 0 |
+| REVIEW | 0 | 0 | N/A | 0 |
+| 전체 | 5 | 0 | 0.0000 | 0 |
+
+#### 임계치/알림 룰 처리 결과
+
+- 임계치 수치 유지:
+  - `NORMAL < 0.05`
+  - `CAUTION >= 0.05 and < 0.15`
+  - `WARNING >= 0.15`
+- 알림 룰 수치 유지:
+  - 급증 기준 `+0.10p`
+  - 전체 집계 보호 기준 `warningRate >= 0.10`
+- 적용 전/후 비교:
+  - **보정 보류에 따라 후보값 제시 및 전/후 비교를 수행하지 않음**
+
 ## 공통 오류 응답 계약 (Routing + Agent API)
 
 다음 엔드포인트는 입력 오류를 동일한 오류 envelope로 반환합니다.
