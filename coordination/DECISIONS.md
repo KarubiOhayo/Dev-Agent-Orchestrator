@@ -330,3 +330,16 @@
 - Consequence:
   - H-022는 실행량 회복 액션 플랜(일일 목표, 목표-실적 gap, 우선순위 액션)을 `docs/code-agent-api.md`와 `coordination/AUTOMATIONS/A-001-nightly-test-report.md`에 동기화한다.
   - Main 판단은 14일 게이트 + 실행량 회복 진행률(gap 축소 여부)을 함께 근거로 사용한다.
+
+## D-034 fallback warning 실행량 회복 액션 이행률 추적 정책
+- Date: 2026-02-19
+- Status: Approved (H-022 Scope)
+- Decision:
+  - H-022에서 고정한 `executionRecoveryPlan`/`executionRecoveryProgress` 출력 계약은 유지한다.
+  - 다음 라운드는 최근 7일 기준 `executionGap`, `chainShareGap`의 절대값과 추세(직전 7일 대비 delta)를 함께 보고해 실행량 회복 이행률을 검증한다.
+  - `HOLD`가 지속되면 액션 우선순위(`LOW_TRAFFIC`/`CHAIN_COVERAGE_GAP`/`COLLECTION_FAILURE`)별로 `status(IN_PROGRESS|BLOCKED|DONE)`와 근거(`runId`/집계표)를 함께 고정한다.
+  - 임계치/알림 룰 수치(`0.05`, `0.15`, `+0.10p`, `0.10`)와 `INSUFFICIENT_SAMPLE` 제외 규칙은 변경하지 않는다.
+- Rationale: H-022에서도 최근 7일 누적 실행률이 `0.45%`(`1/224`), `executionGap=223`, `DOC/REVIEW chainRuns=0` 상태가 유지되어 플랜 수립만으로는 회복 신호를 검증할 수 없기 때문이다.
+- Consequence:
+  - H-023은 `docs/code-agent-api.md`와 `coordination/AUTOMATIONS/A-001-nightly-test-report.md`에 gap 추세/액션 이행 상태 출력을 동기화하는 라운드로 진행한다.
+  - Main 판단은 14일 게이트 판정과 함께 `executionGap`/`chainShareGap` 축소 추세 및 액션 이행 근거를 공동 기준으로 사용한다.
