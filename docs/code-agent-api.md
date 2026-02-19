@@ -655,6 +655,108 @@ curl -X POST http://localhost:8080/api/agents/code/generate \
 - `parseEligibleRunCount < 20`의 `INSUFFICIENT_SAMPLE` 제외 규칙을 유지한다.
 - 이벤트 정의(`*_OUTPUT_FALLBACK_WARNING`)와 모수 정의(직접 호출 + 체인 호출 포함)는 변경하지 않는다.
 
+### H-022 실행량 회복 액션 플랜 수립/운영 점검 (최근 7일 목표-실적 gap 고정)
+
+- 실행일(KST):
+  - `2026-02-19`
+- 점검 구간:
+  - 최신 14일 KST `2026-02-06 ~ 2026-02-19` (`today-13 ~ today`)
+  - 최근 7일 KST `2026-02-13 ~ 2026-02-19` (`today-6 ~ today`)
+- 데이터 소스:
+  - `storage/devagent.db` (`runs`, `run_events`)
+
+#### 실행량 회복 산식 (H-022 추가)
+
+- `executionRecoveryPlan`:
+  - `targetDirectRuns`, `targetChainRuns`, `targetChainShare`
+- `executionRecoveryProgress`:
+  - `actualDirectRuns`, `actualChainRuns`, `executionGap`, `chainShareGap`
+- 총량 산식:
+  - `targetTotalRuns = targetDirectRuns + targetChainRuns`
+  - `actualTotalRuns = actualDirectRuns + actualChainRuns`
+  - `executionGap = targetTotalRuns - actualTotalRuns`
+- 체인 비중 산식:
+  - `actualChainShare = actualChainRuns / actualTotalRuns`
+  - 단, `actualTotalRuns = 0`이면 `actualChainShare = 0`으로 처리한다.
+  - `chainShareGap = targetChainShare - actualChainShare`
+- 해석 규칙:
+  - `LOW_TRAFFIC`는 `executionGap`을 중심으로 판정한다.
+  - `CHAIN_COVERAGE_GAP`는 `chainShareGap`과 `DOC/REVIEW actualChainRuns`를 함께 판정한다.
+
+#### 최신 14일 게이트 실측 + 판정 (유지)
+
+| 항목 | 실측값 | 게이트 기준 | 결과 |
+|---|---:|---:|---|
+| 집계 성공 일수 | 14일 | >= 10일 | PASS |
+| `INSUFFICIENT_SAMPLE` 일수/비율 | 14일 / 1.00 | <= 0.50 | FAIL |
+| `집계 불가` 일수 | 0일 | < 3일 | PASS |
+| 샘플 충분 일수(`parseEligibleRunCount >= 20`) | 0일 | >= 7일 | FAIL |
+
+#### 최근 7일 agent별 목표-실적 gap (`executionRecoveryPlan` + `executionRecoveryProgress`)
+
+| 구분 | targetDirectRuns(7d) | targetChainRuns(7d) | targetTotalRuns(7d) | targetChainShare(7d) | actualDirectRuns(7d) | actualChainRuns(7d) | actualTotalRuns(7d) | actualChainShare(7d) | executionGap(7d) | chainShareGap(7d) |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| CODE | 84 | 28 | 112 | 25.00% | 1 | 0 | 1 | 0.00% | 111 | 25.00%p |
+| SPEC | 28 | 0 | 28 | 0.00% | 0 | 0 | 0 | 0.00% | 28 | 0.00%p |
+| DOC | 0 | 42 | 42 | 100.00% | 0 | 0 | 0 | 0.00% | 42 | 100.00%p |
+| REVIEW | 0 | 42 | 42 | 100.00% | 0 | 0 | 0 | 0.00% | 42 | 100.00%p |
+| 전체 | 112 | 112 | 224 | 50.00% | 1 | 0 | 1 | 0.00% | 223 | 50.00%p |
+
+#### `overallExecutionRate` 추세 + 원인 분류 근거
+
+- 최근 7일 일자별 전체 `overallExecutionRate`:
+  - `2026-02-13`: `3.13%`
+  - `2026-02-14`: `0.00%`
+  - `2026-02-15`: `0.00%`
+  - `2026-02-16`: `0.00%`
+  - `2026-02-17`: `0.00%`
+  - `2026-02-18`: `0.00%`
+  - `2026-02-19`: `0.00%`
+- 최근 7일 누적 `overallExecutionRate`: `0.45%` (`1/224`)
+- 최근 3일 평균 전체 모수(`parseEligibleRunCount`): `0.0000` (기준 `>= 32` 미충족)
+- 최근 3일 평균 `overallExecutionRate`: `0.0000`
+- `DOC`/`REVIEW` 체인 커버리지(최근 7일):
+  - `DOC actualChainRuns=0`, `chainShareGap=100.00%p`
+  - `REVIEW actualChainRuns=0`, `chainShareGap=100.00%p`
+
+#### Projection 재산정 (H-022)
+
+- `requiredSufficientDays = max(0, insufficientDays - 7) = max(0, 14 - 7) = 7일`
+- `예상 재보정 착수 가능일`:
+  - **미산정** (최근 3일 평균 전체 모수 전제조건 `>= 32` 미충족)
+  - 참고: 전제조건 충족 가정 시 조건부 최소값 `2026-02-26` (`2026-02-19 + 7일`)
+
+#### READY/HOLD 최종 판정
+
+- `recalibrationReadiness`: **HOLD**
+- `unmetGates`:
+  - `INSUFFICIENT_SAMPLE_RATIO` (`1.00 > 0.50`)
+  - `SUFFICIENT_DAYS` (`0 < 7`)
+- 판정 근거:
+  - 최신 14일 게이트 4개 중 2개 미충족 상태가 지속된다.
+  - 최근 7일 전체 `executionGap=223`으로 실행 총량 부족(`LOW_TRAFFIC`)이 고정되었다.
+  - 최근 7일 `DOC/REVIEW` 체인 비중 gap(`chainShareGap=100.00%p`)과 `actualChainRuns=0`이 지속되어 `CHAIN_COVERAGE_GAP`이 해소되지 않았다.
+
+#### HOLD 시 일일 우선 액션 플랜 (목표-실적 gap 연계)
+
+1. 직접 호출 증량 (`LOW_TRAFFIC`, 우선순위 1)
+   - 일일 목표: `CODE targetDirectRuns/day=12`, `SPEC targetDirectRuns/day=4`
+   - 실행: `POST /api/agents/code/generate` 직접 호출(`apply=false`) + `POST /api/agents/spec/generate` 호출 증량
+   - 점검: 매일 `09:00 KST`(야간 리포트) + `17:00 KST`(중간 수동 점검), 담당 `운영 온콜`
+2. 체인 호출 증량 (`CHAIN_COVERAGE_GAP`, 우선순위 2)
+   - 일일 목표: `DOC targetChainRuns/day=6`, `REVIEW targetChainRuns/day=6`
+   - 실행: `chainToDoc=true`, `chainToReview=true` 호출 비중 고정 및 누락 시 당일 보정
+   - 점검: 매일 `09:00 KST` 리포트에서 `executionRecoveryProgress.actualChainRuns`/`chainShareGap` 확인, 담당 `운영 온콜`
+3. 집계 안정성 유지 (`COLLECTION_FAILURE`, 우선순위 3)
+   - 기준: 최신 14일 `집계 불가 0일` 유지
+   - 실행: run-state 조회/파싱 실패 발생 시 당일 원인 분류와 재수집 수행
+
+#### 유지 원칙 재확인
+
+- 임계치/알림 룰 수치(`0.05`, `0.15`, `+0.10p`, `0.10`)는 변경하지 않는다.
+- `parseEligibleRunCount < 20`의 `INSUFFICIENT_SAMPLE` 제외 규칙을 유지한다.
+- 이벤트 정의(`*_OUTPUT_FALLBACK_WARNING`)와 모수 정의(직접 호출 + 체인 호출 포함)는 변경하지 않는다.
+
 ## 공통 오류 응답 계약 (Routing + Agent API)
 
 다음 엔드포인트는 입력 오류를 동일한 오류 envelope로 반환합니다.
