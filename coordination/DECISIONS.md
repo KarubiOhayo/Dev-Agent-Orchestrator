@@ -224,3 +224,27 @@
 - Consequence:
   - spec fallback 경로가 run-state 이벤트로 남아 운영 점검 범위가 `CODE/SPEC/DOC/REVIEW` 4종으로 정합화된다.
   - 다음 라운드(H-013)에서 warning 이벤트 집계 기준(모수/경고율/임계치/알림 룰) 문서화 작업이 가능해졌다.
+
+## D-026 fallback warning 모수 집계 단위 정합화(Code 체인 포함)
+- Date: 2026-02-19
+- Status: Approved (H-014.1 Scope)
+- Decision:
+  - `parseEligibleRunCount`는 agent 서비스 run 기준으로 집계한다.
+  - Code 모수는 직접 `POST /api/agents/code/generate` 호출 run과 Spec 체인(`chainToCode=true`)으로 내부 `CodeAgentService`가 실행된 run을 모두 포함한다.
+  - Spec/Doc/Review 모수 정의도 동일 원칙(직접 호출 + 해당 체인 실행 포함)으로 유지한다.
+- Rationale: H-014 리뷰에서 확인된 Code 모수 정의 충돌을 제거해 fallback warning `warningRate` 분모 해석을 단일화하기 위함.
+- Consequence:
+  - 운영 문서(`docs/code-agent-api.md`, 자동 점검 템플릿)는 Code 체인 포함 기준으로 동기화한다.
+  - `INSUFFICIENT_SAMPLE` 제외 규칙 및 임계치 값(`0.05`, `0.15`)은 변경하지 않는다.
+
+## D-027 fallback warning 임계치 보정 준비 단계 운영 정책
+- Date: 2026-02-19
+- Status: Approved (H-015 Scope)
+- Decision:
+  - 임계치/알림 룰 보정 전 최소 14일 운영 데이터 가용성(집계 성공/실패/샘플 부족)을 선행 점검한다.
+  - H-015 라운드는 준비 단계로 제한하고, 임계치/알림 룰 수치(`0.05`, `0.15`, `0.10`)는 변경하지 않는다.
+  - `INSUFFICIENT_SAMPLE`(`parseEligibleRunCount < 20`) 비중과 집계 불가 원인은 보정 후보와 분리해 별도 보고한다.
+- Rationale: 데이터 가용성 검증 없이 임계치를 조정하면 오탐/미탐 위험과 운영 해석 변동성이 커질 수 있기 때문이다.
+- Consequence:
+  - `docs/code-agent-api.md`와 `coordination/AUTOMATIONS/A-001-nightly-test-report.md`에 보정 준비 출력 항목(14일 가용성/샘플 부족/집계 불가 분류)이 반영된다.
+  - 실제 임계치/알림 룰 수치 조정은 후속 보정 라운드에서 수행한다.
