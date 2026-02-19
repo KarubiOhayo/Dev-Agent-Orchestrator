@@ -35,18 +35,20 @@
   - Automations는 점검/요약/발견사항 보고만 수행한다.
   - 자동 파일 수정/커밋/PR/웹훅 연동은 하지 않는다.
 - 권장 자동화:
-  1. Nightly Test Report
+  1) Nightly Test Report
      - 템플릿: `coordination/AUTOMATIONS/A-001-nightly-test-report.md`
      - 권장 스케줄: 매일 09:00 KST
-  2. Doc Drift Check
+  2) Doc Drift Check
      - 템플릿: `coordination/AUTOMATIONS/A-002-doc-drift-check.md`
      - 권장 스케줄: 월/수/금 14:00 KST
-  3. Relay Watch (선택)
+  3) Relay Watch (선택)
      - 템플릿: `coordination/AUTOMATIONS/A-003-relay-watch.md`
      - 권장 스케줄: 매 2시간(업무시간)
 
 ## 5) Codex App 실행 모드 가이드 (권장)
-- Main/Review: Local 환경 + read-only 운영 권장
+- Main/Review: Local 환경 + code-read-only 운영 권장
+  - (중요) read-only = "코드 수정 금지" 의미다.
+  - `coordination/`, `docs/`, `.agents/` 산출물(릴레이/리포트/운영문서)은 작성/갱신한다.
 - Executor: Worktree 분리 권장(라운드 단위 작업 격리)
 - 공통: 라운드 시작 시 stateless 재로딩 체크리스트를 먼저 실행
 
@@ -54,7 +56,7 @@
 - 자주 쓰는 액션으로 테스트 버튼 추가:
   - 이름: `Run tests`
   - 명령: `./gradlew clean test --no-daemon`
-- 목적: Executor 승인 게이트 실행을 일관화한다.
+  - 목적: Executor 승인 게이트 실행을 일관화한다.
 
 ## 7) 참고 문서
 - `AGENTS.md`
@@ -62,4 +64,3 @@
 - `coordination/DECISIONS.md`
 - `coordination/RELAYS/README.md`
 - `.agents/skills/*/SKILL.md`
-

@@ -89,8 +89,13 @@
 
 ## D-015 스레드 간 프롬프트 릴레이 자동 생성
 - Date: 2026-02-12
-- Decision: 라운드마다 `Executor -> Review -> Main` 순서의 전달 프롬프트를 `coordination/RELAYS/`에 자동 생성한다.
-- Rationale: 스레드 간 컨텍스트 전달 누락을 줄이고, 리뷰/승인 입력을 표준 포맷으로 고정하기 위함
+- Status: Approved (Extended by D-021)
+- Decision:
+  - 라운드마다 `coordination/RELAYS/`에 전달 릴레이를 자동 생성한다.
+  - D-015의 범위는 `Executor -> Review`, `Review -> Main` 2종을 다룬다.
+  - `Main -> Executor` 릴레이는 D-021에서 추가되었으며,
+    현재 표준 릴레이 체계는 `Main -> Executor -> Review -> Main` 3종이다.
+- Rationale: 스레드 간 컨텍스트 전달 누락을 줄이고, 리뷰/승인 입력을 표준 포맷으로 고정하기 위함.
 - Consequence:
   - Executor 완료 후 `coordination/RELAYS/H-XXX-executor-to-review.md` 생성
   - Review 완료 후 `coordination/RELAYS/H-XXX-review-to-main.md` 생성
