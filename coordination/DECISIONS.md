@@ -445,3 +445,17 @@
   - H-031은 `docs/code-agent-api.md`와 `coordination/AUTOMATIONS/A-001-nightly-test-report.md`의 기존 계약을 유지한 채 최신 실측/판정 근거를 갱신하는 추적 라운드로 진행한다.
   - Main 판단 문서(`CURRENT_STATUS`, `TASK_BOARD`, `RELAYS`)는 H-031 결과를 기준으로 `RESUME_H024` 재개 여부를 단일값으로 고정한다.
   - H-024는 `RESUME_H024` 판정이 확정되기 전까지 Frozen/Backlog 상태를 유지한다.
+
+## D-043 fallback-warning H-031 승인 및 H-032 신호 개선 실증 데이터 확보 정책
+- Date: 2026-02-19
+- Status: Approved (H-031 Close-out / H-032 Scope)
+- Decision:
+  - H-031 결과를 기준으로 `resumeDecision=KEEP_FROZEN` 단일 판정을 유지한다.
+  - 다음 라운드(H-032)는 `LOW_TRAFFIC`/`CHAIN_COVERAGE_GAP` 신호 개선 여부를 판단할 실증 데이터 확보 계약을 운영 문서와 야간 템플릿에 동일하게 고정한다.
+  - H-032부터 신호별 증거 출력은 `signalRecoveryEvidenceLedger[]`를 사용하며 필수 필드는 `signal`, `requiredEvidence`, `observedEvidence`, `evidenceRefs`, `status`, `gapSummary`, `nextAction`, `updatedAt`로 고정한다.
+  - 기존 게이트/산식/임계치(`0.05`, `0.15`, `+0.10p`, `0.10`)와 `INSUFFICIENT_SAMPLE` 제외 규칙은 변경하지 않는다.
+- Rationale: H-031에서도 게이트 미충족(14일 `INSUFFICIENT_SAMPLE` 비율 `1.00`, `sufficientDays=0`)과 신호 `BLOCKED` 상태가 지속되어, H-024 재개 판단 전에는 "판정 값"뿐 아니라 "신호 개선 증거"를 표준 포맷으로 누적해야 재현 가능한 의사결정이 가능하기 때문이다.
+- Consequence:
+  - H-031은 Main 승인(Go)으로 종료하고, 다음 실행 라운드를 `coordination/HANDOFFS/H-032-fallback-warning-keep-frozen-signal-recovery-evidence-acquisition.md`로 확정한다.
+  - `coordination/REPORTS/CURRENT_STATUS_2026-02-19.md`, `coordination/TASK_BOARD.md`, `coordination/RELAYS/H-032-main-to-executor.md`는 H-032 기준으로 동기화한다.
+  - H-024는 `RESUME_H024` 근거(게이트 충족 + 신호 개선 증거) 확보 전까지 Frozen/Backlog 상태를 유지한다.
