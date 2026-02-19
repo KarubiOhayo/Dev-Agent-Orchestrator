@@ -248,3 +248,16 @@
 - Consequence:
   - `docs/code-agent-api.md`와 `coordination/AUTOMATIONS/A-001-nightly-test-report.md`에 보정 준비 출력 항목(14일 가용성/샘플 부족/집계 불가 분류)이 반영된다.
   - 실제 임계치/알림 룰 수치 조정은 후속 보정 라운드에서 수행한다.
+
+## D-028 fallback warning 보정 실행 보류/유지 정책
+- Date: 2026-02-19
+- Status: Approved (H-016 Scope)
+- Decision:
+  - H-016 실측 실행 결과, 최근 14일(2026-02-06~2026-02-19, KST) `INSUFFICIENT_SAMPLE` 비율이 `1.00`이면 보정을 `보류`로 판정한다.
+  - 보류 판정 시 임계치/알림 룰 수치(`0.05`, `0.15`, `+0.10p`, `0.10`)는 변경하지 않고 유지한다.
+  - 보류 판정 시 후보값 산정/적용 전후 비교는 수행하지 않으며, 미충족 게이트와 수치 근거를 문서에 고정한다.
+  - 후속 라운드는 보정 재착수 전제조건(모수 확보 계획, 재보정 착수 조건) 문서화에 집중한다.
+- Rationale: 표본 충분 일수(`parseEligibleRunCount >= 20`)가 14일 중 0일인 상태에서 임계치 후보를 산정하면 오탐/미탐 이동을 검증할 수 없어 의사결정 신뢰도가 낮아지기 때문이다.
+- Consequence:
+  - `docs/code-agent-api.md`와 `coordination/AUTOMATIONS/A-001-nightly-test-report.md`는 보류 분기와 수치 유지 규칙을 운영 기준으로 사용한다.
+  - 다음 라운드(H-017)는 샘플 확보 계획/추적 지표/재보정 착수 조건을 고정하는 작업으로 진행한다.

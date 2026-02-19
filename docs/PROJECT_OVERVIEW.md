@@ -37,9 +37,10 @@
   - H-014 fallback warning 집계 기준 문구 정합화 완료(`INSUFFICIENT_SAMPLE` 제외 규칙 동기화, H-014.1 보강 반영)
   - H-014.1 Code `parseEligibleRunCount` 모수 정의 정합화 완료(직접 호출 + Spec 체인 호출 포함 기준 고정, Go)
   - H-015 fallback warning 임계치/알림 룰 실측 보정 준비 완료(14일 가용성/집계 불가/보정 보류 조건 문서화, Go)
+  - H-016 fallback warning 임계치/알림 룰 실측 기반 보정 실행 완료(게이트 미충족으로 보정 보류 확정, 임계치/알림 룰 수치 유지)
   - apply/dry-run 파일 반영
 - 미완료:
-  - H-016 fallback warning 임계치/알림 룰 실측 기반 보정 실행(최근 14일 데이터 기반 후보값 도출 + 오탐/미탐 영향 비교)
+  - H-017 fallback warning 보정 재착수용 샘플 확보 계획 수립(최근 14일 기준 모수 확보 목표/추적 지표/재보정 착수 조건 문서화)
   - fallback warning 임계치/알림 룰 보정안의 운영 적용 후 회귀 점검(지속 데이터 누적 필요)
 
 ## 3) 핵심 아키텍처
