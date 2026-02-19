@@ -39,36 +39,38 @@
      - 전일 대비 warningRate +0.10p 이상 상승 + warningEventCount 5건 이상 증가
      - 전체 집계 warningRate >= 0.10
    - run-state 데이터를 찾지 못하면 원인과 함께 `집계 불가`로 보고한다.
-   - H-018 운영 적용 점검(최근 14일 KST 기준)을 추가한다.
-    - 기준선(H-016)을 고정해 함께 보고한다.
-      - 집계 성공 `14일`, `INSUFFICIENT_SAMPLE` `14일/1.00`, `집계 불가` `0일`
-      - `parseEligibleRunCount(14d)`: `CODE 4`, `SPEC 1`, `DOC 0`, `REVIEW 0`, `전체 5`
-    - 최근 14일의 일 단위 집계를 대상으로 `집계 성공`/`집계 불가`/`INSUFFICIENT_SAMPLE`/`샘플 충분(>=20)` 일수를 계산한다.
-    - `INSUFFICIENT_SAMPLE` 비율을 계산한다. (`INSUFFICIENT_SAMPLE 일수 / 14`)
-    - `집계 불가` 원인을 분류한다. (예: run-state 부재, 조회/파싱 실패, 필수 필드 누락)
-    - 최근 14일 `parseEligibleRunCount` 추세를 전체 + agent별로 계산한다.
-      - 일별 값 표(14행) + 7일 이동평균
-      - 일일 최소 모수 목표 대비 진행률:
-        - `CODE >= 16`, `SPEC >= 4`, `DOC >= 6`, `REVIEW >= 6`, `전체 >= 32`
-    - H-017 목표 대비 진행률/미달률을 계산한다.
-      - 집계 성공 일수 `>= 10`
-      - `INSUFFICIENT_SAMPLE` 비율 `<= 0.50`
-      - `집계 불가` 일수 `< 3`
-      - 샘플 충분 일수(`parseEligibleRunCount >= 20`) `>= 7`
-      - `집계 성공 달성률 = min(1, 집계 성공 일수 / 10)`으로 계산하고 `0~100%` 범위로 표기한다.
-      - 목표 초과 정보는 `목표 초과 일수 = max(0, 집계 성공 일수 - 10)`로 별도 표기한다.
-    - Projection 대비 실측 오차를 계산한다.
-      - `deltaSufficientDays = actualSufficientDays - 7`
-      - `deltaInsufficientRatio = actualInsufficientRatio - 0.50`
-      - `deltaStartDate`: H-017 예상 착수일(산정 가능 시)과 실제 판정 시점 차이
-    - 오차 허용 기준을 판정한다.
-      - `abs(deltaSufficientDays) > 2` 또는 `abs(deltaInsufficientRatio) > 0.10`이면 오차 초과
-      - `deltaStartDate` 미산정이면 전제조건 미충족으로 간주하고 보류 근거에 포함
-    - 재보정 착수 가능/보류를 판정하고 다음 액션을 제시한다.
-      - 재보정 착수 게이트(4개): `집계 성공 >= 10`, `INSUFFICIENT_SAMPLE <= 0.50`, `집계 불가 < 3`, `샘플 충분 일수(parseEligibleRunCount >= 20) >= 7`
-      - 오차 초과 또는 게이트 4개 중 1개라도 미충족: "보정 보류" + 원인 분류(`LOW_TRAFFIC`, `CHAIN_COVERAGE_GAP`, `COLLECTION_FAILURE`) + 우선순위 액션
-      - 게이트 4개 모두 충족 + 오차 허용 범위 내: "재보정 착수 가능" + 다음 라운드(임계치 후보 산정 라운드) 제안
-    - 보정 보류 시 임계치/알림 룰 수치(`0.05`, `0.15`, `+0.10p`, `0.10`)는 유지한다.
+   - H-019 재보정 readiness 점검(최근 14일 KST 기준)을 추가한다.
+     - 기준선(H-016)을 고정해 함께 보고한다.
+       - 집계 성공 `14일`, `INSUFFICIENT_SAMPLE` `14일/1.00`, `집계 불가` `0일`
+       - `parseEligibleRunCount(14d)`: `CODE 4`, `SPEC 1`, `DOC 0`, `REVIEW 0`, `전체 5`
+     - 최근 14일의 일 단위 집계를 대상으로 `집계 성공`/`집계 불가`/`INSUFFICIENT_SAMPLE`/`샘플 충분(>=20)` 일수를 계산한다.
+     - `INSUFFICIENT_SAMPLE` 비율을 계산한다. (`INSUFFICIENT_SAMPLE 일수 / 14`)
+     - `집계 불가` 원인을 분류한다. (예: run-state 부재, 조회/파싱 실패, 필수 필드 누락)
+     - 최근 14일 `parseEligibleRunCount` 추세를 전체 + agent별로 계산한다.
+       - 일별 값 표(14행) + 7일 이동평균
+       - 일일 최소 모수 목표 대비 진행률:
+         - `CODE >= 16`, `SPEC >= 4`, `DOC >= 6`, `REVIEW >= 6`, `전체 >= 32`
+     - H-017 목표 대비 진행률/미달률을 계산한다.
+       - 집계 성공 일수 `>= 10`
+       - `INSUFFICIENT_SAMPLE` 비율 `<= 0.50`
+       - `집계 불가` 일수 `< 3`
+       - 샘플 충분 일수(`parseEligibleRunCount >= 20`) `>= 7`
+       - `집계 성공 달성률 = min(1, 집계 성공 일수 / 10)`으로 계산하고 `0~100%` 범위로 표기한다.
+       - 목표 초과 정보는 `목표 초과 일수 = max(0, 집계 성공 일수 - 10)`로 별도 표기한다.
+     - Projection 대비 실측 오차를 계산한다.
+       - `deltaSufficientDays = actualSufficientDays - 7`
+       - `deltaInsufficientRatio = actualInsufficientRatio - 0.50`
+       - `deltaStartDate`: H-017 예상 착수일(산정 가능 시)과 실제 판정 시점 차이
+     - 오차 허용 기준을 판정한다.
+       - `abs(deltaSufficientDays) > 2` 또는 `abs(deltaInsufficientRatio) > 0.10`이면 오차 초과
+       - `deltaStartDate` 미산정이면 전제조건 미충족으로 간주하고 보류 근거에 포함
+     - 재보정 착수 가능/보류를 판정하고 다음 액션을 제시한다.
+       - 재보정 착수 게이트(4개): `집계 성공 >= 10`, `INSUFFICIENT_SAMPLE <= 0.50`, `집계 불가 < 3`, `샘플 충분 일수(parseEligibleRunCount >= 20) >= 7`
+       - 최종 판정은 `recalibrationReadiness` 필드에 `READY` 또는 `HOLD`로 표기한다.
+       - 미충족 게이트는 `unmetGates` 목록으로 명시한다. (예: `INSUFFICIENT_SAMPLE_RATIO`, `SUFFICIENT_DAYS`)
+       - 오차 초과 또는 게이트 4개 중 1개라도 미충족: `HOLD` + 원인 분류(`LOW_TRAFFIC`, `CHAIN_COVERAGE_GAP`, `COLLECTION_FAILURE`) + 우선순위 액션
+       - 게이트 4개 모두 충족 + 오차 허용 범위 내: `READY` + 다음 라운드 문구를 `임계치 후보 산정 라운드 착수 제안`으로 고정한다.
+     - `HOLD`일 때 임계치/알림 룰 수치(`0.05`, `0.15`, `+0.10p`, `0.10`)는 유지한다.
 3) 테스트 성공/실패 요약, 실패 테스트 이름(있으면), 추정 영향 범위, 권장 후속조치를 작성한다.
 4) 결과를 inbox 보고 형식으로 출력한다.
 
@@ -95,9 +97,11 @@
   - 최근 14일 `parseEligibleRunCount` 추세(전체 + agent별 일별값, 7일 이동평균)
   - H-017 목표 대비 진행률/미달률(집계 성공 달성률 `min(1, 집계 성공 일수 / 10)` + 목표 초과 일수 포함, 샘플 부족/집계 불가/샘플 충분 일수)
   - Projection 대비 실측 오차(`deltaSufficientDays`, `deltaInsufficientRatio`, `deltaStartDate`)
-  - 임계치 보정 판단(진행/보류) 및 근거
+  - `recalibrationReadiness` (`READY`/`HOLD`)
+  - 미충족 게이트 목록(`unmetGates`)
+  - 임계치 보정 판단 근거(4개 게이트 + 오차 판정)
   - 다음 액션(재보정 착수 준비 또는 샘플 확보 지속)
-  - 보정 진행 시: 임계치 후보 산정 라운드 제안 문구
-  - 보정 보류 시: 기존 수치 유지 확인 + 보류 사유(4개 게이트 기준 미충족 항목/오차 초과 항목)
+  - `READY` 시: `임계치 후보 산정 라운드 착수 제안` 문구 고정
+  - `HOLD` 시: 기존 수치 유지 확인 + 보류 사유(4개 게이트 기준 미충족 항목/오차 초과 항목)
 - 권장 후속조치(수동)
 ```

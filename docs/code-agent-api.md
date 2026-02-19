@@ -377,6 +377,79 @@ curl -X POST http://localhost:8080/api/agents/code/generate \
 - `parseEligibleRunCount < 20`의 `INSUFFICIENT_SAMPLE` 제외 규칙을 유지한다.
 - 이벤트 정의(`*_OUTPUT_FALLBACK_WARNING`)와 모수 정의(직접 호출 + 체인 호출 포함)는 변경하지 않는다.
 
+### H-019 재보정 착수 가능 시점 재점검 (최신 14일)
+
+- 실행일(KST):
+  - `2026-02-19`
+- 점검 구간:
+  - 최근 14일 KST `2026-02-06 ~ 2026-02-19` (`today-13 ~ today`)
+- 데이터 소스:
+  - `storage/devagent.db` (`runs`, `run_events`)
+- 대상 fallback warning 이벤트:
+  - `CODE_OUTPUT_FALLBACK_WARNING`
+  - `SPEC_OUTPUT_FALLBACK_WARNING`
+  - `DOC_OUTPUT_FALLBACK_WARNING`
+  - `REVIEW_OUTPUT_FALLBACK_WARNING`
+
+#### 4개 게이트 실측 + 판정
+
+| 항목 | 실측값 | 게이트 기준 | 결과 |
+|---|---:|---:|---|
+| 집계 성공 일수 | 14일 | >= 10일 | PASS |
+| `INSUFFICIENT_SAMPLE` 일수/비율 | 14일 / 1.00 | <= 0.50 | FAIL |
+| `집계 불가` 일수 | 0일 | < 3일 | PASS |
+| 샘플 충분 일수(`parseEligibleRunCount >= 20`) | 0일 | >= 7일 | FAIL |
+
+#### 진행률(상한 적용) + 목표 초과 일수
+
+- `집계 성공 달성률 = min(1, 집계 성공 일수 / 10) = min(1, 14/10) = 100%`
+- `목표 초과 일수 = max(0, 집계 성공 일수 - 10) = max(0, 14-10) = 4일`
+
+#### Projection 재산정 (H-019)
+
+- `requiredSufficientDays = max(0, insufficientDays - 7) = max(0, 14-7) = 7일`
+- 최근 3일 평균 전체 모수(`parseEligibleRunCount`) 실측:
+  - `0.0000` (기준 `>= 32` 미충족)
+- `예상 재보정 착수 가능일`:
+  - **미산정** (최근 3일 평균 전체 모수 전제조건 미충족)
+  - 참고: 전제조건 충족을 가정한 조건부 최소값은 `2026-02-26`(`2026-02-19 + 7일`)
+
+#### 최근 14일 누적 요약 (agent별/전체)
+
+| 구분 | parseEligibleRunCount(14d) | warningEventCount(14d) | warningRate(14d) |
+|---|---:|---:|---:|
+| CODE | 4 | 0 | 0.0000 |
+| SPEC | 1 | 0 | 0.0000 |
+| DOC | 0 | 0 | N/A |
+| REVIEW | 0 | 0 | N/A |
+| 전체 | 5 | 0 | 0.0000 |
+
+- 일별 추세 요약:
+  - 실측 모수 발생일: `2026-02-11`(전체 4), `2026-02-13`(전체 1)
+  - 나머지 12일은 `parseEligibleRunCount=0`으로 샘플 부족 상태 유지
+  - 최근 3일 평균 전체 모수: `0.0000`
+
+#### READY/HOLD 최종 판정
+
+- `recalibrationReadiness`: **HOLD**
+- 미충족 게이트:
+  - `INSUFFICIENT_SAMPLE 비율 <= 0.50` (실측 `1.00`)
+  - `샘플 충분 일수 >= 7` (실측 `0일`)
+- 판정 근거:
+  - 게이트 4개 중 2개 미충족 상태가 유지되고 있으며, 최근 3일 모수 추세도 착수 전제조건(`>= 32`)을 충족하지 못함
+
+#### HOLD 원인 분류 및 보완 액션 우선순위
+
+1. `LOW_TRAFFIC` (우선순위 1)
+   - 근거: 최근 3일 평균 전체 모수 `0.0000` (목표 `>= 32` 미충족)
+   - 액션: Code 직접 호출/체인 호출 실행량을 일일 목표(`CODE 16`, `SPEC 4`, `DOC 6`, `REVIEW 6`)까지 증량
+2. `CHAIN_COVERAGE_GAP` (우선순위 2)
+   - 근거: 14일 누적 `DOC 0`, `REVIEW 0`, `SPEC 1`로 체인 기반 모수 확보 부족
+   - 액션: Spec->Code, Code->Doc/Review 체인 비중을 상향하고 agent별 목표 달성 여부를 일 단위 점검
+3. `COLLECTION_FAILURE` (우선순위 3)
+   - 근거: `집계 불가 0일`로 현재 미발생
+   - 액션: run-state 조회/파싱 실패 감시 규칙 유지(발생 시 당일 원인 분류/복구)
+
 ## 공통 오류 응답 계약 (Routing + Agent API)
 
 다음 엔드포인트는 입력 오류를 동일한 오류 envelope로 반환합니다.
