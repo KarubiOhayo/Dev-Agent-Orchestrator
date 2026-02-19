@@ -47,6 +47,9 @@ class CliResultFormatterTest {
     assertThat(output).contains("parsedFiles");
     assertThat(output).contains("applyOutcome");
     assertThat(output).contains("DRY_RUN");
+    assertThat(output).contains("chainedDoc");
+    assertThat(output).contains("chainedReview");
+    assertThat(output).contains("chainFailures");
     assertThat(output).contains("- DRY_RUN src/main/java/AuthController.java (planned)");
   }
 
@@ -85,7 +88,11 @@ class CliResultFormatterTest {
     assertThat(json.path("runId").asText()).isEqualTo("run-123");
     assertThat(json.path("model").path("id").asText()).isEqualTo("openai:gpt-5.2-codex");
     assertThat(json.path("data").path("summary").path("applyOutcome").asText()).isEqualTo("DRY_RUN");
+    assertThat(json.path("data").path("summary").path("chainedDoc").asBoolean()).isFalse();
+    assertThat(json.path("data").path("summary").path("chainedReview").asBoolean()).isFalse();
+    assertThat(json.path("data").path("summary").path("chainFailures").asInt()).isZero();
     assertThat(json.path("data").path("fileResults")).hasSize(1);
+    assertThat(json.path("data").path("chainFailures")).hasSize(0);
     assertThat(json.path("error").isNull()).isTrue();
   }
 
@@ -118,8 +125,50 @@ class CliResultFormatterTest {
     assertThat(json.path("command").asText()).isEqualTo("spec");
     assertThat(json.path("data").path("summary").path("specKeys").asInt()).isEqualTo(1);
     assertThat(json.path("data").path("summary").path("chainedCode").asBoolean()).isFalse();
+    assertThat(json.path("data").path("summary").path("chainedDoc").asBoolean()).isFalse();
+    assertThat(json.path("data").path("summary").path("chainedReview").asBoolean()).isFalse();
+    assertThat(json.path("data").path("summary").path("chainFailures").asInt()).isZero();
     assertThat(json.path("data").path("spec").path("title").asText()).isEqualTo("로그인 명세");
     assertThat(json.path("data").path("chainedCode").isNull()).isTrue();
+    assertThat(json.path("data").path("chainFailures")).hasSize(0);
+  }
+
+  @Test
+  void formatGenerateJsonIncludesStructuredChainFailures() throws Exception {
+    ObjectMapper mapper = new ObjectMapper();
+    CliResultFormatter formatter = new CliResultFormatter(mapper);
+    CodeGenerateResponse response = new CodeGenerateResponse(
+        "run-456",
+        "demo-auth",
+        ".",
+        null,
+        "openai",
+        "gpt-5.2-codex",
+        "{}",
+        List.of(),
+        List.of(),
+        "summary",
+        List.of(new GeneratedFile("src/main/java/AuthController.java", "class AuthController {}")),
+        new FileApplyResult(
+            true,
+            1,
+            0,
+            0,
+            List.of(new FileApplyItem("src/main/java/AuthController.java", "DRY_RUN", "planned"))
+        ),
+        null,
+        null,
+        List.of(new CodeGenerateResponse.ChainFailure("DOC", "CHAIN_DOC", "doc failure"))
+    );
+
+    String output = formatter.formatGenerateJson(response);
+    var json = mapper.readTree(output);
+
+    assertThat(json.path("data").path("summary").path("chainFailures").asInt()).isEqualTo(1);
+    assertThat(json.path("data").path("chainFailures")).hasSize(1);
+    assertThat(json.path("data").path("chainFailures").get(0).path("agent").asText()).isEqualTo("DOC");
+    assertThat(json.path("data").path("chainFailures").get(0).path("failedStage").asText()).isEqualTo("CHAIN_DOC");
+    assertThat(json.path("data").path("chainFailures").get(0).path("errorMessage").asText()).isEqualTo("doc failure");
   }
 
   @Test

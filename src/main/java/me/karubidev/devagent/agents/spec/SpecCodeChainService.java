@@ -48,6 +48,11 @@ public class SpecCodeChainService {
       codeRequest.setStrictJsonRequired(request.isStrictJsonRequired());
       codeRequest.setApply(request.isCodeApply());
       codeRequest.setOverwriteExisting(request.isCodeOverwriteExisting());
+      codeRequest.setChainToDoc(request.isCodeChainToDoc());
+      codeRequest.setDocUserRequest(request.getCodeDocUserRequest());
+      codeRequest.setChainToReview(request.isCodeChainToReview());
+      codeRequest.setReviewUserRequest(request.getCodeReviewUserRequest());
+      codeRequest.setChainFailurePolicy(request.getCodeChainFailurePolicy());
       codeRequest.setSpecInputPath(safeTargetRoot.relativize(specFilePath).toString());
 
       runStateStore.appendEvent(specRunId, "CHAIN_CODE_TRIGGERED", specFilePath.toString());

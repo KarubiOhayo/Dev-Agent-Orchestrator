@@ -37,30 +37,41 @@ public class CliResultFormatter {
         new Row("parsedFiles", String.valueOf(parsedFiles)),
         new Row("applyOutcome", applyOutcome),
         new Row("writtenFiles", String.valueOf(writtenFiles)),
-        new Row("skippedFiles", String.valueOf(skippedFiles))
+        new Row("skippedFiles", String.valueOf(skippedFiles)),
+        new Row("chainedDoc", response.chainedDocResult() == null ? "false" : "true"),
+        new Row("chainedReview", response.chainedReviewResult() == null ? "false" : "true"),
+        new Row("chainFailures", String.valueOf(safeSize(response.chainFailures())))
     );
 
     StringBuilder sb = new StringBuilder();
     sb.append("== generate summary ==\n");
     sb.append(renderTable(rows));
     appendFileItems(sb, applyResult);
+    appendChainFailures(sb, response.chainFailures());
     return sb.toString();
   }
 
   public String formatSpec(SpecGenerateResponse response) {
+    CodeGenerateResponse chainedCode = response.chainedCodeResult();
+    boolean chainedDoc = chainedCode != null && chainedCode.chainedDocResult() != null;
+    boolean chainedReview = chainedCode != null && chainedCode.chainedReviewResult() != null;
+    int chainFailureCount = chainedCode == null ? 0 : safeSize(chainedCode.chainFailures());
     List<Row> rows = List.of(
         new Row("runId", safe(response.runId())),
         new Row("model", modelOf(response.usedProvider(), response.usedModel())),
         new Row("specKeys", String.valueOf(response.spec() == null ? 0 : response.spec().size())),
-        new Row("chainedCode", response.chainedCodeResult() == null ? "false" : "true")
+        new Row("chainedCode", chainedCode == null ? "false" : "true"),
+        new Row("chainedDoc", chainedDoc ? "true" : "false"),
+        new Row("chainedReview", chainedReview ? "true" : "false"),
+        new Row("chainFailures", String.valueOf(chainFailureCount))
     );
 
     StringBuilder sb = new StringBuilder();
     sb.append("== spec summary ==\n");
     sb.append(renderTable(rows));
-    if (response.chainedCodeResult() != null) {
+    if (chainedCode != null) {
       sb.append("\n");
-      sb.append(formatGenerate(response.chainedCodeResult()));
+      sb.append(formatGenerate(chainedCode));
     }
     return sb.toString();
   }
@@ -79,6 +90,15 @@ public class CliResultFormatter {
     ObjectNode summary = objectMapper.createObjectNode();
     summary.put("specKeys", response.spec() == null ? 0 : response.spec().size());
     summary.put("chainedCode", response.chainedCodeResult() != null);
+    summary.put("chainedDoc", response.chainedCodeResult() != null && response.chainedCodeResult().chainedDocResult() != null);
+    summary.put(
+        "chainedReview",
+        response.chainedCodeResult() != null && response.chainedCodeResult().chainedReviewResult() != null
+    );
+    summary.put(
+        "chainFailures",
+        response.chainedCodeResult() == null ? 0 : safeSize(response.chainedCodeResult().chainFailures())
+    );
     data.set("summary", summary);
     if (response.spec() != null) {
       data.set("spec", response.spec());
@@ -87,8 +107,10 @@ public class CliResultFormatter {
     }
     if (response.chainedCodeResult() != null) {
       data.set("chainedCode", buildGenerateDataNode(response.chainedCodeResult()));
+      data.set("chainFailures", buildChainFailuresNode(response.chainedCodeResult().chainFailures()));
     } else {
       data.set("chainedCode", objectMapper.nullNode());
+      data.set("chainFailures", objectMapper.createArrayNode());
     }
 
     root.set("data", data);
@@ -131,6 +153,20 @@ public class CliResultFormatter {
         sb.append(" (").append(message).append(")");
       }
       sb.append("\n");
+    }
+  }
+
+  private void appendChainFailures(StringBuilder sb, List<CodeGenerateResponse.ChainFailure> chainFailures) {
+    if (chainFailures == null || chainFailures.isEmpty()) {
+      return;
+    }
+
+    sb.append("\nchain failures\n");
+    for (CodeGenerateResponse.ChainFailure failure : chainFailures) {
+      sb.append("- agent=").append(safe(failure.agent()))
+          .append(", stage=").append(safe(failure.failedStage()))
+          .append(", message=").append(safe(failure.errorMessage()))
+          .append("\n");
     }
   }
 
@@ -232,6 +268,9 @@ public class CliResultFormatter {
     summary.put("applyOutcome", applyOutcome);
     summary.put("writtenFiles", writtenFiles);
     summary.put("skippedFiles", skippedFiles);
+    summary.put("chainedDoc", response.chainedDocResult() != null);
+    summary.put("chainedReview", response.chainedReviewResult() != null);
+    summary.put("chainFailures", safeSize(response.chainFailures()));
     data.set("summary", summary);
 
     ArrayNode files = objectMapper.createArrayNode();
@@ -257,7 +296,35 @@ public class CliResultFormatter {
       }
     }
     data.set("fileResults", files);
+    data.set("chainFailures", buildChainFailuresNode(response.chainFailures()));
     return data;
+  }
+
+  private ArrayNode buildChainFailuresNode(List<CodeGenerateResponse.ChainFailure> chainFailures) {
+    ArrayNode failures = objectMapper.createArrayNode();
+    if (chainFailures == null) {
+      return failures;
+    }
+    for (CodeGenerateResponse.ChainFailure failure : chainFailures) {
+      ObjectNode node = objectMapper.createObjectNode();
+      if (failure.agent() == null || failure.agent().isBlank()) {
+        node.set("agent", objectMapper.nullNode());
+      } else {
+        node.put("agent", failure.agent());
+      }
+      if (failure.failedStage() == null || failure.failedStage().isBlank()) {
+        node.set("failedStage", objectMapper.nullNode());
+      } else {
+        node.put("failedStage", failure.failedStage());
+      }
+      if (failure.errorMessage() == null || failure.errorMessage().isBlank()) {
+        node.set("errorMessage", objectMapper.nullNode());
+      } else {
+        node.put("errorMessage", failure.errorMessage());
+      }
+      failures.add(node);
+    }
+    return failures;
   }
 
   private String toJson(ObjectNode node) {

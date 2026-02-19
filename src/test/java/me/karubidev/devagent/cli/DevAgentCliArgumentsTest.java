@@ -28,6 +28,50 @@ class DevAgentCliArgumentsTest {
   }
 
   @Test
+  void parseGenerateSupportsDocReviewChainOptions() {
+    DevAgentCliArguments parsed = DevAgentCliArguments.parse(new String[]{
+        "generate",
+        "--chain-to-doc", "true",
+        "--doc-user-request", "문서를 생성해줘",
+        "--chain-to-review=yes",
+        "--review-user-request=리뷰를 생성해줘",
+        "--chain-failure-policy=partial_success"
+    });
+
+    assertThat(parsed.optionAsBoolean("chain-to-doc", false)).isTrue();
+    assertThat(parsed.option("doc-user-request")).isEqualTo("문서를 생성해줘");
+    assertThat(parsed.optionAsBoolean("chain-to-review", false)).isTrue();
+    assertThat(parsed.option("review-user-request")).isEqualTo("리뷰를 생성해줘");
+    assertThat(parsed.optionAsEnum(
+        "chain-failure-policy",
+        me.karubidev.devagent.agents.code.CodeGenerateRequest.ChainFailurePolicy.class,
+        me.karubidev.devagent.agents.code.CodeGenerateRequest.ChainFailurePolicy.FAIL_FAST
+    )).isEqualTo(me.karubidev.devagent.agents.code.CodeGenerateRequest.ChainFailurePolicy.PARTIAL_SUCCESS);
+  }
+
+  @Test
+  void parseSpecSupportsCodePrefixedChainOptions() {
+    DevAgentCliArguments parsed = DevAgentCliArguments.parse(new String[]{
+        "spec",
+        "--code-chain-to-doc",
+        "--code-doc-user-request", "코드 문서를 생성해줘",
+        "--code-chain-to-review=1",
+        "--code-review-user-request=코드 리뷰를 생성해줘",
+        "--code-chain-failure-policy", "PARTIAL_SUCCESS"
+    });
+
+    assertThat(parsed.optionAsBoolean("code-chain-to-doc", false)).isTrue();
+    assertThat(parsed.option("code-doc-user-request")).isEqualTo("코드 문서를 생성해줘");
+    assertThat(parsed.optionAsBoolean("code-chain-to-review", false)).isTrue();
+    assertThat(parsed.option("code-review-user-request")).isEqualTo("코드 리뷰를 생성해줘");
+    assertThat(parsed.optionAsEnum(
+        "code-chain-failure-policy",
+        me.karubidev.devagent.agents.code.CodeGenerateRequest.ChainFailurePolicy.class,
+        me.karubidev.devagent.agents.code.CodeGenerateRequest.ChainFailurePolicy.FAIL_FAST
+    )).isEqualTo(me.karubidev.devagent.agents.code.CodeGenerateRequest.ChainFailurePolicy.PARTIAL_SUCCESS);
+  }
+
+  @Test
   void parseReturnsNonCliModeForServerOptions() {
     DevAgentCliArguments parsed = DevAgentCliArguments.parse(new String[]{
         "--spring.profiles.active=dev"

@@ -64,16 +64,35 @@ devagent generate --user-request "로그인 API 스켈레톤을 만들어줘"
   --overwrite-existing false
 ```
 
-### 3) Spec Generate
+### 3) Code -> Doc/Review 체인 (원샷)
+
+```bash
+./devagent generate \
+  -u "로그인 API 코드를 생성해줘" \
+  --chain-to-doc true \
+  --doc-user-request "생성된 코드를 기준으로 API 문서를 작성해줘" \
+  --chain-to-review true \
+  --review-user-request "보안/안정성 중심 리뷰를 작성해줘" \
+  --chain-failure-policy PARTIAL_SUCCESS
+```
+
+### 4) Spec -> Code -> Doc/Review 체인 (원샷)
 
 ```bash
 ./devagent spec \
   -u "로그인/토큰 재발급 명세를 JSON으로 작성해줘" \
+  --chain-to-code true \
+  --code-user-request "위 명세를 바탕으로 코드를 구현해줘" \
+  --code-chain-to-doc true \
+  --code-doc-user-request "생성된 코드 기준 문서를 작성해줘" \
+  --code-chain-to-review true \
+  --code-review-user-request "보안/안정성 관점 리뷰를 작성해줘" \
+  --code-chain-failure-policy PARTIAL_SUCCESS \
   -m QUALITY \
   -k MEDIUM
 ```
 
-### 4) JSON 출력 모드
+### 5) JSON 출력 모드
 
 ```bash
 ./devagent generate \
@@ -94,6 +113,9 @@ devagent generate --user-request "로그인 API 스켈레톤을 만들어줘"
 | applyOutcome| DRY_RUN              |
 | writtenFiles| 0                    |
 | skippedFiles| 0                    |
+| chainedDoc  | true                 |
+| chainedReview| true                |
+| chainFailures| 1                   |
 +-------------+----------------------+
 
 file results
@@ -120,13 +142,23 @@ file results
       "parsedFiles": 2,
       "applyOutcome": "DRY_RUN",
       "writtenFiles": 0,
-      "skippedFiles": 0
+      "skippedFiles": 0,
+      "chainedDoc": true,
+      "chainedReview": true,
+      "chainFailures": 1
     },
     "fileResults": [
       {
         "path": "src/main/java/AuthController.java",
         "status": "DRY_RUN",
         "message": "planned"
+      }
+    ],
+    "chainFailures": [
+      {
+        "agent": "DOC",
+        "failedStage": "CHAIN_DOC",
+        "errorMessage": "doc failure"
       }
     ]
   },
@@ -165,7 +197,13 @@ file results
 - `--json`, `-j`: JSON 출력 모드(기본 `false`)
 - `--apply`, `-a`: `true`면 실제 파일 쓰기, `false`면 dry-run
 - `--spec-input-path`: `generate`에서 스펙 JSON 상대 경로 주입
+- `--chain-to-doc`, `--doc-user-request`: `generate`에서 Code -> Doc 체인 옵션
+- `--chain-to-review`, `--review-user-request`: `generate`에서 Code -> Review 체인 옵션
+- `--chain-failure-policy`: `generate` 체인 실패 정책 (`FAIL_FAST | PARTIAL_SUCCESS`)
 - `--chain-to-code`, `-c`: `spec`에서 스펙 생성 후 코드 생성 체이닝
+- `--code-chain-to-doc`, `--code-doc-user-request`: `spec`의 Code 체인에서 Doc 체인 옵션
+- `--code-chain-to-review`, `--code-review-user-request`: `spec`의 Code 체인에서 Review 체인 옵션
+- `--code-chain-failure-policy`: `spec`의 Code 체인 실패 정책 (`FAIL_FAST | PARTIAL_SUCCESS`)
 
 ## 옵션 파싱 규칙 참고
 

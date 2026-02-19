@@ -6,6 +6,8 @@
 또한 응답 코드블록을 파싱해 `dry-run` 또는 실제 파일 쓰기(`apply=true`)까지 수행할 수 있습니다.
 선택적으로 `chainToDoc=true`를 주면 Code 결과를 기반으로 DocAgent를 연쇄 실행합니다.
 `chainToReview=true`를 주면 Code 결과를 기반으로 ReviewAgent를 연쇄 실행합니다.
+`/api/agents/spec/generate`에서도 `chainToCode=true`와 `codeChainToDoc/codeChainToReview`를 함께 사용하면
+Spec -> Code -> Doc/Review 원샷 체이닝을 실행할 수 있습니다.
 
 `/api/agents/doc/generate`는 Code 산출물을 입력으로 받아 구조화된 문서(JSON 스키마)를 생성합니다.
 `/api/agents/review/generate`는 Code 산출물을 입력으로 받아 구조화된 리뷰(JSON 스키마)를 생성합니다.
@@ -50,6 +52,28 @@ curl -X POST http://localhost:8080/api/agents/code/generate \
     "chainToReview": true,
     "reviewUserRequest": "보안/안정성 관점으로 우선순위 리뷰를 작성해줘",
     "chainFailurePolicy": "FAIL_FAST"
+  }'
+```
+
+### Spec -> Code -> Doc/Review 원샷 체이닝 예시
+
+```bash
+curl -X POST http://localhost:8080/api/agents/spec/generate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "projectId": "demo-auth",
+    "targetProjectRoot": ".",
+    "userRequest": "로그인/토큰 재발급 명세를 JSON으로 작성해줘",
+    "mode": "QUALITY",
+    "riskLevel": "MEDIUM",
+    "chainToCode": true,
+    "codeUserRequest": "위 명세를 기준으로 코드를 생성해줘",
+    "codeChainToDoc": true,
+    "codeDocUserRequest": "생성된 코드 기준 API 문서를 작성해줘",
+    "codeChainToReview": true,
+    "codeReviewUserRequest": "보안/안정성 관점 리뷰를 작성해줘",
+    "codeChainFailurePolicy": "PARTIAL_SUCCESS",
+    "codeApply": false
   }'
 ```
 

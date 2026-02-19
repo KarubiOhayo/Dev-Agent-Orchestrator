@@ -43,6 +43,11 @@ class SpecCodeChainServiceTest {
     request.setUserRequest("명세 생성");
     request.setChainToCode(true);
     request.setCodeApply(false);
+    request.setCodeChainToDoc(true);
+    request.setCodeDocUserRequest("코드 기준 문서를 생성해줘");
+    request.setCodeChainToReview(true);
+    request.setCodeReviewUserRequest("보안 관점 리뷰를 생성해줘");
+    request.setCodeChainFailurePolicy(CodeGenerateRequest.ChainFailurePolicy.PARTIAL_SUCCESS);
 
     ObjectNode spec = new ObjectMapper().createObjectNode();
     spec.put("title", "Test Spec");
@@ -83,6 +88,11 @@ class SpecCodeChainServiceTest {
     assertThat(chainedRequest.getSpecInputPath()).isNotBlank();
     assertThat(Path.of(chainedRequest.getSpecInputPath()).isAbsolute()).isFalse();
     assertThat(Files.exists(tempDir.resolve(chainedRequest.getSpecInputPath()))).isTrue();
+    assertThat(chainedRequest.isChainToDoc()).isTrue();
+    assertThat(chainedRequest.getDocUserRequest()).isEqualTo("코드 기준 문서를 생성해줘");
+    assertThat(chainedRequest.isChainToReview()).isTrue();
+    assertThat(chainedRequest.getReviewUserRequest()).isEqualTo("보안 관점 리뷰를 생성해줘");
+    assertThat(chainedRequest.getChainFailurePolicy()).isEqualTo(CodeGenerateRequest.ChainFailurePolicy.PARTIAL_SUCCESS);
 
     verify(runStateStore).appendEvent(eq("spec-run-1"), eq("CHAIN_SPEC_WRITTEN"), contains(".json"));
     verify(runStateStore).appendEvent(eq("spec-run-1"), eq("CHAIN_CODE_TRIGGERED"), contains(".json"));

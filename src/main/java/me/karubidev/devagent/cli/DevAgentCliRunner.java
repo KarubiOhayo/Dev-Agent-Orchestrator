@@ -29,6 +29,11 @@ public class DevAgentCliRunner implements ApplicationRunner, ExitCodeGenerator {
       "apply",
       "overwrite-existing",
       "spec-input-path",
+      "chain-to-doc",
+      "doc-user-request",
+      "chain-to-review",
+      "review-user-request",
+      "chain-failure-policy",
       "json"
   );
 
@@ -44,6 +49,11 @@ public class DevAgentCliRunner implements ApplicationRunner, ExitCodeGenerator {
       "code-user-request",
       "code-apply",
       "code-overwrite-existing",
+      "code-chain-to-doc",
+      "code-doc-user-request",
+      "code-chain-to-review",
+      "code-review-user-request",
+      "code-chain-failure-policy",
       "spec-output-path",
       "json"
   );
@@ -132,6 +142,21 @@ public class DevAgentCliRunner implements ApplicationRunner, ExitCodeGenerator {
     if (cli.hasOption("spec-input-path")) {
       request.setSpecInputPath(cli.option("spec-input-path"));
     }
+    request.setChainToDoc(cli.optionAsBoolean("chain-to-doc", request.isChainToDoc()));
+    if (cli.hasOption("doc-user-request")) {
+      request.setDocUserRequest(cli.option("doc-user-request"));
+    }
+    request.setChainToReview(cli.optionAsBoolean("chain-to-review", request.isChainToReview()));
+    if (cli.hasOption("review-user-request")) {
+      request.setReviewUserRequest(cli.option("review-user-request"));
+    }
+    request.setChainFailurePolicy(
+        cli.optionAsEnum(
+            "chain-failure-policy",
+            CodeGenerateRequest.ChainFailurePolicy.class,
+            request.getChainFailurePolicy()
+        )
+    );
 
     var response = codeAgentService.generate(request);
     if (jsonMode) {
@@ -161,6 +186,21 @@ public class DevAgentCliRunner implements ApplicationRunner, ExitCodeGenerator {
     }
     request.setCodeApply(cli.optionAsBoolean("code-apply", request.isCodeApply()));
     request.setCodeOverwriteExisting(cli.optionAsBoolean("code-overwrite-existing", request.isCodeOverwriteExisting()));
+    request.setCodeChainToDoc(cli.optionAsBoolean("code-chain-to-doc", request.isCodeChainToDoc()));
+    if (cli.hasOption("code-doc-user-request")) {
+      request.setCodeDocUserRequest(cli.option("code-doc-user-request"));
+    }
+    request.setCodeChainToReview(cli.optionAsBoolean("code-chain-to-review", request.isCodeChainToReview()));
+    if (cli.hasOption("code-review-user-request")) {
+      request.setCodeReviewUserRequest(cli.option("code-review-user-request"));
+    }
+    request.setCodeChainFailurePolicy(
+        cli.optionAsEnum(
+            "code-chain-failure-policy",
+            CodeGenerateRequest.ChainFailurePolicy.class,
+            request.getCodeChainFailurePolicy()
+        )
+    );
     if (cli.hasOption("spec-output-path")) {
       request.setSpecOutputPath(cli.option("spec-output-path"));
     }
@@ -195,12 +235,22 @@ public class DevAgentCliRunner implements ApplicationRunner, ExitCodeGenerator {
           --spec-input-path=<relative/path>
           --apply=<true|false>, -a          (default: false)
           --overwrite-existing=<true|false> (default: false)
+          --chain-to-doc=<true|false>       (default: false)
+          --doc-user-request="<요청>"
+          --chain-to-review=<true|false>    (default: false)
+          --review-user-request="<요청>"
+          --chain-failure-policy=<FAIL_FAST|PARTIAL_SUCCESS> (default: FAIL_FAST)
 
         spec options:
           --chain-to-code=<true|false>, -c  (default: false)
           --code-user-request="<요청>"
           --code-apply=<true|false>         (default: false)
           --code-overwrite-existing=<true|false>
+          --code-chain-to-doc=<true|false>  (default: false)
+          --code-doc-user-request="<요청>"
+          --code-chain-to-review=<true|false> (default: false)
+          --code-review-user-request="<요청>"
+          --code-chain-failure-policy=<FAIL_FAST|PARTIAL_SUCCESS> (default: FAIL_FAST)
           --spec-output-path=<relative/path>
         """);
   }

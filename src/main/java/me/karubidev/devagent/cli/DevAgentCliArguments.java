@@ -18,22 +18,34 @@ final class DevAgentCliArguments {
       "mode",
       "risk-level",
       "spec-input-path",
+      "doc-user-request",
+      "review-user-request",
       "code-user-request",
+      "code-doc-user-request",
+      "code-review-user-request",
+      "chain-failure-policy",
+      "code-chain-failure-policy",
       "spec-output-path"
   );
   private static final Set<String> NORMALIZED_EQ_ENUM_KEYS = Set.of(
       "mode",
-      "risk-level"
+      "risk-level",
+      "chain-failure-policy",
+      "code-chain-failure-policy"
   );
   private static final Set<String> NORMALIZED_EQ_BOOLEAN_KEYS = Set.of(
       "json",
       "apply",
       "chain-to-code",
+      "chain-to-doc",
+      "chain-to-review",
       "large-context",
       "strict-json-required",
       "overwrite-existing",
       "code-apply",
-      "code-overwrite-existing"
+      "code-overwrite-existing",
+      "code-chain-to-doc",
+      "code-chain-to-review"
   );
 
   static {

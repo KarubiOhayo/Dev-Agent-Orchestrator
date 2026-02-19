@@ -1,5 +1,6 @@
 package me.karubidev.devagent.agents.spec;
 
+import me.karubidev.devagent.agents.code.CodeGenerateRequest;
 import me.karubidev.devagent.orchestration.routing.RiskLevel;
 import me.karubidev.devagent.orchestration.routing.RoutingMode;
 
@@ -17,6 +18,12 @@ public class SpecGenerateRequest {
   private String codeUserRequest;
   private boolean codeApply;
   private boolean codeOverwriteExisting;
+  private boolean codeChainToDoc;
+  private String codeDocUserRequest;
+  private boolean codeChainToReview;
+  private String codeReviewUserRequest;
+  private CodeGenerateRequest.ChainFailurePolicy codeChainFailurePolicy =
+      CodeGenerateRequest.ChainFailurePolicy.FAIL_FAST;
   private String specOutputPath;
 
   public String getProjectId() {
@@ -105,6 +112,50 @@ public class SpecGenerateRequest {
 
   public void setCodeOverwriteExisting(boolean codeOverwriteExisting) {
     this.codeOverwriteExisting = codeOverwriteExisting;
+  }
+
+  public boolean isCodeChainToDoc() {
+    return codeChainToDoc;
+  }
+
+  public void setCodeChainToDoc(boolean codeChainToDoc) {
+    this.codeChainToDoc = codeChainToDoc;
+  }
+
+  public String getCodeDocUserRequest() {
+    return codeDocUserRequest;
+  }
+
+  public void setCodeDocUserRequest(String codeDocUserRequest) {
+    this.codeDocUserRequest = codeDocUserRequest;
+  }
+
+  public boolean isCodeChainToReview() {
+    return codeChainToReview;
+  }
+
+  public void setCodeChainToReview(boolean codeChainToReview) {
+    this.codeChainToReview = codeChainToReview;
+  }
+
+  public String getCodeReviewUserRequest() {
+    return codeReviewUserRequest;
+  }
+
+  public void setCodeReviewUserRequest(String codeReviewUserRequest) {
+    this.codeReviewUserRequest = codeReviewUserRequest;
+  }
+
+  public CodeGenerateRequest.ChainFailurePolicy getCodeChainFailurePolicy() {
+    return codeChainFailurePolicy;
+  }
+
+  public void setCodeChainFailurePolicy(CodeGenerateRequest.ChainFailurePolicy codeChainFailurePolicy) {
+    if (codeChainFailurePolicy == null) {
+      this.codeChainFailurePolicy = CodeGenerateRequest.ChainFailurePolicy.FAIL_FAST;
+      return;
+    }
+    this.codeChainFailurePolicy = codeChainFailurePolicy;
   }
 
   public String getSpecOutputPath() {
