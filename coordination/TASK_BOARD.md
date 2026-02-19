@@ -8,7 +8,7 @@ Primary Reference: `docs/PROJECT_OVERVIEW.md`
 
 ## 현재 스냅샷
 - 목표: A(Context Engineering) 완성 후 C(Spec -> Code -> Doc) 체이닝 확장 안정화
-- 현재 상태: Spec -> Code -> Doc/Review 체이닝(1차), H-009(체인 실패 전파 정책/API 계약) Go 확정, H-010.1 오류 계약 정합성 보강 완료(Go), H-011 프롬프트 자산 보강 완료(Go), H-012 spec fallback warning 관측성 정합화 완료(Go), H-013 집계 기준 문서화 완료(Review `Conditional Go`), H-014 집계 기준 문구 정합화 완료(H-014.1 보강 반영), H-014.1 Code 모수 정의 정합화 완료(Go), H-015 실측 보정 준비 완료(Go), H-016 실측 기반 보정 실행 완료(Go, 보정 보류 + 수치 유지), H-017 샘플 확보 계획 수립 완료(Go), H-018 운영 적용 점검 완료(Review `Conditional Go`, 테스트 게이트 통과), H-018.1 handoff/relay 생성 완료(Executor 착수 대기)
+- 현재 상태: Spec -> Code -> Doc/Review 체이닝(1차), H-009(체인 실패 전파 정책/API 계약) Go 확정, H-010.1 오류 계약 정합성 보강 완료(Go), H-011 프롬프트 자산 보강 완료(Go), H-012 spec fallback warning 관측성 정합화 완료(Go), H-013 집계 기준 문서화 완료(Review `Conditional Go`), H-014 집계 기준 문구 정합화 완료(H-014.1 보강 반영), H-014.1 Code 모수 정의 정합화 완료(Go), H-015 실측 보정 준비 완료(Go), H-016 실측 기반 보정 실행 완료(Go, 보정 보류 + 수치 유지), H-017 샘플 확보 계획 수립 완료(Go), H-018 운영 적용 점검 완료(Review `Conditional Go`, 테스트 게이트 통과), H-018.1 운영 문서 산식/게이트 정합화 완료(Review `Go`, 테스트 게이트 통과), H-019 handoff/relay 생성 완료(Executor 착수 대기)
 - 핵심 리스크: `PARTIAL_SUCCESS` 사용 시 `chainFailures` 누락 확인 위험/ fallback warning 임계치(`0.05`, `0.15`)와 알림 룰이 초기 기준값이라 실측 데이터(최소 2주) 기반 보정 전까지 오탐/미탐 가능성이 남아 있는 상태
 - 운영 정책: 3스레드 체계(메인 제어 + 리뷰 전담 + 실행 전담), 라운드별 stateless 운영
 
@@ -42,6 +42,7 @@ Primary Reference: `docs/PROJECT_OVERVIEW.md`
 - [x] H-016 fallback warning 임계치/알림 룰 실측 기반 보정 실행(게이트 미충족으로 보정 보류 확정, 수치 유지)
 - [x] H-017 fallback warning 보정 재착수용 샘플 확보 계획 수립(정량 목표/Projection/착수·보류 분기 규칙 고정)
 - [x] H-018 fallback warning 샘플 확보 계획 운영 적용 점검(실측/Projection 오차/보류 판정 반영, Review `Conditional Go`)
+- [x] H-018.1 fallback warning 운영 문서 산식/게이트 정합화(진행률 산식 상한 + 재보정 착수 게이트 4종 기준 동기화, Review `Go`)
 
 ## 3스레드 운영 분배
 
@@ -83,4 +84,4 @@ Primary Reference: `docs/PROJECT_OVERVIEW.md`
 9. 병합은 THREAD-A 최종 승인 이후에만 수행한다.
 
 ## 현재 우선순위
-- [~] H-018.1 진행중: fallback warning 운영 문서 산식/게이트 정합화 (진행률 산식 상한 + 재보정 착수 게이트 4종 기준 동기화)
+- [~] H-019 진행중: fallback warning 재보정 착수 가능 시점 재점검 (최신 14일 실측 재집계 + 4개 게이트 충족 여부 재판정 + 임계치 후보 산정 착수 조건 판단)

@@ -275,3 +275,17 @@
   - `docs/code-agent-api.md`는 기준선/목표/분기/Projection 규칙을 기준 문서로 유지한다.
   - `coordination/AUTOMATIONS/A-001-nightly-test-report.md`는 추세/진행률/Projection/다음 액션을 필수 출력으로 사용한다.
   - 다음 라운드(H-018)는 H-017 계획의 운영 적용 점검(실측 추세, Projection 오차, 재보정 착수 시점 추적)으로 진행한다.
+
+## D-030 fallback warning 진행률 표기/착수 게이트 문서 계약 고정
+- Date: 2026-02-19
+- Status: Approved (H-018.1 Scope)
+- Decision:
+  - 목표 대비 진행률 표기는 `집계 성공 달성률 = min(1, 집계 성공 일수 / 10)`으로 고정하고, 표기 범위는 `0~100%`로 제한한다.
+  - 목표 초과 정보는 진행률에 합산하지 않고 `목표 초과 일수 = max(0, 집계 성공 일수 - 10)`로 분리 표기한다.
+  - 재보정 착수/보류 판정은 4개 게이트(`집계 성공`, `INSUFFICIENT_SAMPLE`, `집계 불가`, `샘플 충분 일수`)를 단일 기준으로 유지한다.
+  - 운영 문서(`docs/code-agent-api.md`), 자동 점검 템플릿(`coordination/AUTOMATIONS/A-001-nightly-test-report.md`), 라운드 결과 보고(`coordination/REPORTS/H-018-result.md`)는 동일 계약으로 동기화한다.
+- Rationale: H-018 리뷰에서 확인된 진행률 과대 표기(140%)와 3개/4개 게이트 혼재를 해소하지 않으면 라운드 간 추세 비교 및 재보정 착수 판정의 일관성이 깨지기 때문이다.
+- Consequence:
+  - H-018.1에서 산식/게이트 문구가 정합화되어 Review `Go`가 확정되었다.
+  - 이후 라운드는 동일 산식/게이트 계약을 기준으로 재보정 착수 가능/보류를 판단한다.
+  - 계약 드리프트 발생 시 Main은 후속 정합화 라운드를 우선 배정한다.
