@@ -39,15 +39,18 @@
      - 전일 대비 warningRate +0.10p 이상 상승 + warningEventCount 5건 이상 증가
      - 전체 집계 warningRate >= 0.10
    - run-state 데이터를 찾지 못하면 원인과 함께 `집계 불가`로 보고한다.
-   - H-020 실행률 추적 + 재보정 readiness 점검(최근 14일 KST 기준)을 추가한다.
+   - H-021 실행률/호출 믹스 추적 + 재보정 readiness 점검(최근 14일 KST 기준)을 추가한다.
      - 기준선(H-016)을 고정해 함께 보고한다.
        - 집계 성공 `14일`, `INSUFFICIENT_SAMPLE` `14일/1.00`, `집계 불가` `0일`
        - `parseEligibleRunCount(14d)`: `CODE 4`, `SPEC 1`, `DOC 0`, `REVIEW 0`, `전체 5`
      - 최근 14일의 일 단위 집계를 대상으로 `집계 성공`/`집계 불가`/`INSUFFICIENT_SAMPLE`/`샘플 충분(>=20)` 일수를 계산한다.
-     - 최근 7일(KST, `today-6 ~ today`) 실행률 추세를 계산한다.
-       - agent별 `agentExecution` 항목을 고정 출력한다. (`targetRuns`, `actualRuns`, `achievementRate`)
-       - `achievementRate = min(1, actualRuns / targetRuns)` 산식을 사용한다.
-       - `overallExecutionRate = min(1, totalActualRuns / 32)` 산식을 사용한다.
+     - 최근 7일(KST, `today-6 ~ today`) 실행률/호출 믹스 추세를 계산한다.
+       - agent별 `executionMix` 항목을 고정 출력한다. (`directRuns`, `chainRuns`, `totalActualRuns`, `chainShare`)
+       - `totalActualRuns = directRuns + chainRuns` 산식을 사용한다.
+       - `chainShare = chainRuns / totalActualRuns` 산식을 사용한다. (단, `totalActualRuns = 0`이면 `0` 처리)
+       - agent별 `agentExecution` 항목을 고정 출력한다. (`targetRuns`, `totalActualRuns`, `achievementRate`)
+       - `achievementRate = min(1, totalActualRuns / targetRuns)` 산식을 사용한다.
+       - `overallExecutionRate = min(1, totalActualRunsAllAgents / 32)` 산식을 사용한다.
      - `INSUFFICIENT_SAMPLE` 비율을 계산한다. (`INSUFFICIENT_SAMPLE 일수 / 14`)
      - `집계 불가` 원인을 분류한다. (예: run-state 부재, 조회/파싱 실패, 필수 필드 누락)
      - 최근 14일 `parseEligibleRunCount` 추세를 전체 + agent별로 계산한다.
@@ -75,7 +78,7 @@
        - 오차 초과 또는 게이트 4개 중 1개라도 미충족: `HOLD` + 원인 분류(`LOW_TRAFFIC`, `CHAIN_COVERAGE_GAP`, `COLLECTION_FAILURE`) + 우선순위 액션
        - `HOLD`일 때 원인 우선순위는 실행률 지표 기반으로 정한다.
          - `LOW_TRAFFIC`: 최근 3일 평균 전체 모수(`parseEligibleRunCount`)와 최근 3일 평균 `overallExecutionRate` 기준
-         - `CHAIN_COVERAGE_GAP`: 최근 7일 `DOC`/`REVIEW` `agentExecution.achievementRate` 기준
+         - `CHAIN_COVERAGE_GAP`: 최근 7일 `DOC`/`REVIEW` `executionMix.chainRuns`/`executionMix.chainShare` 기준
          - `COLLECTION_FAILURE`: 최근 14일 `집계 불가` 원인 분류 기준
        - 게이트 4개 모두 충족 + 오차 허용 범위 내: `READY` + 다음 라운드 문구를 `임계치 후보 산정 라운드 착수 제안`으로 고정한다.
      - `HOLD`일 때 임계치/알림 룰 수치(`0.05`, `0.15`, `+0.10p`, `0.10`)는 유지한다.
@@ -103,15 +106,16 @@
   - 최근 14일 `INSUFFICIENT_SAMPLE` 일수와 비율
   - 최근 14일 `집계 불가` 원인 분류(원인별 일수)
   - 최근 14일 `parseEligibleRunCount` 추세(전체 + agent별 일별값, 7일 이동평균)
-  - 최근 7일 실행률 추세(일자별 `agentExecution` + `overallExecutionRate`)
-  - `agentExecution`(agent별 `targetRuns`, `actualRuns`, `achievementRate`)
+  - 최근 7일 실행률/호출 믹스 추세(일자별 `agentExecution` + `executionMix` + `overallExecutionRate`)
+  - `executionMix`(agent별 `directRuns`, `chainRuns`, `totalActualRuns`, `chainShare`)
+  - `agentExecution`(agent별 `targetRuns`, `totalActualRuns`, `achievementRate`)
   - `overallExecutionRate`(일자별 + 최근 3일 평균)
   - H-017 목표 대비 진행률/미달률(집계 성공 달성률 `min(1, 집계 성공 일수 / 10)` + 목표 초과 일수 포함, 샘플 부족/집계 불가/샘플 충분 일수)
   - Projection 대비 실측 오차(`deltaSufficientDays`, `deltaInsufficientRatio`, `deltaStartDate`)
   - `recalibrationReadiness` (`READY`/`HOLD`)
   - 미충족 게이트 목록(`unmetGates`)
   - 임계치 보정 판단 근거(4개 게이트 + 오차 판정)
-  - 다음 액션(재보정 착수 준비 또는 샘플 확보 지속, `LOW_TRAFFIC`/`CHAIN_COVERAGE_GAP` 우선순위 포함)
+  - 다음 액션(재보정 착수 준비 또는 샘플 확보 지속, `LOW_TRAFFIC`/`CHAIN_COVERAGE_GAP` 우선순위 포함, 실행률 + 호출 믹스 근거 명시)
   - `READY` 시: `임계치 후보 산정 라운드 착수 제안` 문구 고정
   - `HOLD` 시: 기존 수치 유지 확인 + 보류 사유(4개 게이트 기준 미충족 항목/오차 초과 항목)
 - 권장 후속조치(수동)
