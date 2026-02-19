@@ -417,3 +417,17 @@
 - Consequence:
   - H-028 결과는 테스트 게이트 통과 + 리뷰 `Go`로 Main 승인 조건을 충족한다.
   - 다음 라운드(H-029)는 fallback-warning H-024 동결 트랙 재개 조건 점검(`RESUME_H024/KEEP_FROZEN`)으로 진행한다.
+
+## D-041 fallback-warning H-024 동결 유지(`KEEP_FROZEN`) 및 H-030 이행 추적 전환
+- Date: 2026-02-19
+- Status: Approved (H-029 Scope)
+- Decision:
+  - H-029 최신 14일/7일 실측 기준으로 H-024 재개 판정은 `KEEP_FROZEN`으로 고정한다.
+  - `KEEP_FROZEN` 판정 근거는 `INSUFFICIENT_SAMPLE_RATIO=1.00`, `SUFFICIENT_DAYS=0`, `weeklyComplianceRate=0.00`, `DOC/REVIEW actualChainRuns=0`으로 유지한다.
+  - 기존 게이트/산식/임계치(`0.05`, `0.15`, `+0.10p`, `0.10`)와 `INSUFFICIENT_SAMPLE` 제외 규칙은 변경하지 않는다.
+  - 다음 라운드(H-030)는 `LOW_TRAFFIC`/`CHAIN_COVERAGE_GAP` 신호의 회복 액션 이행 추적(상태/증거/다음 액션) 계약을 운영 문서/자동화 템플릿에 고정한다.
+- Rationale: H-029에서도 재개 게이트 4종 중 2종 미충족이 지속되어 H-024를 즉시 재개할 근거가 부족하며, 동결 상태를 유지하더라도 실행량/체인 커버리지 회복 이행의 증거 누적 체계를 먼저 표준화해야 다음 재개 판단의 재현성을 확보할 수 있기 때문이다.
+- Consequence:
+  - H-024는 Frozen/Backlog 상태를 유지하고 `RESUME_H024` 근거 확보 전까지 재개하지 않는다.
+  - H-030은 `docs/code-agent-api.md`와 `coordination/AUTOMATIONS/A-001-nightly-test-report.md` 중심의 운영 계약 정합화 라운드로 진행한다.
+  - Main 판단은 기존 게이트 충족 여부와 함께 신호별 이행 증거 누적 상태를 공동 근거로 사용한다.
