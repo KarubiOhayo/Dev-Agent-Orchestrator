@@ -3,6 +3,7 @@ package me.karubidev.devagent.agents.spec;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -31,6 +32,26 @@ import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ObjectNode;
 
 class SpecCodeChainServiceTest {
+
+  @Test
+  void runChainSkipsWhenChainToCodeIsDisabled(@TempDir Path tempDir) {
+    CodeAgentService codeAgentService = Mockito.mock(CodeAgentService.class);
+    RunStateStore runStateStore = Mockito.mock(RunStateStore.class);
+    SpecCodeChainService service = new SpecCodeChainService(codeAgentService, runStateStore, new ObjectMapper());
+
+    SpecGenerateRequest request = new SpecGenerateRequest();
+    request.setProjectId("p1");
+    request.setChainToCode(false);
+
+    ObjectNode spec = new ObjectMapper().createObjectNode();
+    spec.put("title", "Test Spec");
+
+    CodeGenerateResponse result = service.runChain("spec-run-disabled", request, spec, tempDir);
+
+    assertThat(result).isNull();
+    verify(codeAgentService, never()).generate(any());
+    verify(runStateStore, never()).appendEvent(eq("spec-run-disabled"), anyString(), anyString());
+  }
 
   @Test
   void chainRunRecordsRunStateEvents(@TempDir Path tempDir) {

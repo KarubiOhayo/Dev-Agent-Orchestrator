@@ -11,6 +11,10 @@ import static org.mockito.Mockito.when;
 
 import java.nio.file.Path;
 import java.util.List;
+import me.karubidev.devagent.agents.code.CodeGenerateRequest;
+import me.karubidev.devagent.agents.code.CodeGenerateResponse;
+import me.karubidev.devagent.agents.code.apply.FileApplyResult;
+import me.karubidev.devagent.agents.doc.DocGenerateResponse;
 import me.karubidev.devagent.context.ContextBundle;
 import me.karubidev.devagent.context.ProjectContextManager;
 import me.karubidev.devagent.llm.LlmExecutionResult;
@@ -93,6 +97,107 @@ class SpecAgentServiceTest {
         eq("SPEC_OUTPUT_FALLBACK_WARNING"),
         contains("source=")
     );
+  }
+
+  @Test
+  void generateIncludesChainedCodeResultAndChainFailuresForPartialSuccess() {
+    ModelRouter modelRouter = Mockito.mock(ModelRouter.class);
+    LlmOrchestratorService llmOrchestrator = Mockito.mock(LlmOrchestratorService.class);
+    ProjectContextManager contextManager = Mockito.mock(ProjectContextManager.class);
+    PromptRegistry promptRegistry = Mockito.mock(PromptRegistry.class);
+    RunStateStore runStateStore = Mockito.mock(RunStateStore.class);
+    SpecCodeChainService specCodeChainService = Mockito.mock(SpecCodeChainService.class);
+    SpecOutputSchemaParser schemaParser = new SpecOutputSchemaParser(new ObjectMapper());
+
+    SpecAgentService service = new SpecAgentService(
+        modelRouter,
+        llmOrchestrator,
+        contextManager,
+        promptRegistry,
+        runStateStore,
+        schemaParser,
+        specCodeChainService
+    );
+
+    SpecGenerateRequest request = new SpecGenerateRequest();
+    request.setProjectId("p1");
+    request.setTargetProjectRoot(".");
+    request.setUserRequest("로그인 API 명세 작성");
+    request.setChainToCode(true);
+    request.setCodeChainToDoc(true);
+    request.setCodeChainToReview(true);
+    request.setCodeChainFailurePolicy(CodeGenerateRequest.ChainFailurePolicy.PARTIAL_SUCCESS);
+
+    RouteDecision routeDecision = new RouteDecision(
+        AgentType.SPEC,
+        RoutingMode.BALANCED,
+        RiskLevel.MEDIUM,
+        new ModelRef("openai", "gpt-5.2"),
+        List.of(),
+        List.of("test")
+    );
+    when(modelRouter.resolve(any())).thenReturn(routeDecision);
+    when(runStateStore.startRun(eq("p1"), eq("SPEC"), eq("BALANCED"), anyString())).thenReturn("spec-run-chain");
+    when(contextManager.buildCodeContext(eq("로그인 API 명세 작성"), eq("p1"), any(Path.class)))
+        .thenReturn(new ContextBundle("ctx", List.of()));
+    when(promptRegistry.buildPrompt(eq("spec"), any(Path.class), contains("Create a strict JSON specification"), eq("ctx")))
+        .thenReturn("spec-prompt");
+    when(llmOrchestrator.generate(eq(routeDecision), eq("spec-prompt"))).thenReturn(
+        new LlmExecutionResult(
+            new LlmGenerationResult(
+                "openai",
+                "gpt-5.2",
+                "{\"title\":\"Login\",\"overview\":\"Auth spec\",\"tasks\":[]}",
+                "{}"
+            ),
+            List.of()
+        )
+    );
+    DocGenerateResponse chainedDoc = new DocGenerateResponse(
+        "doc-run-1",
+        "p1",
+        ".",
+        null,
+        "openai",
+        "gpt-5.2",
+        new ObjectMapper().createObjectNode().put("title", "Login API 문서"),
+        List.of(),
+        List.of(),
+        "summary",
+        "code-run-1"
+    );
+    CodeGenerateResponse chainedCode = new CodeGenerateResponse(
+        "code-run-1",
+        "p1",
+        ".",
+        null,
+        "openai",
+        "gpt-5.2-codex",
+        "{}",
+        List.of(),
+        List.of(),
+        "summary",
+        List.of(),
+        new FileApplyResult(true, 0, 0, 0, List.of()),
+        chainedDoc,
+        null,
+        List.of(new CodeGenerateResponse.ChainFailure("REVIEW", "CHAIN_REVIEW", "review failure"))
+    );
+    when(specCodeChainService.runChain(eq("spec-run-chain"), eq(request), any(), any(Path.class)))
+        .thenReturn(chainedCode);
+    when(runStateStore.getProjectSummary("p1")).thenReturn("summary");
+
+    SpecGenerateResponse response = service.generate(request);
+
+    assertThat(response.chainedCodeResult()).isNotNull();
+    assertThat(response.chainedCodeResult().runId()).isEqualTo("code-run-1");
+    assertThat(response.chainedCodeResult().chainedDocResult()).isNotNull();
+    assertThat(response.chainedCodeResult().chainedDocResult().runId()).isEqualTo("doc-run-1");
+    assertThat(response.chainedCodeResult().chainedReviewResult()).isNull();
+    assertThat(response.chainedCodeResult().chainFailures()).hasSize(1);
+    assertThat(response.chainedCodeResult().chainFailures().get(0).agent()).isEqualTo("REVIEW");
+    assertThat(response.chainedCodeResult().chainFailures().get(0).failedStage()).isEqualTo("CHAIN_REVIEW");
+    assertThat(response.chainedCodeResult().chainFailures().get(0).errorMessage()).isEqualTo("review failure");
   }
 
   @Test
