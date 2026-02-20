@@ -124,6 +124,39 @@ devagent generate --user-request "로그인 API 스켈레톤을 만들어줘"
   -j
 ```
 
+### 7) fallback-warning traffic seeding (H-035)
+
+`LOW_TRAFFIC`/`CHAIN_COVERAGE_GAP` 신호의 실run 증거를 확보하려면
+`devagent` 단일 호출 대신 시딩 스크립트를 사용합니다.
+
+```bash
+SEED_DIRECT_RUNS=1 \
+SEED_CHAIN_RUNS=1 \
+SEED_APPLY=false \
+SEED_MODE=BALANCED \
+SEED_FAIL_FAST=true \
+./scripts/seed-fallback-warning-workload.sh
+```
+
+- 스크립트 위치: `scripts/seed-fallback-warning-workload.sh`
+- 주요 환경 변수:
+  - `SEED_DIRECT_RUNS`: Code direct 시드 횟수(기본 `1`)
+  - `SEED_CHAIN_RUNS`: Spec -> Code -> Doc/Review 체인 시드 횟수(기본 `1`)
+  - `SEED_APPLY`: Code apply 여부(기본 `false`)
+  - `SEED_MODE`: CLI mode(`COST_SAVER | BALANCED | QUALITY | GEMINI3_CANARY`, 기본 `BALANCED`)
+  - `SEED_FAIL_FAST`: 실패 시 즉시 중단 여부(기본 `true`)
+  - `SEED_SPEC_OUTPUT_DIR`: Spec 산출 경로(기본 `storage/devagent-specs`)
+  - `SEED_LOG_DIR`: 실행 로그/스냅샷 경로(기본 `storage/fallback-warning-seed`)
+- 출력 산출물:
+  - `seed-<ts>.log`: 실행 요약(runId, 종료코드, 체인 여부)
+  - `seed-<ts>-records.jsonl`: 실행별 상세(runId, spec/code/doc/review 매핑, `CHAIN_*` 이벤트)
+  - `seed-<ts>-before.json`, `seed-<ts>-after.json`: 7일/14일 run-state before/after 스냅샷
+  - `seed-<ts>-summary.json`: records + snapshot 합성 요약
+- 구현 제약:
+  - `jq` 없이 동작(`python3` 표준 라이브러리 `json`, `sqlite3`만 사용)
+  - `spec --json` top-level `runId`는 `specRunId`, `CHAIN_CODE_DONE(payload: codeRunId=...)`는 체인 `codeRunId`로 해석
+  - `CHAIN_DOC_*`, `CHAIN_REVIEW_*` 검증은 `codeRunId` 기준으로 수행
+
 ## 출력 예시 (dry-run)
 
 ```text

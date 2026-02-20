@@ -1492,6 +1492,127 @@ curl -X POST http://localhost:8080/api/agents/spec/generate \
   - 우선 보완 액션: `LOW_TRAFFIC` fresh runId 증거 확보(우선순위 1) + `CHAIN_COVERAGE_GAP` fresh 체인 이벤트 증거 확보(우선순위 2)
   - `KEEP_FROZEN` 상태에서는 `signalRecoveryEvidenceLedger[]`, `evidenceAccumulationSummary[]`, `evidenceFreshnessSummary[]`, `recoveryActionCompletionRate`, `blockedActionCount`를 누락 없이 동시 보고한다.
 
+### H-035 fallback-warning traffic seeding 워크로드 부트스트랩
+
+- 실행일(KST): `2026-02-20`
+- 점검 구간(KST):
+  - 최신 14일: `2026-02-07 ~ 2026-02-20` (`today-13 ~ today`)
+  - 최근 7일: `2026-02-14 ~ 2026-02-20` (`today-6 ~ today`)
+  - 직전 7일: `2026-02-07 ~ 2026-02-13` (`today-13 ~ today-7`)
+- 목표:
+  - 문서 필드 확장보다 실제 run-state 데이터 생성(traffic seeding)을 우선한다.
+  - `LOW_TRAFFIC`, `CHAIN_COVERAGE_GAP` 신호의 fresh 증거(runId + `CHAIN_*` 이벤트)를 확보한다.
+- 비범위:
+  - fallback-warning 신규 필드 추가 금지
+  - 임계치/알림 룰 수치(`0.05`, `0.15`, `+0.10p`, `0.10`) 변경 금지
+
+#### 시딩 스크립트
+
+- 스크립트: `scripts/seed-fallback-warning-workload.sh`
+- 실행 예시:
+
+```bash
+SEED_DIRECT_RUNS=1 \
+SEED_CHAIN_RUNS=1 \
+SEED_APPLY=false \
+SEED_MODE=BALANCED \
+SEED_FAIL_FAST=true \
+./scripts/seed-fallback-warning-workload.sh
+```
+
+- 기본 DB/테이블:
+  - `storage/devagent.db`
+  - `runs`, `run_events`
+- 산출물:
+  - `storage/fallback-warning-seed/seed-<ts>.log`
+  - `storage/fallback-warning-seed/seed-<ts>-records.jsonl`
+  - `storage/fallback-warning-seed/seed-<ts>-before.json`
+  - `storage/fallback-warning-seed/seed-<ts>-after.json`
+  - `storage/fallback-warning-seed/seed-<ts>-summary.json`
+- 제약:
+  - `jq` 없이 동작 (`python3` 표준 라이브러리 `json`, `sqlite3`만 사용)
+
+#### runId 매핑 규칙 (H-035 고정)
+
+- `generate --json` top-level `runId` => `codeRunId`
+- `spec --json` top-level `runId` => `specRunId`
+- `specRunId`의 `CHAIN_CODE_DONE(payload: codeRunId=...)` => 체인 `codeRunId`
+- `codeRunId` 기준으로 `CHAIN_DOC_DONE(payload: docRunId=...)`, `CHAIN_REVIEW_DONE(payload: reviewRunId=...)` 추출
+- `CHAIN_DOC_*`, `CHAIN_REVIEW_*` 이벤트 검증은 반드시 `codeRunId` 기준으로 수행
+
+#### H-035 시딩 실행 결과 (샘플)
+
+| 분류 | runId | 종료코드 | 체인 여부 | chainFailures |
+|---|---|---:|---|---:|
+| Direct Code | `bc7eeed6-0c74-42af-89d6-e6c752554069` | 0 | `false` | 0 |
+| Chain Spec | `3f5581d1-0c7e-45cb-84b6-bd6cb2cdaa36` | 0 | `true` | 0 |
+
+| specRunId | codeRunId | docRunId | reviewRunId |
+|---|---|---|---|
+| `3f5581d1-0c7e-45cb-84b6-bd6cb2cdaa36` | `c42e851b-77e9-474b-88d5-40f0357166c3` | `bcb546ea-23db-498f-90a1-feb2e52abb22` | `217f6ea2-f7a8-4c1f-8b97-3efc9db4462e` |
+
+| runId | eventType | payload |
+|---|---|---|
+| `3f5581d1-0c7e-45cb-84b6-bd6cb2cdaa36` | `CHAIN_CODE_DONE` | `codeRunId=c42e851b-77e9-474b-88d5-40f0357166c3` |
+| `c42e851b-77e9-474b-88d5-40f0357166c3` | `CHAIN_DOC_DONE` | `docRunId=bcb546ea-23db-498f-90a1-feb2e52abb22` |
+| `c42e851b-77e9-474b-88d5-40f0357166c3` | `CHAIN_REVIEW_DONE` | `reviewRunId=217f6ea2-f7a8-4c1f-8b97-3efc9db4462e` |
+
+#### before/after 비교 (시딩 스냅샷)
+
+| 항목 | before | after |
+|---|---:|---:|
+| 최근 7일 CODE run 수 | 2 | 4 |
+| 최근 7일 SPEC run 수 | 1 | 2 |
+| 최근 7일 DOC run 수 | 1 | 2 |
+| 최근 7일 REVIEW run 수 | 1 | 2 |
+| 최근 7일 CHAIN_CODE_DONE | 1 | 2 |
+| 최근 7일 CHAIN_DOC_DONE | 1 | 2 |
+| 최근 7일 CHAIN_REVIEW_DONE | 1 | 2 |
+| 48시간 fresh CODE run 수 | 2 | 4 |
+| 48시간 fresh CHAIN_DOC_DONE | 1 | 2 |
+| 48시간 fresh CHAIN_REVIEW_DONE | 1 | 2 |
+
+#### 최신 14일 게이트 4개 실측 + PASS/FAIL (H-035)
+
+| 항목 | 실측값 | 게이트 기준 | 결과 |
+|---|---:|---:|---|
+| 집계 성공 일수 | 14일 | >= 10일 | PASS |
+| `INSUFFICIENT_SAMPLE` 일수/비율 | 14일 / 1.00 | <= 0.50 | FAIL |
+| `집계 불가` 일수 | 0일 | < 3일 | PASS |
+| 샘플 충분 일수(`parseEligibleRunCount >= 20`) | 0일 | >= 7일 | FAIL |
+
+- 최신 14일 누적 `parseEligibleRunCount`: `CODE 8`, `SPEC 3`, `DOC 2`, `REVIEW 2`, `전체 15`
+
+#### 최근 7일/직전 7일 `executionGapDelta` + `chainShareGapDelta` 비교 (H-035)
+
+| 구분 | executionGap(최근7일) | executionGap(직전7일) | executionGapDelta | chainShareGap(최근7일) | chainShareGap(직전7일) | chainShareGapDelta |
+|---|---:|---:|---:|---:|---:|---:|
+| CODE | 108 | 108 | 0 | -25.00%p | 25.00%p | -50.00%p |
+| SPEC | 26 | 27 | -1 | 0.00%p | 0.00%p | 0.00%p |
+| DOC | 40 | 42 | -2 | 0.00%p | 100.00%p | -100.00%p |
+| REVIEW | 40 | 42 | -2 | 0.00%p | 100.00%p | -100.00%p |
+| 전체 | 214 | 219 | -5 | -10.00%p | 50.00%p | -60.00%p |
+
+- 최근 7일 `dailyCompliance`: `1/7` PASS (`weeklyComplianceRate=0.14`)
+- 최근 3일 평균 전체 모수(`parseEligibleRunCount`): `3.3333` (기준 `>= 32` 미충족)
+
+#### H-035 단일 판정 (`RESUME_H024` vs `KEEP_FROZEN`)
+
+- `resumeDecision`: **`KEEP_FROZEN`**
+- 판정 근거:
+  - 시딩으로 `executionGapDelta=-5`, `chainShareGapDelta=-60.00%p` 개선 신호와 fresh 체인 이벤트 증거가 확보되었다.
+  - 그러나 게이트 4개 중 `INSUFFICIENT_SAMPLE_RATIO`, `SUFFICIENT_DAYS` 2개 미충족(`1.00`, `0`)이 유지되어 재개 조건에 도달하지 못했다.
+  - 따라서 H-024 재개는 보류하되, 동일 워크로드를 반복 실행해 `parseEligibleRunCount >= 20` 충족 일수를 누적한다.
+- `unmetReadinessSignals`:
+  - `INSUFFICIENT_SAMPLE_RATIO` (`1.00 > 0.50`)
+  - `SUFFICIENT_DAYS` (`0 < 7`)
+- `nextCheckTrigger`:
+  - 필수 충족 조건: `집계 성공 >= 10`, `INSUFFICIENT_SAMPLE <= 0.50`, `집계 불가 < 3`, `샘플 충분 일수 >= 7`
+  - 다음 점검 시점: `2026-02-21 09:00 KST`
+  - 우선 액션: `scripts/seed-fallback-warning-workload.sh` 반복 실행으로 fresh runId/체인 이벤트 누적
+
+- `KEEP_FROZEN` 상태에서는 기존 계약 필드(`signalRecoveryEvidenceLedger[]`, `evidenceAccumulationSummary[]`, `evidenceFreshnessSummary[]`, `recoveryActionTracking[]`, `recoveryActionCompletionRate`, `blockedActionCount`)를 유지하고 신규 필드는 추가하지 않는다.
+
 ## 공통 오류 응답 계약 (Routing + Agent API)
 
 다음 엔드포인트는 입력 오류를 동일한 오류 envelope로 반환합니다.
