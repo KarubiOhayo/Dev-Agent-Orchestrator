@@ -587,3 +587,18 @@
   - Main은 다음 실행 라운드를 `coordination/HANDOFFS/H-040-code-generate-provider-compat-and-files-json-hardening.md`로 확정한다.
   - Main -> Executor 릴레이 `coordination/RELAYS/H-040-main-to-executor.md`를 생성해 입력/수용기준을 고정한다.
   - H-039는 H-040 완료 후 재개하며, H-024 Frozen/Backlog 정책은 유지한다.
+
+## D-053 H-040 조건부 승인(Conditional Go) 및 H-041 parser safety/apply 실증 보강 정책
+- Date: 2026-02-20
+- Status: Approved (H-040 Close-out / H-041 Scope)
+- Decision:
+  - H-040 결과를 Main 최종 판단 `Conditional Go`로 승인한다.
+  - 승인 근거는 테스트 게이트 통과와 핵심 복구 항목(OpenAI codex `temperature` 제거, Anthropic fallback 모델명 정정, strict-json 정합, `parsedFiles=0` 경고/실패 신호 고정) 충족이다.
+  - 미해소 이슈(P2 `LOOSE_JSON_FALLBACK` 과매칭 가능성, P3 writable `apply=true` 실증 미완료)는 H-041 단일 라운드에서 우선 해소한다.
+  - H-041에서는 parser loose fallback을 `files[]` 컨텍스트/동일 객체 경계로 제한하고, 오탐 방지 회귀 테스트와 writable 경로 `writtenFiles > 0` 증빙을 필수 수용기준으로 고정한다.
+  - H-039 fallback-warning 재개 라운드는 H-041 종료 후로 순서를 조정한다.
+- Rationale: H-040의 긴급 복구로 실사용 generate 실패의 주 경로는 차단됐지만, parser 안전성/실파일 반영 증빙 공백을 닫지 않으면 운영 승인 근거의 완결성이 부족하기 때문이다.
+- Consequence:
+  - Main은 다음 실행 라운드를 `coordination/HANDOFFS/H-041-code-output-parser-safety-and-apply-verification.md`로 확정한다.
+  - Main -> Executor 릴레이 `coordination/RELAYS/H-041-main-to-executor.md`를 생성해 입력/수용기준을 고정한다.
+  - `coordination/TASK_BOARD.md`, `docs/PROJECT_OVERVIEW.md`, `coordination/REPORTS/CURRENT_STATUS_2026-02-20.md`를 H-040 Conditional Go + H-041 우선순위로 동기화한다.

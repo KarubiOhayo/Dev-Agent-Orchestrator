@@ -8,8 +8,8 @@ Primary Reference: `docs/PROJECT_OVERVIEW.md`
 
 ## 현재 스냅샷
 - 목표: A(Context Engineering) 완성 후 C(Spec -> Code -> Doc) 체이닝 확장 안정화
-- 현재 상태: Spec -> Code -> Doc/Review 체이닝(1차) 운영 안정화 단계이며, H-009~H-038 라운드는 Review `Go` + 테스트 게이트 통과(단, H-035는 중간 `No-Go` 후 H-035.1에서 보완)로 누적 완료되었다. 2026-02-20 FocusBar 재현에서 Code generate 경로의 공급자 호환/파싱 장애가 확인되어, 다음 실행 라운드는 H-040 긴급 복구로 전환하고 H-039는 일시 보류한다. H-024는 Frozen/Backlog를 유지한다.
-- 핵심 리스크: `PARTIAL_SUCCESS` 사용 시 `chainFailures` 누락 확인 위험에 더해, Code generate에서 (1) OpenAI codex `temperature` 비호환, (2) Anthropic fallback 모델명 404, (3) `parsedFiles=0` 무반영 성공처럼 보이는 경로가 동시 관측되었다.
+- 현재 상태: Spec -> Code -> Doc/Review 체이닝(1차) 운영 안정화 단계이며, H-009~H-040 라운드는 테스트 게이트 통과를 유지했다(H-035는 중간 `No-Go` 후 H-035.1 보완, H-040은 Main `Conditional Go`). H-040 긴급 복구로 공급자 호환/strict-json 정합/`parsedFiles=0` 경고 신호는 복구됐고, 후속 라운드 H-041에서 parser 안전화 + apply 실증 증빙을 우선 보강한다. H-039는 H-041 완료 후 재개, H-024는 Frozen/Backlog 유지.
+- 핵심 리스크: H-040 리뷰 기준으로 (1) `CodeOutputParser`의 `LOOSE_JSON_FALLBACK` 과매칭 가능성(P2), (2) writable 환경 `apply=true` 실파일 반영 증빙 미완료(P3)가 잔여 리스크다.
 - 운영 정책: 3스레드 체계(메인 제어 + 리뷰 전담 + 실행 전담), 라운드별 stateless 운영
 
 ## 완료된 작업
@@ -63,6 +63,7 @@ Primary Reference: `docs/PROJECT_OVERVIEW.md`
 - [x] H-036 fallback-warning `KEEP_FROZEN` seeding throughput 추적 점검(반복 시딩 실행량/체인 커버리지 누적 + 최신 14일/7일 게이트 재집계 + `resumeDecision=KEEP_FROZEN` 유지, Review `Go`)
 - [x] H-037 fallback-warning `KEEP_FROZEN` seeding follow-up + workspace hygiene 정합화(`.gradle-local` ignore 반영 + 반복 시딩 누적 + 최신 14일/7일 게이트 재집계, Review `Go`)
 - [x] H-038 fallback-warning `KEEP_FROZEN` seeding failure pattern 후속 점검(fail-fast 반복 시딩 누적 + 체인 실패 원인 재발 빈도/완화 가이드 정합화 + 최신 14일/7일 게이트 재집계, Review `Go`)
+- [x] H-040 code-generate provider compatibility + files JSON hardening(OpenAI codex `temperature` 제거 + Anthropic fallback 모델명 정정 + strict-json 기본값 정합 + `parsedFiles=0` 경고/실패 신호 고정, Main `Conditional Go`)
 
 ## 3스레드 운영 분배
 
@@ -104,8 +105,8 @@ Primary Reference: `docs/PROJECT_OVERVIEW.md`
 9. 병합은 THREAD-A 최종 승인 이후에만 수행한다.
 
 ## 현재 우선순위
-- [~] H-040 진행중: code-generate provider compatibility + files JSON hardening(코덱스 `temperature` 비호환 제거, Anthropic fallback 모델명 정정, strict-json 라우팅 정합화, `parsedFiles=0` 재발 방지)
-- [ ] H-039 보류: fallback-warning `KEEP_FROZEN` resume readiness follow-up check(H-040 복구 완료 후 재개)
+- [~] H-041 진행 예정: code-output parser safety guard + apply verification(`LOOSE_JSON_FALLBACK` 과매칭 차단 + writable `writtenFiles > 0` 실증 확보)
+- [ ] H-039 보류: fallback-warning `KEEP_FROZEN` resume readiness follow-up check(H-041 보강 완료 후 재개)
 
 ## Frozen/Backlog
 - [ ] H-024 동결: fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정
