@@ -471,8 +471,12 @@ PY
   if [[ $exit_code -ne 0 || -z "$run_id" ]]; then
     failure_count=$((failure_count + 1))
     if as_bool "$SEED_FAIL_FAST"; then
-      log "중단: fail-fast 활성화 상태에서 실패 발생(kind=$kind index=$index)"
-      exit "${exit_code:-1}"
+      local fail_fast_exit_code="$exit_code"
+      if [[ $fail_fast_exit_code -eq 0 && -z "$run_id" ]]; then
+        fail_fast_exit_code=1
+      fi
+      log "중단: fail-fast 활성화 상태에서 실패 발생(kind=$kind index=$index exit=$fail_fast_exit_code)"
+      exit "$fail_fast_exit_code"
     fi
   fi
 }
