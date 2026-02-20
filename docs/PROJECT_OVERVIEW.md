@@ -63,7 +63,8 @@
   - H-038 fallback-warning `KEEP_FROZEN` seeding failure pattern 후속 점검 완료(fail-fast 반복 시딩 누적 + 체인 실패 원인 재발 빈도/완화 가이드 정합화 + 최신 게이트 재집계, Review `Go`)
   - apply/dry-run 파일 반영
 - 미완료:
-  - H-039 fallback-warning `KEEP_FROZEN` resume readiness follow-up check(fail-fast 반복 시딩 누적 + 최근 라운드 readiness 추세 검증 + `RESUME_H024|KEEP_FROZEN` 재판정)
+  - H-040 code-generate provider compatibility + files JSON hardening(OpenAI codex `temperature` 비호환 제거 + Anthropic fallback 모델명 정정 + strict-json 라우팅 정합화 + `parsedFiles=0` 재발 방지)
+  - H-039 fallback-warning `KEEP_FROZEN` resume readiness follow-up check(fail-fast 반복 시딩 누적 + 최근 라운드 readiness 추세 검증 + `RESUME_H024|KEEP_FROZEN` 재판정, H-040 완료 후 재개)
   - H-024 fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정(Frozen/Backlog, `RESUME_H024` 판정 근거 확보 시 재개)
   - fallback warning 임계치/알림 룰 보정안의 운영 적용 후 회귀 점검(지속 데이터 누적 필요)
 
@@ -128,15 +129,16 @@
 
 ## 7) 현재 운영 리스크
 - 모델 출력 비정형 시 fallback 비율이 상승할 수 있음
+- Code generate 경로에서 공급자 파라미터/모델명 불일치가 발생하면(예: codex `temperature`, Anthropic 모델 ID) 전체 후보 실패로 직결될 수 있음
 - fallback warning 임계치는 초기 기준값이므로 트래픽/모델 분포 변화 시 오탐/미탐 가능성이 있음
 - `files[]`/`document`/`review` 구조는 보정되지만 의미 품질 검증은 아직 제한적
 - `PARTIAL_SUCCESS` 사용 시 클라이언트가 `chainFailures`를 확인하지 않으면 체인 실패를 간과할 수 있음(가드레일은 opt-in)
 - CLI JSON 출력은 지원되지만, 옵션 파싱 경계 케이스는 지속 회귀 점검 필요
 
 ## 8) 다음 우선순위
-1. H-039 fallback-warning `KEEP_FROZEN` resume readiness follow-up check(fail-fast 반복 시딩으로 `parseEligibleRunCount` 누적 + 최근 라운드 readiness 추세 검증 + `RESUME_H024|KEEP_FROZEN` 재판정)
-2. H-024 fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정(Frozen/Backlog, `RESUME_H024` 판정 근거 확보 시 재개)
-3. fallback warning 임계치/알림 룰 보정안의 운영 적용 후 회귀 점검(지속 데이터 누적 필요)
+1. H-040 code-generate provider compatibility + files JSON hardening(실사용 generate 복구 우선)
+2. H-039 fallback-warning `KEEP_FROZEN` resume readiness follow-up check(H-040 완료 후 재개)
+3. H-024 fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정(Frozen/Backlog, `RESUME_H024` 판정 근거 확보 시 재개)
 
 ## 9) 라운드 시작 체크 (Stateless)
 1. `docs/PROJECT_OVERVIEW.md` 읽기

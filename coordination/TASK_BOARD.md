@@ -8,8 +8,8 @@ Primary Reference: `docs/PROJECT_OVERVIEW.md`
 
 ## 현재 스냅샷
 - 목표: A(Context Engineering) 완성 후 C(Spec -> Code -> Doc) 체이닝 확장 안정화
-- 현재 상태: Spec -> Code -> Doc/Review 체이닝(1차) 운영 안정화 단계이며, H-009~H-038 라운드는 Review `Go` + 테스트 게이트 통과(단, H-035는 중간 `No-Go` 후 H-035.1에서 보완)로 누적 완료되었다. 다음 실행 라운드는 H-039 resume readiness follow-up check로 확정되었고, H-024는 Frozen/Backlog를 유지한다.
-- 핵심 리스크: `PARTIAL_SUCCESS` 사용 시 `chainFailures` 누락 확인 위험/ fallback warning 임계치(`0.05`, `0.15`)와 알림 룰이 초기 기준값이라 실측 데이터(최소 2주) 기반 보정 전까지 오탐/미탐 가능성이 남아 있는 상태
+- 현재 상태: Spec -> Code -> Doc/Review 체이닝(1차) 운영 안정화 단계이며, H-009~H-038 라운드는 Review `Go` + 테스트 게이트 통과(단, H-035는 중간 `No-Go` 후 H-035.1에서 보완)로 누적 완료되었다. 2026-02-20 FocusBar 재현에서 Code generate 경로의 공급자 호환/파싱 장애가 확인되어, 다음 실행 라운드는 H-040 긴급 복구로 전환하고 H-039는 일시 보류한다. H-024는 Frozen/Backlog를 유지한다.
+- 핵심 리스크: `PARTIAL_SUCCESS` 사용 시 `chainFailures` 누락 확인 위험에 더해, Code generate에서 (1) OpenAI codex `temperature` 비호환, (2) Anthropic fallback 모델명 404, (3) `parsedFiles=0` 무반영 성공처럼 보이는 경로가 동시 관측되었다.
 - 운영 정책: 3스레드 체계(메인 제어 + 리뷰 전담 + 실행 전담), 라운드별 stateless 운영
 
 ## 완료된 작업
@@ -104,7 +104,8 @@ Primary Reference: `docs/PROJECT_OVERVIEW.md`
 9. 병합은 THREAD-A 최종 승인 이후에만 수행한다.
 
 ## 현재 우선순위
-- [~] H-039 진행중: fallback-warning `KEEP_FROZEN` resume readiness follow-up check(fail-fast 반복 시딩 실행량/체인 커버리지 누적 + 최근 라운드 readiness 지표 추세 검증 + 최신 14일/7일 게이트 재집계)
+- [~] H-040 진행중: code-generate provider compatibility + files JSON hardening(코덱스 `temperature` 비호환 제거, Anthropic fallback 모델명 정정, strict-json 라우팅 정합화, `parsedFiles=0` 재발 방지)
+- [ ] H-039 보류: fallback-warning `KEEP_FROZEN` resume readiness follow-up check(H-040 복구 완료 후 재개)
 
 ## Frozen/Backlog
 - [ ] H-024 동결: fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정

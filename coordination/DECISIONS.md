@@ -573,3 +573,17 @@
   - Main은 다음 실행 라운드를 `coordination/HANDOFFS/H-039-fallback-warning-keep-frozen-resume-readiness-followup-check.md`로 확정한다.
   - Main -> Executor 릴레이 `coordination/RELAYS/H-039-main-to-executor.md`를 생성해 H-039 입력/수용기준을 고정한다.
   - H-024는 `RESUME_H024` 근거(게이트 충족 + 신호 증거 누적 + 추세 검증) 확보 전까지 Frozen/Backlog를 유지한다.
+
+## D-052 FocusBar generate 실패 기반 H-040 긴급 복구 우선 전환
+- Date: 2026-02-20
+- Status: Approved (H-040 Scope)
+- Decision:
+  - FocusBar 재현에서 확인된 Code generate 실사용 장애(모델 후보 전체 실패 + `parsedFiles=0`)를 fallback-warning 추적(H-039)보다 우선 처리하기 위해 다음 실행 라운드를 H-040으로 전환한다.
+  - H-040 범위에서는 OpenAI codex `temperature` 비호환 제거, Anthropic fallback 모델명 정정, strict-json 라우팅 정합화, `parsedFiles=0` 재발 방지 신호 고정을 묶어서 처리한다.
+  - 공통 승인 대상 파일 중 `src/main/resources/application.yml` 변경을 H-040 한정으로 사전 승인한다(모델명/strict-json 관련 최소 변경만 허용).
+  - 벤더 모델명/파라미터 결정은 OpenAI/Anthropic/Google 공식 문서 근거를 결과 보고서에 링크로 남기는 것을 필수 수용기준으로 고정한다.
+- Rationale: 기존 H-036~H-038에서 누적 관측된 공급자 실패 패턴(`temperature` 비호환, Anthropic 404, Google non-text)과 이번 FocusBar 재현의 무파일 성공 경로가 결합되면, 사용자가 `apply=true`를 실행해도 실제 산출물이 생성되지 않는 고충이 반복되기 때문이다.
+- Consequence:
+  - Main은 다음 실행 라운드를 `coordination/HANDOFFS/H-040-code-generate-provider-compat-and-files-json-hardening.md`로 확정한다.
+  - Main -> Executor 릴레이 `coordination/RELAYS/H-040-main-to-executor.md`를 생성해 입력/수용기준을 고정한다.
+  - H-039는 H-040 완료 후 재개하며, H-024 Frozen/Backlog 정책은 유지한다.
