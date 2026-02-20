@@ -531,3 +531,17 @@
   - Main은 다음 실행 라운드를 `coordination/HANDOFFS/H-036-fallback-warning-keep-frozen-seeding-throughput-tracking.md`로 확정한다.
   - Main -> Executor 릴레이 `coordination/RELAYS/H-036-main-to-executor.md`를 생성해 입력/수용기준을 고정한다.
   - H-024는 `RESUME_H024` 근거(게이트 충족 + 신호 증거 누적) 확보 전까지 Frozen/Backlog를 유지한다.
+
+## D-049 fallback-warning H-036 승인 및 H-037 seeding 후속/워크트리 위생 정합화 정책
+- Date: 2026-02-20
+- Status: Approved (H-036 Close-out / H-037 Scope)
+- Decision:
+  - H-036 결과를 기준으로 Main 최종 판단을 `Go`로 확정한다.
+  - H-036 재집계 결과에서도 `INSUFFICIENT_SAMPLE_RATIO=0.9286`, `SUFFICIENT_DAYS=1`로 재개 게이트 2종이 미충족이므로 `resumeDecision=KEEP_FROZEN`을 유지한다.
+  - 다음 라운드(H-037)는 fail-fast 유지 반복 시딩으로 `parseEligibleRunCount` 누적/게이트 재집계를 이어가고, 리뷰 P3 지적사항인 `.gradle-local` 워크트리 노이즈를 운영 위생 관점에서 정합화한다.
+  - H-037에서도 fallback-warning 운영 계약 필드(`signalRecoveryEvidenceLedger[]`, `evidenceAccumulationSummary[]`, `evidenceFreshnessSummary[]`), 단일 판정(`RESUME_H024|KEEP_FROZEN`), 임계치/알림 룰 수치(`0.05`, `0.15`, `+0.10p`, `0.10`) 및 `INSUFFICIENT_SAMPLE` 제외 규칙은 변경하지 않는다.
+- Rationale: H-036에서 실행량/체인 증거는 누적되었지만 재개 게이트 미충족이 지속되어 추적 라운드를 연속해야 하며, 동시에 `.gradle-local/` untracked 노이즈를 줄여 라운드 운영 신뢰도(증거/커밋 위생)를 함께 높여야 하기 때문이다.
+- Consequence:
+  - Main은 다음 실행 라운드를 `coordination/HANDOFFS/H-037-fallback-warning-keep-frozen-seeding-followup-hygiene.md`로 확정한다.
+  - Main -> Executor 릴레이 `coordination/RELAYS/H-037-main-to-executor.md`를 생성해 H-037 입력/수용기준을 고정한다.
+  - H-024는 `RESUME_H024` 근거(게이트 충족 + 신호 증거 누적) 확보 전까지 Frozen/Backlog를 유지한다.
