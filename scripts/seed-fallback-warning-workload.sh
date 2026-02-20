@@ -4,6 +4,9 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
+GRADLE_USER_HOME="${GRADLE_USER_HOME:-$ROOT_DIR/.gradle-local}"
+export GRADLE_USER_HOME
+
 if [[ ! -x "./devagent" ]]; then
   echo "[seed] ./devagent 실행 파일을 찾을 수 없습니다." >&2
   exit 1
@@ -25,11 +28,11 @@ SEED_SPEC_OUTPUT_DIR="${SEED_SPEC_OUTPUT_DIR:-storage/devagent-specs}"
 SEED_LOG_DIR="${SEED_LOG_DIR:-storage/fallback-warning-seed}"
 SEED_TIMESTAMP="${SEED_TIMESTAMP:-$(date +%Y%m%d-%H%M%S)}"
 
-SEED_DIRECT_REQUEST_PREFIX="${SEED_DIRECT_REQUEST_PREFIX:-H-035 direct seed}"
-SEED_CHAIN_SPEC_REQUEST_PREFIX="${SEED_CHAIN_SPEC_REQUEST_PREFIX:-H-035 chain seed spec}"
-SEED_CHAIN_CODE_REQUEST_PREFIX="${SEED_CHAIN_CODE_REQUEST_PREFIX:-H-035 chain seed code}"
-SEED_CHAIN_DOC_REQUEST_PREFIX="${SEED_CHAIN_DOC_REQUEST_PREFIX:-H-035 chain seed doc}"
-SEED_CHAIN_REVIEW_REQUEST_PREFIX="${SEED_CHAIN_REVIEW_REQUEST_PREFIX:-H-035 chain seed review}"
+SEED_DIRECT_REQUEST_PREFIX="${SEED_DIRECT_REQUEST_PREFIX:-fallback-warning direct seed}"
+SEED_CHAIN_SPEC_REQUEST_PREFIX="${SEED_CHAIN_SPEC_REQUEST_PREFIX:-fallback-warning chain seed spec}"
+SEED_CHAIN_CODE_REQUEST_PREFIX="${SEED_CHAIN_CODE_REQUEST_PREFIX:-fallback-warning chain seed code}"
+SEED_CHAIN_DOC_REQUEST_PREFIX="${SEED_CHAIN_DOC_REQUEST_PREFIX:-fallback-warning chain seed doc}"
+SEED_CHAIN_REVIEW_REQUEST_PREFIX="${SEED_CHAIN_REVIEW_REQUEST_PREFIX:-fallback-warning chain seed review}"
 
 RUN_LOG="$SEED_LOG_DIR/seed-${SEED_TIMESTAMP}.log"
 RUN_RECORDS="$SEED_LOG_DIR/seed-${SEED_TIMESTAMP}-records.jsonl"
@@ -38,6 +41,7 @@ SNAPSHOT_AFTER="$SEED_LOG_DIR/seed-${SEED_TIMESTAMP}-after.json"
 SUMMARY_JSON="$SEED_LOG_DIR/seed-${SEED_TIMESTAMP}-summary.json"
 
 mkdir -p "$SEED_SPEC_OUTPUT_DIR" "$SEED_LOG_DIR"
+mkdir -p "$GRADLE_USER_HOME"
 : > "$RUN_LOG"
 : > "$RUN_RECORDS"
 
@@ -395,7 +399,7 @@ run_count=0
 failure_count=0
 
 snapshot_run_state "$SNAPSHOT_BEFORE"
-log "H-035 seed 시작: direct=$SEED_DIRECT_RUNS, chain=$SEED_CHAIN_RUNS, mode=$SEED_MODE, apply=$SEED_APPLY, failFast=$SEED_FAIL_FAST"
+log "fallback-warning seed 시작: direct=$SEED_DIRECT_RUNS, chain=$SEED_CHAIN_RUNS, mode=$SEED_MODE, apply=$SEED_APPLY, failFast=$SEED_FAIL_FAST"
 log "run-state snapshot(before): $SNAPSHOT_BEFORE"
 
 run_single() {
