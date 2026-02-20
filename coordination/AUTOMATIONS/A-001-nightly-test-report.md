@@ -39,7 +39,7 @@
      - 전일 대비 warningRate +0.10p 이상 상승 + warningEventCount 5건 이상 증가
      - 전체 집계 warningRate >= 0.10
    - run-state 데이터를 찾지 못하면 원인과 함께 `집계 불가`로 보고한다.
-   - H-033 `KEEP_FROZEN` 실행 증거 누적 점검(최근 14일 KST 기준)을 추가한다.
+   - H-034 `KEEP_FROZEN` 신선 증거 복구 추적 점검(최근 14일 KST 기준)을 추가한다.
      - 기준선(H-016)을 고정해 함께 보고한다.
        - 집계 성공 `14일`, `INSUFFICIENT_SAMPLE` `14일/1.00`, `집계 불가` `0일`
        - `parseEligibleRunCount(14d)`: `CODE 4`, `SPEC 1`, `DOC 0`, `REVIEW 0`, `전체 5`
@@ -110,10 +110,14 @@
          - `coverageRate = min(1, observedEvidenceCount / requiredEvidenceCount)` (`requiredEvidenceCount=0`이면 `0`) 산식을 사용한다.
          - `staleEvidenceCount`는 최신 점검 시점 대비 48시간 초과 `updatedAt` 증거 개수로 계산한다.
          - `freshEvidenceCount = observedEvidenceCount - staleEvidenceCount` 산식을 사용한다.
+       - `HOLD` 또는 `KEEP_FROZEN`일 때 `evidenceFreshnessSummary[]`를 고정 출력한다.
+         - 필수 필드: `signal`, `requiredFreshEvidenceCount`, `freshEvidenceCount`, `freshnessRate`, `staleEvidenceCount`, `freshnessStatus`, `refreshAction`, `nextRefreshDueAt`
+         - `freshnessRate = min(1, freshEvidenceCount / requiredFreshEvidenceCount)` (`requiredFreshEvidenceCount=0`이면 `0`) 산식을 사용한다.
+         - `freshnessStatus = SUFFICIENT` 조건은 `freshnessRate == 1` 그리고 `staleEvidenceCount == 0`이며, 그 외는 `INSUFFICIENT`로 표기한다.
        - `recoveryActionCompletionRate = doneActions / totalActions`를 계산해 고정 출력한다.
        - `blockedActionCount`를 계산해 고정 출력한다.
        - `latestDecisionReason`(최신 단일 판정 사유 요약)을 고정 출력한다.
-       - `resumeDecision=KEEP_FROZEN`일 때 `signalRecoveryEvidenceLedger[]`, `evidenceAccumulationSummary[]`, `recoveryActionTracking[]`, `recoveryActionCompletionRate`, `blockedActionCount`를 누락 없이 포함한다.
+       - `resumeDecision=KEEP_FROZEN`일 때 `signalRecoveryEvidenceLedger[]`, `evidenceAccumulationSummary[]`, `evidenceFreshnessSummary[]`, `recoveryActionTracking[]`, `recoveryActionCompletionRate`, `blockedActionCount`를 누락 없이 포함한다.
        - 게이트 4개 모두 충족 + 오차 허용 범위 내: `READY` + 다음 라운드 문구를 `임계치 후보 산정 라운드 착수 제안`으로 고정한다.
        - `READY`이고 `unmetReadinessSignals`가 비어 있으면 `resumeDecision=RESUME_H024`로 표기한다.
        - 그 외 경우는 `resumeDecision=KEEP_FROZEN`으로 표기하고, `nextCheckTrigger` + 우선순위 액션을 함께 제시한다.
@@ -153,6 +157,7 @@
   - `recoveryActionTracking[]`(신호별 `signal`, `priority`, `status`, `owner`, `evidenceRef`, `nextAction`, `updatedAt`)
   - `signalRecoveryEvidenceLedger[]`(신호별 `signal`, `requiredEvidence`, `observedEvidence`, `evidenceRefs`, `status`, `gapSummary`, `nextAction`, `updatedAt`)
   - `evidenceAccumulationSummary[]`(신호별 `signal`, `requiredEvidenceCount`, `observedEvidenceCount`, `coverageRate`, `staleEvidenceCount`, `freshEvidenceCount`, `status`, `lastObservedAt`)
+  - `evidenceFreshnessSummary[]`(신호별 `signal`, `requiredFreshEvidenceCount`, `freshEvidenceCount`, `freshnessRate`, `staleEvidenceCount`, `freshnessStatus`, `refreshAction`, `nextRefreshDueAt`)
   - `recoveryActionCompletionRate`(`doneActions / totalActions`)
   - `blockedActionCount`
   - `latestDecisionReason`
@@ -169,7 +174,7 @@
   - 다음 액션(재보정 착수 준비 또는 샘플 확보 지속, `LOW_TRAFFIC`/`CHAIN_COVERAGE_GAP` 우선순위 포함, 목표-실적 gap + 실행률/호출 믹스 근거 명시)
   - `RESUME_H024` 시: 재개 즉시 액션(문서/자동화 동기화 범위 + 수용 기준) 명시
   - `KEEP_FROZEN` 시: 동결 유지 사유 + 필수 충족 조건 + 다음 점검 시각 명시
-  - `KEEP_FROZEN` 시: `signalRecoveryEvidenceLedger[]` + `evidenceAccumulationSummary[]` + `recoveryActionTracking[]` + `recoveryActionCompletionRate` + `blockedActionCount` 누락 금지
+  - `KEEP_FROZEN` 시: `signalRecoveryEvidenceLedger[]` + `evidenceAccumulationSummary[]` + `evidenceFreshnessSummary[]` + `recoveryActionTracking[]` + `recoveryActionCompletionRate` + `blockedActionCount` 누락 금지
   - `READY` 시: `임계치 후보 산정 라운드 착수 제안` 문구 고정
   - `HOLD` 시: 기존 수치 유지 확인 + 보류 사유(4개 게이트 기준 미충족 항목/오차 초과 항목) + 일일 우선 액션(점검 시각/담당 포함)
 - 권장 후속조치(수동)

@@ -1365,6 +1365,133 @@ curl -X POST http://localhost:8080/api/agents/spec/generate \
   - 우선 보완 액션: `LOW_TRAFFIC` 직접 호출 증량(우선순위 1) + `CHAIN_COVERAGE_GAP` 체인 호출 증량(우선순위 2)
   - `KEEP_FROZEN` 상태에서는 `signalRecoveryEvidenceLedger[]`, `evidenceAccumulationSummary[]`, `recoveryActionCompletionRate`, `blockedActionCount`를 누락 없이 동시 보고한다.
 
+### H-034 `KEEP_FROZEN` 신선 증거 복구 추적 정합화
+
+- 실행일(KST):
+  - `2026-02-20`
+- 점검 구간(KST):
+  - 최신 14일: `2026-02-07 ~ 2026-02-20` (`today-13 ~ today`)
+  - 최근 7일: `2026-02-14 ~ 2026-02-20` (`today-6 ~ today`)
+  - 직전 7일: `2026-02-07 ~ 2026-02-13` (`today-13 ~ today-7`)
+- 데이터 소스:
+  - `storage/devagent.db` (`runs`, `run_events`)
+- 유지 원칙:
+  - H-033 기준선(`resumeDecision=KEEP_FROZEN`, `recoveryActionCompletionRate=0.00`, `blockedActionCount=2`)을 유지한다.
+  - 기존 게이트/산식(`parseEligibleRunCount`, `warningRate`, `dailyCompliance`, `weeklyComplianceRate`, `executionRecoveryTrend`)은 변경하지 않는다.
+  - 임계치/알림 룰 수치(`0.05`, `0.15`, `+0.10p`, `0.10`)와 `INSUFFICIENT_SAMPLE` 제외 규칙을 유지한다.
+  - 최종 판정은 `resumeDecision(RESUME_H024|KEEP_FROZEN)` 단일값으로 유지한다.
+  - `signalRecoveryEvidenceLedger[]`는 필수 신호(`LOW_TRAFFIC`, `CHAIN_COVERAGE_GAP`)에 대해 `requiredEvidence`, `observedEvidence`, `evidenceRefs`, `status`, `gapSummary`, `nextAction`, `updatedAt`를 누락 없이 기록한다.
+  - `evidenceAccumulationSummary[]`는 `requiredEvidenceCount`, `observedEvidenceCount`, `coverageRate`, `staleEvidenceCount`, `freshEvidenceCount`, `status`, `lastObservedAt`를 누락 없이 기록한다.
+  - `evidenceFreshnessSummary[]`는 `requiredFreshEvidenceCount`, `freshEvidenceCount`, `freshnessRate`, `staleEvidenceCount`, `freshnessStatus`, `refreshAction`, `nextRefreshDueAt`를 누락 없이 기록한다.
+  - `coverageRate = min(1, observedEvidenceCount / requiredEvidenceCount)` (`requiredEvidenceCount=0`이면 `0`) 산식을 사용한다.
+  - `freshnessRate = min(1, freshEvidenceCount / requiredFreshEvidenceCount)` (`requiredFreshEvidenceCount=0`이면 `0`) 산식을 사용한다.
+  - `freshnessStatus = SUFFICIENT` 조건은 `freshnessRate == 1` 그리고 `staleEvidenceCount == 0`이며, 그 외는 `INSUFFICIENT`로 판정한다.
+
+#### 최신 14일 게이트 4개 실측 + PASS/FAIL (H-034)
+
+| 항목 | 실측값 | 게이트 기준 | 결과 |
+|---|---:|---:|---|
+| 집계 성공 일수 | 14일 | >= 10일 | PASS |
+| `INSUFFICIENT_SAMPLE` 일수/비율 | 14일 / 1.00 | <= 0.50 | FAIL |
+| `집계 불가` 일수 | 0일 | < 3일 | PASS |
+| 샘플 충분 일수(`parseEligibleRunCount >= 20`) | 0일 | >= 7일 | FAIL |
+
+#### 최근 7일/직전 7일 `executionGapDelta` + `chainShareGapDelta` 비교 (H-034)
+
+| 구분 | executionGap(최근7일) | executionGap(직전7일) | executionGapDelta | chainShareGap(최근7일) | chainShareGap(직전7일) | chainShareGapDelta |
+|---|---:|---:|---:|---:|---:|---:|
+| CODE | 112 | 108 | +4 | 25.00%p | 25.00%p | 0.00%p |
+| SPEC | 28 | 27 | +1 | 0.00%p | 0.00%p | 0.00%p |
+| DOC | 42 | 42 | 0 | 100.00%p | 100.00%p | 0.00%p |
+| REVIEW | 42 | 42 | 0 | 100.00%p | 100.00%p | 0.00%p |
+| 전체 | 224 | 219 | +5 | 50.00%p | 50.00%p | 0.00%p |
+
+- 최근 3일 평균 전체 모수(`parseEligibleRunCount`): `0.0000` (기준 `>= 32` 미충족)
+- 최근 7일 `DOC/REVIEW actualChainRuns`: `0/0` (체인 커버리지 증거 부재)
+- 최근 14일 누적 `parseEligibleRunCount`: `CODE 4`, `SPEC 1`, `DOC 0`, `REVIEW 0`, `전체 5`
+
+#### 최근 7일 `dailyCompliance` + `weeklyComplianceRate` (H-034)
+
+- 일일 기준(전체):
+  - `minimumDailyTotalRuns=8`, `minimumDailyChainRuns=4`
+  - `dailyCompliance = PASS` if `actualTotalRuns >= 8` and `actualChainRuns >= 4`; else `FAIL`
+
+| 일자(KST) | actualTotalRuns | actualChainRuns | dailyCompliance |
+|---|---:|---:|---|
+| `2026-02-14` | 0 | 0 | FAIL |
+| `2026-02-15` | 0 | 0 | FAIL |
+| `2026-02-16` | 0 | 0 | FAIL |
+| `2026-02-17` | 0 | 0 | FAIL |
+| `2026-02-18` | 0 | 0 | FAIL |
+| `2026-02-19` | 0 | 0 | FAIL |
+| `2026-02-20` | 0 | 0 | FAIL |
+
+- 주간 결과:
+  - `compliantDays=0/7`
+  - `weeklyComplianceRate=0.00`
+  - `weeklyComplianceStage=OFF_TRACK`
+
+#### `recoveryActionTracking[]` (신호별 이행 추적)
+
+| signal | priority | status | owner | evidenceRef | nextAction | updatedAt |
+|---|---:|---|---|---|---|---|
+| `LOW_TRAFFIC` | 1 | `BLOCKED` | `운영 온콜` | 최근 7일 `executionGap=224`, `executionGapDelta=+5`, 최근 3일 평균 `parseEligibleRunCount=0.0000`, runId `ca487d6f-fa8c-4935-8781-ebe0048abb50` | CODE 직접 호출 증량 계획 재배치(일일 목표 `16`) 및 점검 시각 `09:00 KST` 고정 | `2026-02-20 09:38 KST` |
+| `CHAIN_COVERAGE_GAP` | 2 | `BLOCKED` | `운영 온콜` | 최근 7일 `DOC/REVIEW actualChainRuns=0`, `chainShareGapDelta=0.00%p`, `run_events` 체인 이벤트 부재 | Spec->Code 경로에서 `chainToDoc=true`, `chainToReview=true` 호출 증량(일일 체인 목표 `DOC 6`, `REVIEW 6`) | `2026-02-20 09:38 KST` |
+
+#### `signalRecoveryEvidenceLedger[]` (신호별 실증 데이터 ledger)
+
+| signal | requiredEvidence | observedEvidence | evidenceRefs | status | gapSummary | nextAction | updatedAt |
+|---|---|---|---|---|---|---|---|
+| `LOW_TRAFFIC` | CODE 직접 호출 일일 목표 `16` 및 전체 일일 목표 `32` 기준에서 최근 7일 `executionGapDelta < 0` 또는 최근 3일 평균 `parseEligibleRunCount >= 32` 달성 증거 | 최근 7일 CODE `actualTotalRuns=0`(직접 `0`, 체인 `0`), `executionGap=112`, `executionGapDelta=+4`, 최근 3일 평균 `parseEligibleRunCount=0.0000` | runId `ca487d6f-fa8c-4935-8781-ebe0048abb50`, H-034 `executionGapDelta` 비교표, H-034 `dailyCompliance` 표 | `BLOCKED` | 실행량 gap이 확대됐고(`+4`) 최소 모수 기준(`>=32`) 달성 증거가 부재 | CODE 직접 호출 증량으로 신선 runId 증거를 최소 1건 확보하고 다음 점검 전에 집계표를 갱신 | `2026-02-20 09:38 KST` |
+| `CHAIN_COVERAGE_GAP` | DOC/REVIEW 체인 호출 일일 목표 각 `6`(최근 7일 합계 각 `42`)과 `chainShareGapDelta < 0` 개선 증거 | 최근 7일 DOC/REVIEW `actualChainRuns=0/0`, `chainShareGap=100.00%p/100.00%p`, `chainShareGapDelta=0.00%p/0.00%p` | `run_events` 최근 14일 집계(`CHAIN_DOC_*`, `CHAIN_REVIEW_*` 이벤트 부재), H-034 `executionGapDelta` 비교표 | `BLOCKED` | 필수 체인 실행 증거가 0건으로 유지되어 체인 커버리지 개선 추세를 입증하지 못함 | Spec->Code 경로에서 `chainToDoc=true`, `chainToReview=true` 호출을 일일 목표(`DOC 6`, `REVIEW 6`)까지 증량하고 신선 체인 이벤트 증거를 확보 | `2026-02-20 09:38 KST` |
+
+#### `evidenceAccumulationSummary[]` (신호별 증거 누적 요약)
+
+| signal | requiredEvidenceCount | observedEvidenceCount | coverageRate | staleEvidenceCount | freshEvidenceCount | status | lastObservedAt |
+|---|---:|---:|---:|---:|---:|---|---|
+| `LOW_TRAFFIC` | 2 | 1 | 0.50 | 1 | 0 | `BLOCKED` | `2026-02-13 09:34 KST` |
+| `CHAIN_COVERAGE_GAP` | 2 | 0 | 0.00 | 0 | 0 | `BLOCKED` | `N/A` |
+
+- 최신 점검 시점(`2026-02-20 09:38 KST`) 기준 `LOW_TRAFFIC` 관측 증거(runId `ca487d6f-fa8c-4935-8781-ebe0048abb50`)는 48시간을 초과해 `staleEvidenceCount=1`로 분류한다.
+- `CHAIN_COVERAGE_GAP`은 관측 증거 누적이 없어 `observedEvidenceCount=0`, `coverageRate=0.00` 상태를 유지한다.
+
+#### `evidenceFreshnessSummary[]` (신호별 신선 증거 복구 요약)
+
+| signal | requiredFreshEvidenceCount | freshEvidenceCount | freshnessRate | staleEvidenceCount | freshnessStatus | refreshAction | nextRefreshDueAt |
+|---|---:|---:|---:|---:|---|---|---|
+| `LOW_TRAFFIC` | 1 | 0 | 0.00 | 1 | `INSUFFICIENT` | CODE 직접 호출 증량으로 48시간 이내 fresh runId 증거 1건 확보 | `2026-02-21 09:00 KST` |
+| `CHAIN_COVERAGE_GAP` | 1 | 0 | 0.00 | 0 | `INSUFFICIENT` | Spec->Code 체인 호출 증량으로 `CHAIN_DOC_*`/`CHAIN_REVIEW_*` fresh 이벤트 증거 1건 이상 확보 | `2026-02-21 09:00 KST` |
+
+- `LOW_TRAFFIC`: `freshEvidenceCount=0`, `staleEvidenceCount=1`이므로 `freshnessStatus=INSUFFICIENT` 상태를 유지한다.
+- `CHAIN_COVERAGE_GAP`: fresh/stale 모두 `0`으로 관측 증거 부재 상태이며 `freshnessStatus=INSUFFICIENT`이다.
+
+#### H-034 이행 요약 지표
+
+- `recoveryActionCompletionRate = doneActions / totalActions = 0 / 2 = 0.00`
+- `blockedActionCount = 2`
+- `latestDecisionReason = "게이트 4개 중 2개(`INSUFFICIENT_SAMPLE_RATIO`, `SUFFICIENT_DAYS`) 미충족 + executionGapDelta=+5 + chainShareGapDelta=0.00%p + evidenceAccumulationSummary(LOW_TRAFFIC=0.50/stale=1, CHAIN_COVERAGE_GAP=0.00) + evidenceFreshnessSummary(LOW_TRAFFIC=0.00, CHAIN_COVERAGE_GAP=0.00) + weeklyComplianceRate=0.00"`
+
+#### H-034 단일 판정 (`RESUME_H024` vs `KEEP_FROZEN`)
+
+- `resumeDecision`: **`KEEP_FROZEN`**
+- 판정 근거:
+  - 게이트 4개 중 2개(`INSUFFICIENT_SAMPLE_RATIO`, `SUFFICIENT_DAYS`) 미충족이 지속된다.
+  - 필수 신호 2건(`LOW_TRAFFIC`, `CHAIN_COVERAGE_GAP`)의 `signalRecoveryEvidenceLedger[]` 상태가 모두 `BLOCKED`다.
+  - `evidenceAccumulationSummary[]`에서 `LOW_TRAFFIC`는 `coverageRate=0.50`이나 stale(`staleEvidenceCount=1`)로 유지되고, `CHAIN_COVERAGE_GAP`은 `coverageRate=0.00`으로 관측 증거가 없다.
+  - `evidenceFreshnessSummary[]`에서 두 신호 모두 `freshnessRate=0.00`, `freshnessStatus=INSUFFICIENT`이다.
+  - 최근 7일 vs 직전 7일 `executionGapDelta`/`chainShareGapDelta`에서 개선 신호(`<0`)가 없다.
+  - 최근 7일 `dailyCompliance`가 전일자 모두 FAIL이고 `weeklyComplianceRate=0.00`이다.
+- `unmetReadinessSignals`:
+  - `INSUFFICIENT_SAMPLE_RATIO` (`1.00 > 0.50`)
+  - `SUFFICIENT_DAYS` (`0 < 7`)
+  - `LOW_TRAFFIC` (`evidenceFreshnessSummary.freshnessRate=0.00`, `staleEvidenceCount=1`)
+  - `CHAIN_COVERAGE_GAP` (`evidenceFreshnessSummary.freshnessRate=0.00`)
+- `nextCheckTrigger`:
+  - 필수 충족 조건: `집계 성공 >= 10`, `INSUFFICIENT_SAMPLE <= 0.50`, `집계 불가 < 3`, `샘플 충분 일수 >= 7`
+  - 다음 점검 시점: `2026-02-21 09:00 KST` (야간 점검 리포트)
+  - 우선 보완 액션: `LOW_TRAFFIC` fresh runId 증거 확보(우선순위 1) + `CHAIN_COVERAGE_GAP` fresh 체인 이벤트 증거 확보(우선순위 2)
+  - `KEEP_FROZEN` 상태에서는 `signalRecoveryEvidenceLedger[]`, `evidenceAccumulationSummary[]`, `evidenceFreshnessSummary[]`, `recoveryActionCompletionRate`, `blockedActionCount`를 누락 없이 동시 보고한다.
+
 ## 공통 오류 응답 계약 (Routing + Agent API)
 
 다음 엔드포인트는 입력 오류를 동일한 오류 envelope로 반환합니다.
