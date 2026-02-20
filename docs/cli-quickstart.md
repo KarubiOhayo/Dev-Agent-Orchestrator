@@ -157,6 +157,21 @@ SEED_FAIL_FAST=true \
   - `spec --json` top-level `runId`는 `specRunId`, `CHAIN_CODE_DONE(payload: codeRunId=...)`는 체인 `codeRunId`로 해석
   - `CHAIN_DOC_*`, `CHAIN_REVIEW_*` 검증은 `codeRunId` 기준으로 수행
 
+#### fail-fast 실패 패턴 점검 가이드 (H-038)
+
+- fail-fast 중단 계약:
+  - `SEED_FAIL_FAST=true`에서 체인 호출 실패(`runId` 누락 또는 non-zero) 시 즉시 중단되고 종료코드는 `0`이 아닌 값으로 반환됩니다.
+  - 실패 원인 분류는 `seed-<ts>-chain-<n>.stdout.json`의 `error.message`를 기준으로 수행합니다.
+- 주요 실패 패턴(운영 관찰):
+  - `TEMPERATURE_UNSUPPORTED`: OpenAI `gpt-5.2-codex` 후보에서 `temperature` 파라미터 비호환으로 HTTP 400 발생
+  - `MODEL_NOT_FOUND_OR_UNAVAILABLE`: Anthropic 후보에서 `not_found_error`(모델 미존재/미가용) 발생
+  - `ALL_CANDIDATES_FAILED`: 후보 모델 전체가 실패해 spec 체인 runId 미생성
+  - `OTHER`: `OpenAI call failed`, `Google response did not contain text output` 등 공급자 응답 품질/일시 장애성 실패
+- 완화/재시도 순서:
+  - 동일 파라미터로 `SEED_CHAIN_RUNS=1`, `SEED_FAIL_FAST=true` 재실행 후 오류 메시지 패턴 재발 여부를 확인합니다.
+  - `seed-<ts>.log`, `seed-<ts>-records.jsonl`, `seed-<ts>-chain-<n>.stdout.json`을 함께 보관해 원인 분류 증빙을 남깁니다.
+  - 라우팅 후보/파라미터 정책 자체 조정이 필요하면 `application.yml` 변경 대상이므로 Main-Control 사전 승인 절차를 거친 뒤 진행합니다.
+
 ## 출력 예시 (dry-run)
 
 ```text
