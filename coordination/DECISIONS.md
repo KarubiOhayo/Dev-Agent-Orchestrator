@@ -559,3 +559,17 @@
   - Main은 다음 실행 라운드를 `coordination/HANDOFFS/H-038-fallback-warning-keep-frozen-seeding-failure-pattern-followup.md`로 확정한다.
   - Main -> Executor 릴레이 `coordination/RELAYS/H-038-main-to-executor.md`를 생성해 H-038 입력/수용기준을 고정한다.
   - H-024는 `RESUME_H024` 근거(게이트 충족 + 신호 증거 누적) 확보 전까지 Frozen/Backlog를 유지한다.
+
+## D-051 fallback-warning H-038 승인 및 H-039 resume readiness 추세 검증 정책
+- Date: 2026-02-20
+- Status: Approved (H-038 Close-out / H-039 Scope)
+- Decision:
+  - H-038 결과를 기준으로 Main 최종 판단을 `Go`로 확정한다.
+  - H-038 재집계 결과에서도 `INSUFFICIENT_SAMPLE_RATIO=0.9286`, `SUFFICIENT_DAYS=1`로 재개 게이트 2종이 미충족이므로 `resumeDecision=KEEP_FROZEN`을 유지한다.
+  - 다음 라운드(H-039)는 fail-fast 유지 반복 시딩으로 `parseEligibleRunCount` 누적/게이트 재집계를 이어가고, 최근 라운드(H-036~H-039) readiness 추세(`INSUFFICIENT_SAMPLE_RATIO`, `SUFFICIENT_DAYS`, `executionGapDelta`, `chainShareGapDelta`, 최근 3일 평균 전체 모수)를 비교해 재개 신호의 일관성을 검증한다.
+  - H-039에서도 fallback-warning 운영 계약 필드(`signalRecoveryEvidenceLedger[]`, `evidenceAccumulationSummary[]`, `evidenceFreshnessSummary[]`), 단일 판정(`RESUME_H024|KEEP_FROZEN`), 임계치/알림 룰 수치(`0.05`, `0.15`, `+0.10p`, `0.10`) 및 `INSUFFICIENT_SAMPLE` 제외 규칙은 변경하지 않는다.
+- Rationale: H-038에서 실행량/체인 증거 추가 누적과 실패 원인 분류 정합화는 확보됐지만 재개 게이트 미충족이 지속되어, 추적 라운드를 연속하면서도 최근 라운드 간 지표 추세를 표준 출력으로 고정해야 `RESUME_H024` 전환 판단의 재현성을 높일 수 있기 때문이다.
+- Consequence:
+  - Main은 다음 실행 라운드를 `coordination/HANDOFFS/H-039-fallback-warning-keep-frozen-resume-readiness-followup-check.md`로 확정한다.
+  - Main -> Executor 릴레이 `coordination/RELAYS/H-039-main-to-executor.md`를 생성해 H-039 입력/수용기준을 고정한다.
+  - H-024는 `RESUME_H024` 근거(게이트 충족 + 신호 증거 누적 + 추세 검증) 확보 전까지 Frozen/Backlog를 유지한다.
