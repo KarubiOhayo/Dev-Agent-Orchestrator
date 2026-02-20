@@ -489,3 +489,31 @@
   - H-033은 Main 승인(Go)으로 종료하고, 다음 실행 라운드를 `coordination/HANDOFFS/H-034-fallback-warning-keep-frozen-fresh-evidence-recovery-check.md`로 확정한다.
   - `coordination/REPORTS/CURRENT_STATUS_2026-02-20.md`, `coordination/TASK_BOARD.md`, `coordination/RELAYS/H-034-main-to-executor.md`는 H-034 기준으로 동기화한다.
   - H-024는 `RESUME_H024` 근거(게이트 충족 + 신호 개선 증거 + 신선 증거 충족) 전까지 Frozen/Backlog 상태를 유지한다.
+
+## D-046 fallback-warning H-034 승인 및 H-035 traffic seeding 부트스트랩 정책
+- Date: 2026-02-20
+- Status: Approved (H-034 Close-out / H-035 Scope)
+- Decision:
+  - H-034 결과를 기준으로 `resumeDecision=KEEP_FROZEN` 단일 판정을 유지한다.
+  - 다음 라운드(H-035)는 fallback-warning 문서 필드 확장보다 실제 run-state 데이터 생성(traffic seeding)과 runId/체인 이벤트 근거 확보를 우선한다.
+  - H-035는 direct/chain 워크로드를 재현 가능한 스크립트로 고정하고, `specRunId -> codeRunId -> docRunId/reviewRunId` 매핑 및 `CHAIN_*` 이벤트 근거를 결과 보고에 포함한다.
+  - 기존 게이트/산식/임계치(`0.05`, `0.15`, `+0.10p`, `0.10`)와 `INSUFFICIENT_SAMPLE` 제외 규칙, `RESUME_H024|KEEP_FROZEN` 단일 판정 계약은 변경하지 않는다.
+- Rationale: H-034에서도 재개 게이트 미충족이 지속되어(HOLD) 재개 판정 신뢰도를 높이려면 문구 보강보다 실행량/체인 커버리지 실제 증거를 먼저 누적해야 하기 때문이다.
+- Consequence:
+  - H-034는 Main 승인(Go)으로 종료하고, 다음 실행 라운드를 `coordination/HANDOFFS/H-035-fallback-warning-traffic-seeding-workload-bootstrap.md`로 확정한다.
+  - H-035는 main relay 누락 상태로 시작되었으나 handoff 기준 실행으로 보완되었고, 라운드 종료 후 상태 문서는 H-035 기준으로 동기화한다.
+  - H-024는 `RESUME_H024` 근거 확보 전까지 Frozen/Backlog 상태를 유지한다.
+
+## D-047 fallback-warning H-035 보류(No-Go) 및 H-035.1 fail-fast 종료코드 보강 정책
+- Date: 2026-02-20
+- Status: Approved (H-035 Close-out / H-035.1 Scope)
+- Decision:
+  - H-035는 테스트 게이트 통과에도 불구하고 리뷰 P1(fail-fast 모드에서 `runId` 누락 실패가 `exit 0`으로 종료될 수 있는 결함)로 Main `No-Go`로 판정한다.
+  - 다음 라운드(H-035.1)는 `scripts/seed-fallback-warning-workload.sh`의 fail-fast 실패 판정/종료코드 경로를 보강해 `runId` 누락 시 반드시 non-zero 종료를 보장한다.
+  - 실패 원인이 명령 실패(`exit_code != 0`)인 경로의 기존 종료코드 의미는 유지하고, non fail-fast 모드의 실패 카운트/계속 실행 동작도 유지한다.
+  - fallback-warning 운영 계약 필드(`signalRecoveryEvidenceLedger[]`, `evidenceAccumulationSummary[]`, `evidenceFreshnessSummary[]`) 및 게이트/임계치 정책은 변경하지 않는다.
+- Rationale: traffic seeding 자동화에서 종료코드는 증거 수집 성공/실패의 1차 신호이므로, `runId` 누락 실패가 성공으로 관찰되면 운영 판정이 왜곡될 위험이 높다.
+- Consequence:
+  - Main은 다음 실행 라운드를 `coordination/HANDOFFS/H-035-1-fallback-warning-seeding-fail-fast-exitcode-hardening.md`로 확정한다.
+  - Main -> Executor 릴레이 `coordination/RELAYS/H-035-1-main-to-executor.md`를 생성해 보완 범위를 고정한다.
+  - H-024는 재개 게이트 미충족(`INSUFFICIENT_SAMPLE_RATIO=1.00`, `SUFFICIENT_DAYS=0`)이 지속되는 동안 Frozen/Backlog를 유지한다.

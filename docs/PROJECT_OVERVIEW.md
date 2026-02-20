@@ -56,9 +56,10 @@
   - H-032 fallback-warning `KEEP_FROZEN` 신호 개선 실증 데이터 확보 계약 정합화 완료(`signalRecoveryEvidenceLedger[]` 필드 고정 + 단일 판정/게이트 근거 동기화, `KEEP_FROZEN` 유지)
   - H-033 fallback-warning `KEEP_FROZEN` 실행 증거 누적 점검 정합화 완료(`evidenceAccumulationSummary[]` 필드/산식 추가 + 단일 판정/게이트 근거 동기화, `KEEP_FROZEN` 유지)
   - H-034 fallback-warning `KEEP_FROZEN` 신선 증거 복구 추적 정합화 완료(`evidenceFreshnessSummary[]` 필드/산식 추가 + 단일 판정/게이트 근거 동기화, `KEEP_FROZEN` 유지)
-  - H-035 fallback-warning 트래픽 시딩 워크로드 부트스트랩 완료(시딩 스크립트 추가 + runId/체인 이벤트 증거 수집 절차 고정 + `KEEP_FROZEN` 단일 판정 유지)
+  - H-035 fallback-warning 트래픽 시딩 워크로드 부트스트랩 1차 구현(시딩 스크립트/운영 문서 동기화 완료, 리뷰 P1로 Main `No-Go` 판정되어 H-035.1 보완 예정)
   - apply/dry-run 파일 반영
 - 미완료:
+  - H-035.1 traffic seeding fail-fast 종료코드 신뢰성 보강(`runId` 누락 시 non-zero 종료 강제 + 재리뷰)
   - H-024 fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정(Frozen/Backlog, `RESUME_H024` 판정 근거 확보 시 재개)
   - fallback warning 임계치/알림 룰 보정안의 운영 적용 후 회귀 점검(지속 데이터 누적 필요)
 
@@ -129,8 +130,9 @@
 - CLI JSON 출력은 지원되지만, 옵션 파싱 경계 케이스는 지속 회귀 점검 필요
 
 ## 8) 다음 우선순위
-1. H-024 fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정(Frozen/Backlog, `RESUME_H024` 판정 근거 확보 시 재개)
-2. fallback warning 임계치/알림 룰 보정안의 운영 적용 후 회귀 점검(지속 데이터 누적 필요)
+1. H-035.1 traffic seeding fail-fast 종료코드 신뢰성 보강(`runId` 누락 실패의 0 종료 가능성 제거 + 재리뷰)
+2. H-024 fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정(Frozen/Backlog, `RESUME_H024` 판정 근거 확보 시 재개)
+3. fallback warning 임계치/알림 룰 보정안의 운영 적용 후 회귀 점검(지속 데이터 누적 필요)
 
 ## 9) 라운드 시작 체크 (Stateless)
 1. `docs/PROJECT_OVERVIEW.md` 읽기
