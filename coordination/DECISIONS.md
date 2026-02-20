@@ -474,3 +474,18 @@
   - H-032는 Main 승인(Go)으로 종료하고, 다음 실행 라운드를 `coordination/HANDOFFS/H-033-fallback-warning-keep-frozen-evidence-accumulation-check.md`로 확정한다.
   - `coordination/REPORTS/CURRENT_STATUS_2026-02-19.md`, `coordination/TASK_BOARD.md`, `coordination/RELAYS/H-033-main-to-executor.md`는 H-033 기준으로 동기화한다.
   - H-024는 `RESUME_H024` 근거(게이트 충족 + 신호 개선 증거 + 증거 누적 커버리지 확보) 전까지 Frozen/Backlog 상태를 유지한다.
+
+## D-045 fallback-warning H-033 승인 및 H-034 신선 증거 복구 추적 정책
+- Date: 2026-02-20
+- Status: Approved (H-033 Close-out / H-034 Scope)
+- Decision:
+  - H-033 결과를 기준으로 `resumeDecision=KEEP_FROZEN` 단일 판정을 유지한다.
+  - 다음 라운드(H-034)는 `LOW_TRAFFIC`/`CHAIN_COVERAGE_GAP` 신호에 대해 누적 증거(`evidenceAccumulationSummary[]`)를 유지한 채 신선 증거 복구 상태(`evidenceFreshnessSummary[]`)를 정량 추적하는 계약을 운영 문서와 야간 템플릿에 동일하게 고정한다.
+  - H-034의 `evidenceFreshnessSummary[]` 필수 필드는 `signal`, `requiredFreshEvidenceCount`, `freshEvidenceCount`, `freshnessRate`, `staleEvidenceCount`, `freshnessStatus`, `refreshAction`, `nextRefreshDueAt`로 고정한다.
+  - `signalRecoveryEvidenceLedger[]`, `evidenceAccumulationSummary[]`, `RESUME_H024|KEEP_FROZEN` 단일 판정 계약은 유지한다.
+  - 기존 게이트/산식/임계치(`0.05`, `0.15`, `+0.10p`, `0.10`)와 `INSUFFICIENT_SAMPLE` 제외 규칙은 변경하지 않는다.
+- Rationale: H-033에서도 `executionGapDelta=+5`, `chainShareGapDelta=0.00%p`, `recoveryActionCompletionRate=0.00`, `blockedActionCount=2`, `LOW_TRAFFIC coverageRate=0.50(freshEvidenceCount=0, staleEvidenceCount=1)`, `CHAIN_COVERAGE_GAP coverageRate=0.00`이 유지되어 재개 판단 근거 강화를 위해 "누적 증거 존재"와 함께 "신선 증거 확보 상태"를 분리 추적해야 하기 때문이다.
+- Consequence:
+  - H-033은 Main 승인(Go)으로 종료하고, 다음 실행 라운드를 `coordination/HANDOFFS/H-034-fallback-warning-keep-frozen-fresh-evidence-recovery-check.md`로 확정한다.
+  - `coordination/REPORTS/CURRENT_STATUS_2026-02-20.md`, `coordination/TASK_BOARD.md`, `coordination/RELAYS/H-034-main-to-executor.md`는 H-034 기준으로 동기화한다.
+  - H-024는 `RESUME_H024` 근거(게이트 충족 + 신호 개선 증거 + 신선 증거 충족) 전까지 Frozen/Backlog 상태를 유지한다.
