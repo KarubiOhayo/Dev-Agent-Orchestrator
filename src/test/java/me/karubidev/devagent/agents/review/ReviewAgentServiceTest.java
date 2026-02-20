@@ -59,7 +59,7 @@ class ReviewAgentServiceTest {
         AgentType.REVIEW,
         RoutingMode.BALANCED,
         RiskLevel.MEDIUM,
-        new ModelRef("anthropic", "claude-sonnet-4.5"),
+        new ModelRef("anthropic", "claude-sonnet-4-5-20250929"),
         List.of(),
         List.of("test")
     );
@@ -73,7 +73,7 @@ class ReviewAgentServiceTest {
         new LlmExecutionResult(
             new LlmGenerationResult(
                 "anthropic",
-                "claude-sonnet-4.5",
+                "claude-sonnet-4-5-20250929",
                 """
                     {"summary":"리뷰 요약","overallRisk":"MEDIUM","findings":[{"title":"입력 검증 누락","severity":"HIGH","file":"src/AuthController.java","line":42,"description":"null 체크 누락","suggestion":"validation 추가"}],"strengths":["구조 명확"],"nextActions":["검증 로직 추가"]}
                     """,
@@ -90,7 +90,7 @@ class ReviewAgentServiceTest {
     assertThat(response.review().path("overallRisk").asText()).isEqualTo("MEDIUM");
     assertThat(response.review().path("findings").isArray()).isTrue();
     verify(runStateStore).appendEvent(eq("review-run-1"), eq("REVIEW_SCHEMA_READY"), contains("findings="));
-    verify(runStateStore).appendEvent(eq("review-run-1"), eq("REVIEW_LLM_DONE"), contains("anthropic:claude-sonnet-4.5"));
+    verify(runStateStore).appendEvent(eq("review-run-1"), eq("REVIEW_LLM_DONE"), contains("anthropic:claude-sonnet-4-5-20250929"));
   }
 
   @Test
@@ -120,7 +120,7 @@ class ReviewAgentServiceTest {
         AgentType.REVIEW,
         RoutingMode.BALANCED,
         RiskLevel.MEDIUM,
-        new ModelRef("anthropic", "claude-sonnet-4.5"),
+        new ModelRef("anthropic", "claude-sonnet-4-5-20250929"),
         List.of(),
         List.of("test")
     );
@@ -132,7 +132,7 @@ class ReviewAgentServiceTest {
         .thenReturn("review-prompt");
     when(llmOrchestrator.generate(eq(routeDecision), eq("review-prompt"))).thenReturn(
         new LlmExecutionResult(
-            new LlmGenerationResult("anthropic", "claude-sonnet-4.5", "리뷰 본문입니다.", "{}"),
+            new LlmGenerationResult("anthropic", "claude-sonnet-4-5-20250929", "리뷰 본문입니다.", "{}"),
             List.of()
         )
     );

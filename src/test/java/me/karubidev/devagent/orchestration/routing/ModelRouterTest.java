@@ -86,7 +86,7 @@ class ModelRouterTest {
 			.extracting(ModelRef::provider, ModelRef::model)
 			.containsExactly(
 				tuple("openai", "gpt-5.2-codex"),
-				tuple("anthropic", "claude-sonnet-4.5"),
+				tuple("anthropic", "claude-sonnet-4-5-20250929"),
 				tuple("google", "gemini-2.5-pro")
 			);
 		assertThat(decision.reasons()).containsExactly("strict-json escalation");
@@ -125,7 +125,7 @@ class ModelRouterTest {
 			.containsExactly(
 				tuple("openai", "gpt-5.2"),
 				tuple("google", "gemini-2.5-pro"),
-				tuple("anthropic", "claude-sonnet-4.5")
+				tuple("anthropic", "claude-sonnet-4-5-20250929")
 			);
 		assertThat(decision.reasons())
 			.containsExactly(
@@ -171,6 +171,6 @@ class ModelRouterTest {
 		RouteDecision decision = modelRouter.resolve(request);
 
 		assertThat(decision.primary().provider()).isEqualTo("anthropic");
-		assertThat(decision.primary().model()).isEqualTo("claude-sonnet-4.5");
+		assertThat(decision.primary().model()).isEqualTo("claude-sonnet-4-5-20250929");
 	}
 }

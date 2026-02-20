@@ -77,4 +77,80 @@ class CodeOutputParserTest {
     assertThat(result.usedMarkdownFallback()).isTrue();
     assertThat(result.source()).isEqualTo(CodeOutputParser.ParseSource.MARKDOWN_FALLBACK);
   }
+
+  @Test
+  void parseFilesExtractsFromNestedResultFiles() {
+    String output = """
+        {
+          "result": {
+            "files": [
+              {
+                "path": "src/main/java/com/example/Nested.java",
+                "content": "class Nested {}"
+              }
+            ]
+          }
+        }
+        """;
+
+    CodeOutputParser.ParseResult result = parser.parse(output);
+
+    assertThat(result.files()).hasSize(1);
+    assertThat(result.files().get(0).path()).isEqualTo("src/main/java/com/example/Nested.java");
+    assertThat(result.source()).isEqualTo(CodeOutputParser.ParseSource.JSON);
+  }
+
+  @Test
+  void parseFilesExtractsEmbeddedJsonPayload() {
+    String output = """
+        모델 응답 요약입니다.
+        {"files":[{"path":"src/main/java/com/example/Embedded.java","content":"class Embedded {}"}]}
+        참고: 위 파일을 반영하세요.
+        """;
+
+    CodeOutputParser.ParseResult result = parser.parse(output);
+
+    assertThat(result.files()).hasSize(1);
+    assertThat(result.files().get(0).path()).isEqualTo("src/main/java/com/example/Embedded.java");
+    assertThat(result.source()).isEqualTo(CodeOutputParser.ParseSource.JSON_EMBEDDED);
+  }
+
+  @Test
+  void parseFilesExtractsFromGenericCodeFence() {
+    String output = """
+        결과:
+        ```
+        {"files":[{"path":"src/main/java/com/example/Fenced.java","content":"class Fenced {}"}]}
+        ```
+        """;
+
+    CodeOutputParser.ParseResult result = parser.parse(output);
+
+    assertThat(result.files()).hasSize(1);
+    assertThat(result.files().get(0).path()).isEqualTo("src/main/java/com/example/Fenced.java");
+    assertThat(result.source()).isEqualTo(CodeOutputParser.ParseSource.JSON_GENERIC_CODE_BLOCK);
+  }
+
+  @Test
+  void parseFilesExtractsFromTruncatedJsonByLooseFallback() {
+    String output = """
+        ```json
+        {
+          "files": [
+            {
+              "path": "pyproject.toml",
+              "content": "[project]\\nname = \\"focusbar\\""
+            },
+            {
+              "path": "focusbar/__init__.py",
+              "content": "__version__ = \\"0.1.0\\""
+            }
+        """;
+
+    CodeOutputParser.ParseResult result = parser.parse(output);
+
+    assertThat(result.files()).hasSize(2);
+    assertThat(result.files().get(0).path()).isEqualTo("pyproject.toml");
+    assertThat(result.source()).isEqualTo(CodeOutputParser.ParseSource.LOOSE_JSON_FALLBACK);
+  }
 }

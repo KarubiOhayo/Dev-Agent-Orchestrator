@@ -10,6 +10,7 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import me.karubidev.devagent.llm.LlmApiProperties;
 import me.karubidev.devagent.llm.LlmGenerationOptions;
@@ -60,7 +61,9 @@ public class OpenAiProviderClient implements LlmProviderClient {
     Map<String, Object> requestBody = new LinkedHashMap<>();
     requestBody.put("model", model);
     requestBody.put("max_output_tokens", options.maxTokens());
-    requestBody.put("temperature", options.temperature());
+    if (shouldIncludeTemperature(model)) {
+      requestBody.put("temperature", options.temperature());
+    }
     requestBody.put("input", List.of(
         Map.of(
             "role", "user",
@@ -69,6 +72,14 @@ public class OpenAiProviderClient implements LlmProviderClient {
     ));
 
     return doRequest(uri, requestBody, config.getApiKey(), model);
+  }
+
+  boolean shouldIncludeTemperature(String model) {
+    return !isCodexModel(model);
+  }
+
+  boolean isCodexModel(String model) {
+    return model != null && model.toLowerCase(Locale.ROOT).contains("codex");
   }
 
   private LlmGenerationResult doRequest(URI uri, Map<String, Object> requestBody, String apiKey, String model) {

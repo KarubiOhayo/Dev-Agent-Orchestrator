@@ -32,6 +32,13 @@ CLI 초안 사용법은 `/docs/cli-quickstart.md`를 참고하세요.
 - `ANTHROPIC_API_KEY`
 - `GOOGLE_API_KEY` 또는 `GEMINI_API_KEY`
 
+## Code 요청 기본 동작
+
+- `strictJsonRequired` 기본값: `false`
+  - 미지정 시 `CODE/BALANCED`는 mode policy primary(`openai:gpt-5.2-codex`)를 사용합니다.
+  - `strictJsonRequired=true`를 명시하면 strict-json escalation이 적용됩니다.
+- OpenAI codex 계열(`*codex*`) 요청은 provider 호환성 정책에 따라 `temperature`를 payload에 포함하지 않습니다.
+
 ## 요청 예시
 
 ```bash
@@ -44,7 +51,7 @@ curl -X POST http://localhost:8080/api/agents/code/generate \
     "mode": "BALANCED",
     "riskLevel": "MEDIUM",
     "largeContext": false,
-    "strictJsonRequired": true,
+    "strictJsonRequired": false,
     "apply": false,
     "overwriteExisting": false,
     "chainToDoc": true,
@@ -117,6 +124,10 @@ curl -X POST http://localhost:8080/api/agents/spec/generate \
 - Code: `CODE_OUTPUT_FALLBACK_WARNING`
   - 기록 조건: code 출력이 `files[]` JSON으로 직접 파싱되지 않고 markdown fallback 경로를 사용한 경우
   - 메시지 형식: `source=MARKDOWN_FALLBACK`
+- Code: `CODE_OUTPUT_EMPTY_WARNING`
+  - 기록 조건: code 출력 파싱 결과 `parsedFiles=0`
+  - 메시지 형식: `source=<PARSE_SOURCE> apply=<true|false>`
+  - `apply=true`인 경우에는 무반영 성공처럼 보이지 않도록 요청을 실패 처리한다.
 - Spec: `SPEC_OUTPUT_FALLBACK_WARNING`
   - 기록 조건: spec 출력 파싱 source가 `DIRECT_JSON`이 아닌 경우
     - 경고 대상 source: `JSON_CODE_BLOCK`, `FALLBACK_SCHEMA`

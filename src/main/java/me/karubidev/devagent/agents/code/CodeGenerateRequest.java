@@ -16,7 +16,7 @@ public class CodeGenerateRequest {
   private RoutingMode mode = RoutingMode.BALANCED;
   private RiskLevel riskLevel = RiskLevel.MEDIUM;
   private boolean largeContext;
-  private boolean strictJsonRequired = true;
+  private boolean strictJsonRequired;
   private boolean apply;
   private boolean overwriteExisting;
   private String specInputPath;

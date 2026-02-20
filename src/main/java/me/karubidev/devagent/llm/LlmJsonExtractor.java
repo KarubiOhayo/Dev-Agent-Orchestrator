@@ -1,5 +1,7 @@
 package me.karubidev.devagent.llm;
 
+import java.util.ArrayList;
+import java.util.List;
 import tools.jackson.databind.JsonNode;
 
 public final class LlmJsonExtractor {
@@ -41,8 +43,9 @@ public final class LlmJsonExtractor {
   }
 
   public static String geminiText(JsonNode root) {
+    JsonNode candidate = root.path("candidates").path(0);
     StringBuilder sb = new StringBuilder();
-    for (JsonNode part : root.path("candidates").path(0).path("content").path("parts")) {
+    for (JsonNode part : candidate.path("content").path("parts")) {
       String text = text(part.path("text"));
       if (hasText(text)) {
         if (!sb.isEmpty()) {
@@ -56,7 +59,50 @@ public final class LlmJsonExtractor {
       return sb.toString();
     }
 
-    throw new LlmProviderException("Google response did not contain text output");
+    String finishReason = text(candidate.path("finishReason"));
+    String partTypes = String.join(",", collectGeminiPartTypes(candidate.path("content").path("parts")));
+    if (partTypes.isBlank()) {
+      partTypes = "none";
+    }
+    if (!hasText(finishReason)) {
+      finishReason = "unknown";
+    }
+    throw new LlmProviderException(
+        "Google response did not contain text output (finishReason=%s, partTypes=%s)"
+            .formatted(finishReason, partTypes)
+    );
+  }
+
+  private static List<String> collectGeminiPartTypes(JsonNode parts) {
+    List<String> types = new ArrayList<>();
+    for (JsonNode part : parts) {
+      if (!part.isObject()) {
+        types.add("unknown");
+        continue;
+      }
+      if (hasText(text(part.path("text")))) {
+        types.add("text");
+        continue;
+      }
+      if (part.has("functionCall")) {
+        types.add("functionCall");
+        continue;
+      }
+      if (part.has("functionResponse")) {
+        types.add("functionResponse");
+        continue;
+      }
+      if (part.has("inlineData")) {
+        types.add("inlineData");
+        continue;
+      }
+      if (part.has("fileData")) {
+        types.add("fileData");
+        continue;
+      }
+      types.add("object");
+    }
+    return types;
   }
 
   private static String text(JsonNode node) {

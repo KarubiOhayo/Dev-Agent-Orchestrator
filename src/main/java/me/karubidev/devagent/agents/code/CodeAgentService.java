@@ -32,6 +32,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class CodeAgentService {
 
+  private static final String OUTPUT_CONTRACT_ENFORCEMENT = """
+      [OUTPUT_CONTRACT_ENFORCEMENT]
+      Return exactly one JSON object and do not output markdown/code fences.
+      Required shape:
+      {"files":[{"path":"relative/path","content":"..."}]}
+      Always include top-level "files" array (use [] when no files are generated).
+      """;
+
   private final ModelRouter modelRouter;
   private final LlmOrchestratorService llmOrchestrator;
   private final ProjectContextManager contextManager;
@@ -104,12 +112,12 @@ public class CodeAgentService {
       }
 
       ContextBundle context = contextManager.buildCodeContext(resolvedUserRequest, projectId, targetRoot);
-      String prompt = promptRegistry.buildPrompt(
+      String prompt = appendOutputContract(promptRegistry.buildPrompt(
           "code",
           targetRoot,
           resolvedUserRequest,
           appendSpecContext(context.text(), specInput)
-      );
+      ));
       runStateStore.appendEvent(runId, "PROMPT_READY", "contextFiles=" + context.referencedFiles().size());
 
       LlmExecutionResult execution = llmOrchestrator.generate(routeDecision, prompt);
@@ -121,6 +129,8 @@ public class CodeAgentService {
       if (parseResult.usedMarkdownFallback()) {
         runStateStore.appendEvent(runId, "CODE_OUTPUT_FALLBACK_WARNING", "source=MARKDOWN_FALLBACK");
       }
+      signalWhenParsedFilesEmpty(runId, request, parseResult);
+
       FileApplyResult applyResult = fileApplyService.apply(
           targetRoot,
           parsedFiles,
@@ -408,6 +418,23 @@ public class CodeAgentService {
       return value;
     }
     return value.substring(0, maxChars) + "\n...(truncated)...";
+  }
+
+  private String appendOutputContract(String prompt) {
+    return prompt + "\n\n" + OUTPUT_CONTRACT_ENFORCEMENT;
+  }
+
+  private void signalWhenParsedFilesEmpty(String runId, CodeGenerateRequest request, ParseResult parseResult) {
+    if (!parseResult.files().isEmpty()) {
+      return;
+    }
+
+    String signal = "source=%s apply=%s".formatted(parseResult.source(), request.isApply());
+    runStateStore.appendEvent(runId, "CODE_OUTPUT_EMPTY_WARNING", signal);
+
+    if (request.isApply()) {
+      throw new IllegalStateException("apply=true but parsedFiles=0 (" + signal + ")");
+    }
   }
 
   private record SpecInput(Path path, String content) {

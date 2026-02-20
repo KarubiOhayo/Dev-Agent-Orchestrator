@@ -73,7 +73,7 @@ class CodeReviewChainServiceTest {
         tempDir.toString(),
         null,
         "anthropic",
-        "claude-sonnet-4.5",
+        "claude-sonnet-4-5-20250929",
         reviewNode,
         List.of(),
         List.of(),

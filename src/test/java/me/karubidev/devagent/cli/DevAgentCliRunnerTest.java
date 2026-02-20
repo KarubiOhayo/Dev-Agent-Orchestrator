@@ -613,6 +613,35 @@ class DevAgentCliRunnerTest {
     assertThat(request.isChainToReview()).isFalse();
     assertThat(request.getReviewUserRequest()).isNull();
     assertThat(request.getChainFailurePolicy()).isEqualTo(CodeGenerateRequest.ChainFailurePolicy.FAIL_FAST);
+    assertThat(request.isStrictJsonRequired()).isFalse();
+    assertThat(runner.getExitCode()).isZero();
+  }
+
+  @Test
+  void runGenerateMapsStrictJsonOptionToRequest() {
+    ByteArrayOutputStream outBytes = new ByteArrayOutputStream();
+    ByteArrayOutputStream errBytes = new ByteArrayOutputStream();
+
+    CodeAgentService codeAgentService = Mockito.mock(CodeAgentService.class);
+    Mockito.when(codeAgentService.generate(any())).thenReturn(sampleGenerateResponse());
+
+    DevAgentCliRunner runner = new DevAgentCliRunner(
+        codeAgentService,
+        Mockito.mock(SpecAgentService.class),
+        new CliResultFormatter(new ObjectMapper()),
+        new PrintStream(outBytes),
+        new PrintStream(errBytes)
+    );
+
+    runner.run(new DefaultApplicationArguments(
+        "generate",
+        "--user-request=test",
+        "--strict-json-required=true"
+    ));
+
+    ArgumentCaptor<CodeGenerateRequest> captor = ArgumentCaptor.forClass(CodeGenerateRequest.class);
+    Mockito.verify(codeAgentService).generate(captor.capture());
+    assertThat(captor.getValue().isStrictJsonRequired()).isTrue();
     assertThat(runner.getExitCode()).isZero();
   }
 

@@ -26,7 +26,7 @@
 
 - `high-risk review`: REVIEW + HIGH 리스크일 때 고성능 리뷰 모델로 승격
 - `large-context`: 긴 컨텍스트 요청일 때 장문 컨텍스트 강점 모델 우선
-- `strict-json`: strict JSON 요구 시 구조화 출력 강점 모델 우선
+- `strict-json`: `strictJsonRequired=true`가 명시된 요청에서만 구조화 출력 강점 모델 우선
 
 ## Canary 운영 원칙
 
@@ -46,7 +46,7 @@
   "mode": "BALANCED",
   "riskLevel": "MEDIUM",
   "largeContext": false,
-  "strictJsonRequired": true
+  "strictJsonRequired": false
 }
 ```
 
@@ -64,7 +64,7 @@
   "fallbacks": [
     {
       "provider": "anthropic",
-      "model": "claude-sonnet-4.5"
+      "model": "claude-sonnet-4-5-20250929"
     },
     {
       "provider": "google",
@@ -72,7 +72,7 @@
     }
   ],
   "reasons": [
-    "strict-json escalation"
+    "mode policy applied: BALANCED"
   ]
 }
 ```
