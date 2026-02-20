@@ -517,3 +517,17 @@
   - Main은 다음 실행 라운드를 `coordination/HANDOFFS/H-035-1-fallback-warning-seeding-fail-fast-exitcode-hardening.md`로 확정한다.
   - Main -> Executor 릴레이 `coordination/RELAYS/H-035-1-main-to-executor.md`를 생성해 보완 범위를 고정한다.
   - H-024는 재개 게이트 미충족(`INSUFFICIENT_SAMPLE_RATIO=1.00`, `SUFFICIENT_DAYS=0`)이 지속되는 동안 Frozen/Backlog를 유지한다.
+
+## D-048 fallback-warning H-035.1 승인 및 H-036 seeding throughput 추적 정책
+- Date: 2026-02-20
+- Status: Approved (H-035.1 Close-out / H-036 Scope)
+- Decision:
+  - H-035.1 결과를 기준으로 Main 최종 판단을 `Go`로 확정한다.
+  - H-035 P1 이슈였던 fail-fast 종료코드 신뢰성 결함(`runId` 누락 + `exit_code=0` 시 성공 종료 가능성)은 H-035.1에서 해소된 것으로 간주한다.
+  - 다음 라운드(H-036)는 반복 시딩 실행량/체인 커버리지 누적과 최신 14일/최근 7일 게이트 재집계를 우선한다.
+  - H-036에서도 fallback-warning 운영 계약 필드(`signalRecoveryEvidenceLedger[]`, `evidenceAccumulationSummary[]`, `evidenceFreshnessSummary[]`), 단일 판정(`RESUME_H024|KEEP_FROZEN`), 임계치/알림 룰 수치(`0.05`, `0.15`, `+0.10p`, `0.10`) 및 `INSUFFICIENT_SAMPLE` 제외 규칙은 변경하지 않는다.
+- Rationale: 종료코드 결함이 해소된 시점에서 재개 판단 신뢰도를 높이려면 기능 확장보다 seeding 데이터 누적과 게이트 재평가를 먼저 수행해야 하기 때문이다.
+- Consequence:
+  - Main은 다음 실행 라운드를 `coordination/HANDOFFS/H-036-fallback-warning-keep-frozen-seeding-throughput-tracking.md`로 확정한다.
+  - Main -> Executor 릴레이 `coordination/RELAYS/H-036-main-to-executor.md`를 생성해 입력/수용기준을 고정한다.
+  - H-024는 `RESUME_H024` 근거(게이트 충족 + 신호 증거 누적) 확보 전까지 Frozen/Backlog를 유지한다.
