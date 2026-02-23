@@ -128,6 +128,9 @@ curl -X POST http://localhost:8080/api/agents/spec/generate \
   - 기록 조건: code 출력 파싱 결과 `parsedFiles=0`
   - 메시지 형식: `source=<PARSE_SOURCE> apply=<true|false>`
   - `apply=true`인 경우에는 무반영 성공처럼 보이지 않도록 요청을 실패 처리한다.
+  - parser safety 가드:
+    - `source=LOOSE_JSON_FALLBACK` 복구는 `files[]` 배열 컨텍스트 안에서만 수행한다.
+    - `"path"`/`"content"`는 동일 파일 객체 경계 내 쌍으로만 인정하며, 설명문/메타 JSON/escaped 문자열의 토큰은 파일로 승격하지 않는다.
 - Spec: `SPEC_OUTPUT_FALLBACK_WARNING`
   - 기록 조건: spec 출력 파싱 source가 `DIRECT_JSON`이 아닌 경우
     - 경고 대상 source: `JSON_CODE_BLOCK`, `FALLBACK_SCHEMA`

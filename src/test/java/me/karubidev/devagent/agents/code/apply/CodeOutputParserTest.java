@@ -134,6 +134,7 @@ class CodeOutputParserTest {
   @Test
   void parseFilesExtractsFromTruncatedJsonByLooseFallback() {
     String output = """
+        설명 메타(JSON 아님): {"path":"outside/meta.md","content":"ignore me"}
         ```json
         {
           "files": [
@@ -144,6 +145,9 @@ class CodeOutputParserTest {
             {
               "path": "focusbar/__init__.py",
               "content": "__version__ = \\"0.1.0\\""
+            },
+            {
+              "path": "focusbar/incomplete.py"
             }
         """;
 
@@ -151,6 +155,57 @@ class CodeOutputParserTest {
 
     assertThat(result.files()).hasSize(2);
     assertThat(result.files().get(0).path()).isEqualTo("pyproject.toml");
+    assertThat(result.source()).isEqualTo(CodeOutputParser.ParseSource.LOOSE_JSON_FALLBACK);
+  }
+
+  @Test
+  void parseFilesDoesNotExtractLoosePairsOutsideFilesArray() {
+    String output = """
+        {
+          "metadata": {
+            "path": "README.md",
+            "content": "이 값은 files[]가 아니므로 파일로 승격되면 안 됩니다."
+          }
+        }
+        """;
+
+    CodeOutputParser.ParseResult result = parser.parse(output);
+
+    assertThat(result.files()).isEmpty();
+    assertThat(result.source()).isEqualTo(CodeOutputParser.ParseSource.EMPTY);
+  }
+
+  @Test
+  void parseFilesDoesNotMatchPathAndContentAcrossDifferentObjects() {
+    String output = """
+        {
+          "files": [
+            { "path": "separated-path.txt" },
+            { "content": "separated-content" }
+        """;
+
+    CodeOutputParser.ParseResult result = parser.parse(output);
+
+    assertThat(result.files()).isEmpty();
+    assertThat(result.source()).isEqualTo(CodeOutputParser.ParseSource.EMPTY);
+  }
+
+  @Test
+  void parseFilesIgnoresEscapedPathTokensInsideContent() {
+    String output = """
+        {
+          "files": [
+            {
+              "path": "notes.txt",
+              "content": "example: {\\"path\\":\\"fake.txt\\",\\"content\\":\\"fake\\"}"
+            }
+        """;
+
+    CodeOutputParser.ParseResult result = parser.parse(output);
+
+    assertThat(result.files()).hasSize(1);
+    assertThat(result.files().get(0).path()).isEqualTo("notes.txt");
+    assertThat(result.files().get(0).content()).contains("\"path\":\"fake.txt\"");
     assertThat(result.source()).isEqualTo(CodeOutputParser.ParseSource.LOOSE_JSON_FALLBACK);
   }
 }

@@ -25,6 +25,7 @@ public class CodeOutputParser {
       "```[a-zA-Z0-9_-]*\\s*\\R([\\s\\S]*?)\\R```",
       Pattern.CASE_INSENSITIVE
   );
+  private static final Pattern FILES_ARRAY_PATTERN = Pattern.compile("(?<!\\\\)\"files\"\\s*:\\s*\\[");
   private static final List<String> WRAPPER_KEYS = List.of("data", "result", "output", "payload", "response");
 
   private final ObjectMapper objectMapper;
@@ -283,77 +284,232 @@ public class CodeOutputParser {
     }
 
     Map<String, String> byPath = new LinkedHashMap<>();
-    int cursor = 0;
-    while (cursor < output.length()) {
-      int pathKey = output.indexOf("\"path\"", cursor);
-      if (pathKey < 0) {
-        break;
-      }
-      int pathValueStart = findJsonStringValueStart(output, pathKey + "\"path\"".length());
-      if (pathValueStart < 0) {
-        cursor = pathKey + "\"path\"".length();
+    Matcher matcher = FILES_ARRAY_PATTERN.matcher(output);
+    while (matcher.find()) {
+      int arrayStart = matcher.end() - 1;
+      if (arrayStart < 0 || arrayStart >= output.length() || output.charAt(arrayStart) != '[') {
         continue;
       }
 
-      ParsedJsonString pathValue = readJsonString(output, pathValueStart);
-      if (pathValue == null) {
-        cursor = pathValueStart + 1;
-        continue;
-      }
-
-      int contentKey = output.indexOf("\"content\"", pathValue.nextIndex());
-      if (contentKey < 0) {
-        cursor = pathValue.nextIndex();
-        continue;
-      }
-      int contentValueStart = findJsonStringValueStart(output, contentKey + "\"content\"".length());
-      if (contentValueStart < 0) {
-        cursor = contentKey + "\"content\"".length();
-        continue;
-      }
-
-      ParsedJsonString contentValue = readJsonString(output, contentValueStart);
-      if (contentValue == null) {
-        cursor = contentValueStart + 1;
-        continue;
-      }
-
-      String path = decodeJsonString(pathValue.value()).trim();
-      if (path.isBlank()) {
-        cursor = contentValue.nextIndex();
-        continue;
-      }
-      String content = decodeJsonString(contentValue.value());
-      byPath.putIfAbsent(path, trimTrailingWhitespace(content));
-      cursor = contentValue.nextIndex();
+      int arrayEnd = findArrayEndOrOutputEnd(output, arrayStart);
+      collectLooseFilesFromArray(output, arrayStart, arrayEnd, byPath);
     }
     return mapToFiles(byPath);
   }
 
-  private int findJsonStringValueStart(String text, int startIndex) {
-    int colonIndex = text.indexOf(':', startIndex);
-    if (colonIndex < 0) {
+  private void collectLooseFilesFromArray(String text, int arrayStart, int arrayEndExclusive, Map<String, String> byPath) {
+    int cursor = arrayStart + 1;
+    while (cursor < arrayEndExclusive) {
+      int objectStart = findCharOutsideString(text, '{', cursor, arrayEndExclusive);
+      if (objectStart < 0) {
+        return;
+      }
+
+      int objectEnd = findObjectEndOrSectionEnd(text, objectStart, arrayEndExclusive);
+      LooseFile looseFile = extractLooseFileFromObject(text, objectStart, objectEnd);
+      if (looseFile != null) {
+        byPath.putIfAbsent(looseFile.path(), looseFile.content());
+      }
+      cursor = Math.max(objectEnd, objectStart + 1);
+    }
+  }
+
+  private LooseFile extractLooseFileFromObject(String text, int objectStart, int objectEndExclusive) {
+    int depth = 0;
+    int cursor = objectStart;
+    String path = null;
+    String content = null;
+
+    while (cursor < objectEndExclusive) {
+      char c = text.charAt(cursor);
+      if (c == '{') {
+        depth++;
+        cursor++;
+        continue;
+      }
+      if (c == '}') {
+        depth = Math.max(0, depth - 1);
+        cursor++;
+        continue;
+      }
+      if (c != '"') {
+        cursor++;
+        continue;
+      }
+
+      ParsedJsonString key = readJsonString(text, cursor, objectEndExclusive);
+      if (key == null) {
+        cursor++;
+        continue;
+      }
+
+      if (depth != 1) {
+        cursor = key.nextIndex();
+        continue;
+      }
+
+      int valueStart = findJsonStringValueStart(text, key.nextIndex(), objectEndExclusive);
+      if (valueStart < 0) {
+        cursor = key.nextIndex();
+        continue;
+      }
+
+      ParsedJsonString value = readJsonString(text, valueStart, objectEndExclusive);
+      if (value == null) {
+        cursor = valueStart + 1;
+        continue;
+      }
+
+      String decodedKey = decodeJsonString(key.value());
+      if ("path".equals(decodedKey)) {
+        path = decodeJsonString(value.value()).trim();
+      } else if ("content".equals(decodedKey)) {
+        content = decodeJsonString(value.value());
+      }
+      cursor = value.nextIndex();
+    }
+
+    if (path == null || path.isBlank() || content == null) {
+      return null;
+    }
+    return new LooseFile(path, trimTrailingWhitespace(content));
+  }
+
+  private int findArrayEndOrOutputEnd(String text, int arrayStart) {
+    int depth = 0;
+    boolean inString = false;
+    boolean escaping = false;
+
+    for (int i = arrayStart; i < text.length(); i++) {
+      char c = text.charAt(i);
+      if (inString) {
+        if (escaping) {
+          escaping = false;
+        } else if (c == '\\') {
+          escaping = true;
+        } else if (c == '"') {
+          inString = false;
+        }
+        continue;
+      }
+
+      if (c == '"') {
+        inString = true;
+        continue;
+      }
+      if (c == '[') {
+        depth++;
+        continue;
+      }
+      if (c == ']') {
+        depth--;
+        if (depth == 0) {
+          return i + 1;
+        }
+      }
+    }
+
+    return text.length();
+  }
+
+  private int findObjectEndOrSectionEnd(String text, int objectStart, int sectionEndExclusive) {
+    int depth = 0;
+    boolean inString = false;
+    boolean escaping = false;
+
+    for (int i = objectStart; i < sectionEndExclusive; i++) {
+      char c = text.charAt(i);
+      if (inString) {
+        if (escaping) {
+          escaping = false;
+        } else if (c == '\\') {
+          escaping = true;
+        } else if (c == '"') {
+          inString = false;
+        }
+        continue;
+      }
+
+      if (c == '"') {
+        inString = true;
+        continue;
+      }
+      if (c == '{') {
+        depth++;
+        continue;
+      }
+      if (c == '}') {
+        depth--;
+        if (depth == 0) {
+          return i + 1;
+        }
+      }
+    }
+
+    return sectionEndExclusive;
+  }
+
+  private int findCharOutsideString(String text, char target, int start, int endExclusive) {
+    boolean inString = false;
+    boolean escaping = false;
+
+    for (int i = start; i < endExclusive; i++) {
+      char c = text.charAt(i);
+      if (inString) {
+        if (escaping) {
+          escaping = false;
+        } else if (c == '\\') {
+          escaping = true;
+        } else if (c == '"') {
+          inString = false;
+        }
+        continue;
+      }
+
+      if (c == '"') {
+        inString = true;
+        continue;
+      }
+      if (c == target) {
+        return i;
+      }
+    }
+
+    return -1;
+  }
+
+  private int findJsonStringValueStart(String text, int startIndex, int limitExclusive) {
+    int i = startIndex;
+    while (i < limitExclusive && Character.isWhitespace(text.charAt(i))) {
+      i++;
+    }
+    if (i >= limitExclusive || text.charAt(i) != ':') {
       return -1;
     }
 
-    int i = colonIndex + 1;
-    while (i < text.length() && Character.isWhitespace(text.charAt(i))) {
+    i++;
+    while (i < limitExclusive && Character.isWhitespace(text.charAt(i))) {
       i++;
     }
-    if (i >= text.length() || text.charAt(i) != '"') {
+    if (i >= limitExclusive || text.charAt(i) != '"') {
       return -1;
     }
     return i;
   }
 
   private ParsedJsonString readJsonString(String text, int quoteStartIndex) {
+    return readJsonString(text, quoteStartIndex, text.length());
+  }
+
+  private ParsedJsonString readJsonString(String text, int quoteStartIndex, int limitExclusive) {
     if (quoteStartIndex < 0 || quoteStartIndex >= text.length() || text.charAt(quoteStartIndex) != '"') {
       return null;
     }
 
     StringBuilder sb = new StringBuilder();
     boolean escaping = false;
-    for (int i = quoteStartIndex + 1; i < text.length(); i++) {
+    int end = Math.min(limitExclusive, text.length());
+    for (int i = quoteStartIndex + 1; i < end; i++) {
       char c = text.charAt(i);
       if (escaping) {
         sb.append(c);
@@ -385,6 +541,9 @@ public class CodeOutputParser {
   }
 
   private record ParsedJsonString(String value, int nextIndex) {
+  }
+
+  private record LooseFile(String path, String content) {
   }
 
   private String trimTrailingWhitespace(String text) {
