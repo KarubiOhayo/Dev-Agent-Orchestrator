@@ -63,9 +63,10 @@
   - H-038 fallback-warning `KEEP_FROZEN` seeding failure pattern 후속 점검 완료(fail-fast 반복 시딩 누적 + 체인 실패 원인 재발 빈도/완화 가이드 정합화 + 최신 게이트 재집계, Review `Go`)
   - H-040 code-generate provider compatibility + files JSON hardening 완료(OpenAI codex `temperature` 제거 + Anthropic fallback 모델명 정정 + strict-json 기본값 정합 + `parsedFiles=0` 경고/실패 신호 고정, Main `Conditional Go`)
   - H-041 code-output parser safety guard + apply verification 완료(`LOOSE_JSON_FALLBACK` 안전화 + writable `writtenFiles > 0` 실증 증빙 + 회귀 테스트 보강, Main `Go`)
+  - H-039 fallback-warning `KEEP_FROZEN` resume readiness follow-up check 완료(최신 14일/7일 게이트 재집계 + H-036~H-039 readiness 추세 비교 + `resumeDecision=KEEP_FROZEN` 확정, Main `Go`)
   - apply/dry-run 파일 반영
 - 미완료:
-  - H-039 fallback-warning `KEEP_FROZEN` resume readiness follow-up check(fail-fast 반복 시딩 누적 + 최근 라운드 readiness 추세 검증 + `RESUME_H024|KEEP_FROZEN` 재판정)
+  - H-042 fallback-warning `KEEP_FROZEN` resume readiness next check(fail-fast 반복 시딩 누적 + 최신 게이트 재집계 + 최근 라운드 readiness 추세/신호 재검증 + `RESUME_H024|KEEP_FROZEN` 재판정)
   - H-024 fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정(Frozen/Backlog, `RESUME_H024` 판정 근거 확보 시 재개)
   - fallback warning 임계치/알림 룰 보정안의 운영 적용 후 회귀 점검(지속 데이터 누적 필요)
 
@@ -138,7 +139,7 @@
 - CLI JSON 출력은 지원되지만, 옵션 파싱 경계 케이스는 지속 회귀 점검 필요
 
 ## 8) 다음 우선순위
-1. H-039 fallback-warning `KEEP_FROZEN` resume readiness follow-up check(최신 시딩 누적 + H-036~H-039 readiness 추세 비교 + `RESUME_H024|KEEP_FROZEN` 재판정)
+1. H-042 fallback-warning `KEEP_FROZEN` resume readiness next check(최신 시딩 누적 + 최신 14일/7일 게이트 재집계 + H-036~H-039/H-042 readiness 추세 비교 + `RESUME_H024|KEEP_FROZEN` 재판정)
 2. H-024 fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정(Frozen/Backlog, `RESUME_H024` 판정 근거 확보 시 재개)
 3. fallback warning 임계치/알림 룰 보정안의 운영 적용 후 회귀 점검(지속 데이터 누적 필요)
 
