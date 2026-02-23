@@ -8,9 +8,9 @@ Primary Reference: `docs/PROJECT_OVERVIEW.md`
 
 ## 현재 스냅샷
 - 목표: A(Context Engineering) 완성 후 C(Spec -> Code -> Doc) 체이닝 확장 안정화
-- 현재 상태: Spec -> Code -> Doc/Review 체이닝(1차) 운영 안정화 단계이며, H-009~H-040 라운드는 테스트 게이트 통과를 유지했다(H-035는 중간 `No-Go` 후 H-035.1 보완, H-040은 Main `Conditional Go`). H-040 긴급 복구로 공급자 호환/strict-json 정합/`parsedFiles=0` 경고 신호는 복구됐고, 후속 라운드 H-041에서 parser 안전화 + apply 실증 증빙을 우선 보강한다. H-039는 H-041 완료 후 재개, H-024는 Frozen/Backlog 유지.
+- 현재 상태: Spec -> Code -> Doc/Review 체이닝(1차) 운영 안정화 단계이며, H-009~H-041 라운드는 테스트 게이트 통과를 유지했다(H-035는 중간 `No-Go` 후 H-035.1 보완, H-040은 Main `Conditional Go`, H-041은 Main `Go`). H-041에서 parser safety 가드와 writable `apply=true` 실증(`writtenFiles > 0`) 증빙이 닫혔고, 다음 실행 라운드는 H-039 재개다. H-024는 Frozen/Backlog를 유지한다.
 - fallback-warning 용어 가드레일: `fallback-warning`은 output parsing fallback 경고를 의미하며, 라우팅 fallback과 구분한다(SoT: `docs/OBSERVABILITY_FALLBACK_WARNING.md`).
-- 핵심 리스크: H-040 리뷰 기준으로 (1) `CodeOutputParser`의 `LOOSE_JSON_FALLBACK` 과매칭 가능성(P2), (2) writable 환경 `apply=true` 실파일 반영 증빙 미완료(P3)가 잔여 리스크다.
+- 핵심 리스크: parser 과매칭 직접 리스크는 H-041에서 해소됐지만, 비정형 출력 변형 패턴에서의 회귀 가능성은 지속 모니터링이 필요하다. 또한 fallback-warning 트랙은 `INSUFFICIENT_SAMPLE_RATIO`/`SUFFICIENT_DAYS` 미충족으로 `KEEP_FROZEN` 상태가 이어지고 있어 H-039 재집계/추세 검증이 필요하다.
 - 운영 정책: 3스레드 체계(메인 제어 + 리뷰 전담 + 실행 전담), 라운드별 stateless 운영
 
 ## 완료된 작업
@@ -65,6 +65,7 @@ Primary Reference: `docs/PROJECT_OVERVIEW.md`
 - [x] H-037 fallback-warning `KEEP_FROZEN` seeding follow-up + workspace hygiene 정합화(`.gradle-local` ignore 반영 + 반복 시딩 누적 + 최신 14일/7일 게이트 재집계, Review `Go`)
 - [x] H-038 fallback-warning `KEEP_FROZEN` seeding failure pattern 후속 점검(fail-fast 반복 시딩 누적 + 체인 실패 원인 재발 빈도/완화 가이드 정합화 + 최신 14일/7일 게이트 재집계, Review `Go`)
 - [x] H-040 code-generate provider compatibility + files JSON hardening(OpenAI codex `temperature` 제거 + Anthropic fallback 모델명 정정 + strict-json 기본값 정합 + `parsedFiles=0` 경고/실패 신호 고정, Main `Conditional Go`)
+- [x] H-041 code-output parser safety guard + apply verification(`LOOSE_JSON_FALLBACK` 안전화 + writable `writtenFiles > 0` 실증 증빙 + 회귀 테스트 보강, Main `Go`)
 
 ## 3스레드 운영 분배
 
@@ -106,8 +107,8 @@ Primary Reference: `docs/PROJECT_OVERVIEW.md`
 9. 병합은 THREAD-A 최종 승인 이후에만 수행한다.
 
 ## 현재 우선순위
-- [~] H-041 진행 예정: code-output parser safety guard + apply verification(`LOOSE_JSON_FALLBACK` 과매칭 차단 + writable `writtenFiles > 0` 실증 확보)
-- [ ] H-039 보류: fallback-warning `KEEP_FROZEN` resume readiness follow-up check(H-041 보강 완료 후 재개)
+- [x] H-041 완료: code-output parser safety guard + apply verification(`LOOSE_JSON_FALLBACK` 과매칭 차단 + writable `writtenFiles > 0` 실증 확보)
+- [~] H-039 재개 예정: fallback-warning `KEEP_FROZEN` resume readiness follow-up check(최신 시딩 누적/게이트 재집계 + H-036~H-039 추세 비교 + `RESUME_H024|KEEP_FROZEN` 재판정)
 
 ## Frozen/Backlog
 - [ ] H-024 동결: fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정

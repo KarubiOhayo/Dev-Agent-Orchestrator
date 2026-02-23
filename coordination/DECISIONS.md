@@ -615,3 +615,17 @@
 - Consequence:
   - Main/Review/Executor는 fallback-warning을 "형식 안정성 지표"로만 해석하고, 라우팅 fallback과 혼합 판정을 금지한다.
   - H-041 결과 보고 시 parser 안전화와 warning 지표를 분리 보고하도록 릴레이 기준을 보강한다.
+
+## D-055 H-041 승인(Go) 확정 및 H-039 재개 정책
+- Date: 2026-02-23
+- Status: Approved (H-041 Close-out / H-039 Resume Scope)
+- Decision:
+  - H-041 결과를 Main 최종 판단 `Go`로 승인한다.
+  - H-040 `Conditional Go`의 잔여 이슈(P2 `LOOSE_JSON_FALLBACK` 과매칭 가능성, P3 writable `apply=true` 실증 공백)는 H-041에서 해소된 것으로 확정한다.
+  - 다음 실행 라운드는 H-039로 고정하며, 최신 시딩 누적/게이트 재집계와 H-036~H-039 readiness 추세 비교를 통해 `resumeDecision=RESUME_H024|KEEP_FROZEN` 단일 판정을 갱신한다.
+  - fallback-warning 운영 계약 필드(`signalRecoveryEvidenceLedger[]`, `evidenceAccumulationSummary[]`, `evidenceFreshnessSummary[]`), 임계치/알림 룰 수치(`0.05`, `0.15`, `+0.10p`, `0.10`), `INSUFFICIENT_SAMPLE` 제외 규칙은 변경하지 않는다.
+- Rationale: H-041에서 parser safety 가드와 writable apply 실증 증빙이 닫히면서 H-040의 조건부 승인 공백이 해소되었고, 이후 우선순위는 기능 복구가 아닌 fallback-warning 재개 판단 근거의 최신화에 있다.
+- Consequence:
+  - Main은 다음 실행 라운드를 `coordination/HANDOFFS/H-039-fallback-warning-keep-frozen-resume-readiness-followup-check.md`로 확정한다.
+  - Main -> Executor 릴레이 `coordination/RELAYS/H-039-main-to-executor.md`를 최신 기준으로 갱신한다.
+  - `coordination/TASK_BOARD.md`, `docs/PROJECT_OVERVIEW.md`, `coordination/REPORTS/CURRENT_STATUS_2026-02-23.md`를 H-041 승인 + H-039 재개 우선순위로 동기화한다.
