@@ -602,3 +602,16 @@
   - Main은 다음 실행 라운드를 `coordination/HANDOFFS/H-041-code-output-parser-safety-and-apply-verification.md`로 확정한다.
   - Main -> Executor 릴레이 `coordination/RELAYS/H-041-main-to-executor.md`를 생성해 입력/수용기준을 고정한다.
   - `coordination/TASK_BOARD.md`, `docs/PROJECT_OVERVIEW.md`, `coordination/REPORTS/CURRENT_STATUS_2026-02-20.md`를 H-040 Conditional Go + H-041 우선순위로 동기화한다.
+
+## D-054 fallback-warning 용어 분리 및 관측 SoT 고정
+- Date: 2026-02-23
+- Status: Approved
+- Decision:
+  - `fallback-warning`는 output parsing fallback 경고로 한정하고, 모델 라우팅 fallback(후보 모델/벤더 재시도)과 분리해 해석한다.
+  - fallback-warning 관측 정의/지표/해석 원칙의 단일 SoT 문서를 `docs/OBSERVABILITY_FALLBACK_WARNING.md`로 고정한다.
+  - 운영 문서(`docs/PROJECT_OVERVIEW.md`, `coordination/TASK_BOARD.md`, `coordination/REPORTS/CURRENT_STATUS_2026-02-23.md`)는 위 구분을 동일 문구로 참조한다.
+  - 실행 우선순위는 유지한다: H-041 선행, H-039 재개, H-024 동결.
+- Rationale: 최근 운영 문서/대화에서 fallback 용어가 라우팅 계층과 파싱 계층으로 혼용될 여지가 확인되어, 관측 지표 해석과 라운드 승인 근거의 일관성을 즉시 고정할 필요가 있기 때문이다.
+- Consequence:
+  - Main/Review/Executor는 fallback-warning을 "형식 안정성 지표"로만 해석하고, 라우팅 fallback과 혼합 판정을 금지한다.
+  - H-041 결과 보고 시 parser 안전화와 warning 지표를 분리 보고하도록 릴레이 기준을 보강한다.

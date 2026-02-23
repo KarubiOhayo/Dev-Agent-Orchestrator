@@ -130,6 +130,7 @@
 
 ## 7) 현재 운영 리스크
 - 모델 출력 비정형 시 fallback 비율이 상승할 수 있음
+- fallback-warning 해석은 output parsing fallback 경고로 한정하며, 모델 라우팅 fallback과 구분해야 함(SoT: `docs/OBSERVABILITY_FALLBACK_WARNING.md`)
 - Code parser의 loose fallback이 `files[]` 외부 키쌍을 오탐하면 의도치 않은 파일 반영 리스크가 발생할 수 있음(H-041에서 차단 예정)
 - fallback warning 임계치는 초기 기준값이므로 트래픽/모델 분포 변화 시 오탐/미탐 가능성이 있음
 - `files[]`/`document`/`review` 구조는 보정되지만 의미 품질 검증은 아직 제한적

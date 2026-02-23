@@ -1,6 +1,6 @@
 # DevAgent Task Board
 
-Last Updated: 2026-02-20
+Last Updated: 2026-02-23
 Owner: Main Controller Thread
 Primary Reference: `docs/PROJECT_OVERVIEW.md`
 
@@ -9,6 +9,7 @@ Primary Reference: `docs/PROJECT_OVERVIEW.md`
 ## 현재 스냅샷
 - 목표: A(Context Engineering) 완성 후 C(Spec -> Code -> Doc) 체이닝 확장 안정화
 - 현재 상태: Spec -> Code -> Doc/Review 체이닝(1차) 운영 안정화 단계이며, H-009~H-040 라운드는 테스트 게이트 통과를 유지했다(H-035는 중간 `No-Go` 후 H-035.1 보완, H-040은 Main `Conditional Go`). H-040 긴급 복구로 공급자 호환/strict-json 정합/`parsedFiles=0` 경고 신호는 복구됐고, 후속 라운드 H-041에서 parser 안전화 + apply 실증 증빙을 우선 보강한다. H-039는 H-041 완료 후 재개, H-024는 Frozen/Backlog 유지.
+- fallback-warning 용어 가드레일: `fallback-warning`은 output parsing fallback 경고를 의미하며, 라우팅 fallback과 구분한다(SoT: `docs/OBSERVABILITY_FALLBACK_WARNING.md`).
 - 핵심 리스크: H-040 리뷰 기준으로 (1) `CodeOutputParser`의 `LOOSE_JSON_FALLBACK` 과매칭 가능성(P2), (2) writable 환경 `apply=true` 실파일 반영 증빙 미완료(P3)가 잔여 리스크다.
 - 운영 정책: 3스레드 체계(메인 제어 + 리뷰 전담 + 실행 전담), 라운드별 stateless 운영
 
