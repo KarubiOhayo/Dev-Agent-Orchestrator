@@ -657,3 +657,17 @@
   - Main은 다음 실행 라운드를 `coordination/HANDOFFS/H-043-fallback-warning-keep-frozen-resume-readiness-followup-check.md`로 확정한다.
   - Main -> Executor 릴레이 `coordination/RELAYS/H-043-main-to-executor.md`를 생성해 입력/수용기준을 고정한다.
   - `coordination/TASK_BOARD.md`, `docs/PROJECT_OVERVIEW.md`, `coordination/REPORTS/CURRENT_STATUS_2026-02-23.md`를 H-042 승인 + H-043 우선순위로 동기화한다.
+
+## D-058 H-044 승인(Go) 확정 및 H-045 후속 점검 정책
+- Date: 2026-02-26
+- Status: Approved (H-044 Close-out / H-045 Scope)
+- Decision:
+  - H-044 결과를 Main 최종 판단 `Go`로 승인한다.
+  - H-044 재집계 결과(`INSUFFICIENT_SAMPLE_RATIO=0.7857`, `SUFFICIENT_DAYS=3`, `executionGapDelta=-208`, `chainShareGapDelta=-46.41%p`, 최근 3일 평균 전체 `parseEligibleRunCount=7.6667`)를 기준으로 `resumeDecision=KEEP_FROZEN`을 유지한다.
+  - 다음 실행 라운드는 H-045로 고정하고, 최신 시딩 누적/게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045 readiness 추세 비교로 `RESUME_H024|KEEP_FROZEN` 단일 판정을 재검증한다.
+  - fallback-warning 운영 계약 필드(`signalRecoveryEvidenceLedger[]`, `evidenceAccumulationSummary[]`, `evidenceFreshnessSummary[]`), 임계치/알림 룰 수치(`0.05`, `0.15`, `+0.10p`, `0.10`), `INSUFFICIENT_SAMPLE` 제외 규칙은 변경하지 않는다.
+- Rationale: H-044에서 일부 개선 신호(`INSUFFICIENT_SAMPLE_RATIO` 하락, `SUFFICIENT_DAYS` 증가)는 이어졌지만, 재개 게이트 4종 중 2종(`INSUFFICIENT_SAMPLE_RATIO`, `SUFFICIENT_DAYS`)이 여전히 미충족이고 최근 3일 평균 전체 모수(`7.6667`)가 기준(`>=32`)을 크게 하회해 H-024 재개 근거가 아직 부족하기 때문이다.
+- Consequence:
+  - Main은 다음 실행 라운드를 `coordination/HANDOFFS/H-045-fallback-warning-keep-frozen-resume-readiness-followup-check.md`로 확정한다.
+  - Main -> Executor 릴레이 `coordination/RELAYS/H-045-main-to-executor.md`를 생성해 입력/수용기준을 고정한다.
+  - `coordination/TASK_BOARD.md`, `docs/PROJECT_OVERVIEW.md`, `coordination/REPORTS/CURRENT_STATUS_2026-02-26.md`를 H-044 승인 + H-045 우선순위로 동기화한다.

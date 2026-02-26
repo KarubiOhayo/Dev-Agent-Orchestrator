@@ -1,6 +1,6 @@
 # DevAgent Task Board
 
-Last Updated: 2026-02-24
+Last Updated: 2026-02-26
 Owner: Main Controller Thread
 Primary Reference: `docs/PROJECT_OVERVIEW.md`
 
@@ -8,9 +8,9 @@ Primary Reference: `docs/PROJECT_OVERVIEW.md`
 
 ## 현재 스냅샷
 - 목표: A(Context Engineering) 완성 후 C(Spec -> Code -> Doc) 체이닝 확장 안정화
-- 현재 상태: Spec -> Code -> Doc/Review 체이닝(1차) 운영 안정화 단계이며, H-009~H-043 라운드는 테스트 게이트 통과를 유지했다(H-035는 중간 `No-Go` 후 H-035.1 보완, H-040은 Main `Conditional Go`, H-041/H-042/H-043은 Main `Go`). H-043 후속 점검에서도 `resumeDecision=KEEP_FROZEN`이 재확인되었고, 다음 실행 라운드는 H-044로 고정되었다. H-024는 Frozen/Backlog를 유지한다.
+- 현재 상태: Spec -> Code -> Doc/Review 체이닝(1차) 운영 안정화 단계이며, H-009~H-044 라운드는 테스트 게이트 통과를 유지했다(H-035는 중간 `No-Go` 후 H-035.1 보완, H-040은 Main `Conditional Go`, H-041/H-042/H-043/H-044는 Main `Go`). H-044 후속 점검에서도 `resumeDecision=KEEP_FROZEN`이 재확인되었고, 다음 실행 라운드는 H-045로 고정되었다. H-024는 Frozen/Backlog를 유지한다.
 - fallback-warning 용어 가드레일: `fallback-warning`은 output parsing fallback 경고를 의미하며, 라우팅 fallback과 구분한다(SoT: `docs/OBSERVABILITY_FALLBACK_WARNING.md`).
-- 핵심 리스크: parser 과매칭 직접 리스크는 H-041에서 해소됐지만, 비정형 출력 변형 패턴에서의 회귀 가능성은 지속 모니터링이 필요하다. 또한 fallback-warning 트랙은 H-043 재집계에서도 `INSUFFICIENT_SAMPLE_RATIO=0.8571`/`SUFFICIENT_DAYS=2` 미충족으로 `KEEP_FROZEN` 상태가 이어지고 있어 H-044 후속 점검이 필요하다.
+- 핵심 리스크: parser 과매칭 직접 리스크는 H-041에서 해소됐지만, 비정형 출력 변형 패턴에서의 회귀 가능성은 지속 모니터링이 필요하다. 또한 fallback-warning 트랙은 H-044 재집계에서도 `INSUFFICIENT_SAMPLE_RATIO=0.7857`/`SUFFICIENT_DAYS=3` 미충족으로 `KEEP_FROZEN` 상태가 이어지고 있어 H-045 후속 점검이 필요하다.
 - 운영 정책: 3스레드 체계(메인 제어 + 리뷰 전담 + 실행 전담), 라운드별 stateless 운영
 
 ## 완료된 작업
@@ -69,6 +69,7 @@ Primary Reference: `docs/PROJECT_OVERVIEW.md`
 - [x] H-039 fallback-warning `KEEP_FROZEN` resume readiness follow-up check(최신 게이트 재집계 + H-036~H-039 readiness 추세 비교 + `resumeDecision=KEEP_FROZEN` 갱신, Main `Go`)
 - [x] H-042 fallback-warning `KEEP_FROZEN` resume readiness next check(최신 게이트 재집계 + H-036~H-039/H-042 readiness 추세 비교 + `resumeDecision=KEEP_FROZEN` 유지, Main `Go`)
 - [x] H-043 fallback-warning `KEEP_FROZEN` resume readiness follow-up check(최신 게이트 재집계 + H-036~H-039/H-042/H-043 readiness 추세 비교 + `resumeDecision=KEEP_FROZEN` 유지, Main `Go`)
+- [x] H-044 fallback-warning `KEEP_FROZEN` resume readiness next check(최신 게이트 재집계 + H-036~H-039/H-042/H-043/H-044 readiness 추세 비교 + `resumeDecision=KEEP_FROZEN` 유지, Main `Go`)
 
 ## 3스레드 운영 분배
 
@@ -113,8 +114,9 @@ Primary Reference: `docs/PROJECT_OVERVIEW.md`
 - [x] H-041 완료: code-output parser safety guard + apply verification(`LOOSE_JSON_FALLBACK` 과매칭 차단 + writable `writtenFiles > 0` 실증 확보)
 - [x] H-042 완료: fallback-warning `KEEP_FROZEN` resume readiness next check(최신 시딩 누적/게이트 재집계 + H-036~H-039/H-042 추세 비교 + `resumeDecision=KEEP_FROZEN` 유지)
 - [x] H-043 완료: fallback-warning `KEEP_FROZEN` resume readiness follow-up check(최신 시딩 누적/게이트 재집계 + H-036~H-039/H-042/H-043 추세 비교 + `resumeDecision=KEEP_FROZEN` 유지)
-- [~] H-044 예정: fallback-warning `KEEP_FROZEN` resume readiness next check(최신 시딩 누적/게이트 재집계 + H-036~H-039/H-042/H-043/H-044 추세 비교 + `RESUME_H024|KEEP_FROZEN` 재판정)
+- [x] H-044 완료: fallback-warning `KEEP_FROZEN` resume readiness next check(최신 시딩 누적/게이트 재집계 + H-036~H-039/H-042/H-043/H-044 추세 비교 + `resumeDecision=KEEP_FROZEN` 유지)
+- [~] H-045 예정: fallback-warning `KEEP_FROZEN` resume readiness follow-up check(최신 시딩 누적/게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045 추세 비교 + `RESUME_H024|KEEP_FROZEN` 재판정)
 
 ## Frozen/Backlog
 - [ ] H-024 동결: fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정
-  사유: 트래픽/샘플 미충족(`LOW_TRAFFIC`, `CHAIN_COVERAGE_GAP`) 장기화 + H-043 기준 `KEEP_FROZEN` 유지 판정(`INSUFFICIENT_SAMPLE_RATIO=0.8571`, `SUFFICIENT_DAYS=2`, `executionGapDelta=-181`, `chainShareGapDelta=-45.70%p`, 최근 3일 평균 `parseEligibleRunCount=24.3333`)이 여전히 재개 기준에 못 미친다. 체인 실패 원인 분류/완화 가이드는 정합화됐지만, `RESUME_H024` 근거 확보 전까지 동결을 유지한다.
+  사유: 트래픽/샘플 미충족(`LOW_TRAFFIC`, `CHAIN_COVERAGE_GAP`) 장기화 + H-044 기준 `KEEP_FROZEN` 유지 판정(`INSUFFICIENT_SAMPLE_RATIO=0.7857`, `SUFFICIENT_DAYS=3`, `executionGapDelta=-208`, `chainShareGapDelta=-46.41%p`, 최근 3일 평균 `parseEligibleRunCount=7.6667`)이 여전히 재개 기준에 못 미친다. 체인 실패 원인 분류/완화 가이드는 정합화됐지만, `RESUME_H024` 근거 확보 전까지 동결을 유지한다.
