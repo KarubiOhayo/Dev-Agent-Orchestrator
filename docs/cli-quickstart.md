@@ -145,6 +145,7 @@ SEED_FAIL_FAST=true \
   - `SEED_APPLY`: Code apply 여부(기본 `false`)
   - `SEED_MODE`: CLI mode(`COST_SAVER | BALANCED | QUALITY | GEMINI3_CANARY`, 기본 `BALANCED`)
   - `SEED_FAIL_FAST`: 실패 시 즉시 중단 여부(기본 `true`)
+  - `SEED_TIMESTAMP`: 산출물 파일명 suffix(기본 현재 시각). 진단/direct/chain 배치를 나눠 실행할 때는 배치마다 서로 다른 값을 사용해 `summary.json`, `before/after`, `records.jsonl`, `log`를 분리합니다.
   - `SEED_SPEC_OUTPUT_DIR`: Spec 산출 경로(기본 `storage/devagent-specs`)
   - `SEED_LOG_DIR`: 실행 로그/스냅샷 경로(기본 `storage/fallback-warning-seed`)
 - 출력 산출물:
