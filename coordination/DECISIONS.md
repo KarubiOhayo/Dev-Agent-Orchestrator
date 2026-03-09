@@ -671,3 +671,19 @@
   - Main은 다음 실행 라운드를 `coordination/HANDOFFS/H-045-fallback-warning-keep-frozen-resume-readiness-followup-check.md`로 확정한다.
   - Main -> Executor 릴레이 `coordination/RELAYS/H-045-main-to-executor.md`를 생성해 입력/수용기준을 고정한다.
   - `coordination/TASK_BOARD.md`, `docs/PROJECT_OVERVIEW.md`, `coordination/REPORTS/CURRENT_STATUS_2026-02-26.md`를 H-044 승인 + H-045 우선순위로 동기화한다.
+
+## D-059 H-045 승인(Go) 확정 및 H-046 후속 점검 정책
+- Date: 2026-03-09
+- Status: Approved (H-045 Close-out / H-046 Scope)
+- Decision:
+  - H-045 결과를 Main 최종 판단 `Go`로 승인한다.
+  - H-045 재집계 결과(`INSUFFICIENT_SAMPLE_RATIO=0.8571`, `SUFFICIENT_DAYS=2`, `executionGapDelta=0`, `chainShareGapDelta=0.00%p`, 최근 3일 평균 전체 `parseEligibleRunCount=7.6667`)를 기준으로 `resumeDecision=KEEP_FROZEN`을 유지한다.
+  - 다음 실행 라운드는 H-046으로 고정하고, 최신 시딩 누적/게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045/H-046 readiness 추세 비교로 `RESUME_H024|KEEP_FROZEN` 단일 판정을 재검증한다.
+  - H-046에서는 진단/direct/chain 배치마다 고유 `SEED_TIMESTAMP`(또는 동등한 고유 suffix)를 사용해 `summary.json`, `before/after`, `records.jsonl`, `log` 증빙을 배치별로 분리한다.
+  - fallback-warning 운영 계약 필드(`signalRecoveryEvidenceLedger[]`, `evidenceAccumulationSummary[]`, `evidenceFreshnessSummary[]`), 임계치/알림 룰 수치(`0.05`, `0.15`, `+0.10p`, `0.10`), `INSUFFICIENT_SAMPLE` 제외 규칙은 변경하지 않는다.
+- Rationale: H-045는 테스트 게이트와 수용기준을 충족해 승인 가능하지만, H-044 대비 재개 핵심 게이트가 다시 후퇴했고 Review에서 본 배치 direct/chain의 동일 timestamp 산출물 공유로 배치별 감사 추적성이 약해진 점이 확인되었기 때문이다.
+- Consequence:
+  - Main은 다음 실행 라운드를 `coordination/HANDOFFS/H-046-fallback-warning-keep-frozen-resume-readiness-next-check.md`로 확정한다.
+  - Main -> Executor 릴레이 `coordination/RELAYS/H-046-main-to-executor.md`를 생성해 입력/수용기준을 고정한다.
+  - H-024는 `RESUME_H024` 근거(게이트 충족 + 신호 증거 누적) 확보 전까지 Frozen/Backlog를 유지한다.
+  - `coordination/TASK_BOARD.md`, `docs/PROJECT_OVERVIEW.md`, `coordination/REPORTS/CURRENT_STATUS_2026-03-09.md`를 H-045 승인 + H-046 우선순위로 동기화한다.
