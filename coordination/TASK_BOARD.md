@@ -1,6 +1,6 @@
 # DevAgent Task Board
 
-Last Updated: 2026-03-09
+Last Updated: 2026-03-10
 Owner: Main Controller Thread
 Primary Reference: `docs/PROJECT_OVERVIEW.md`
 
@@ -8,9 +8,9 @@ Primary Reference: `docs/PROJECT_OVERVIEW.md`
 
 ## 현재 스냅샷
 - 목표: A(Context Engineering) 완성 후 C(Spec -> Code -> Doc) 체이닝 확장 안정화
-- 현재 상태: Spec -> Code -> Doc/Review 체이닝(1차) 운영 안정화 단계이며, H-009~H-045 라운드는 테스트 게이트 통과를 유지했다(H-035는 중간 `No-Go` 후 H-035.1 보완, H-040은 Main `Conditional Go`, H-041/H-042/H-043/H-044/H-045는 Main `Go`). H-045 후속 점검에서도 `resumeDecision=KEEP_FROZEN`이 재확인되었고, 다음 실행 라운드는 H-046으로 고정되었다. H-024는 Frozen/Backlog를 유지한다.
+- 현재 상태: Spec -> Code -> Doc/Review 체이닝(1차) 운영 안정화 단계이며, H-009~H-046 라운드는 테스트 게이트 통과를 유지했다(H-035는 중간 `No-Go` 후 H-035.1 보완, H-040은 Main `Conditional Go`, H-041/H-042/H-043/H-044/H-045/H-046은 Main `Go`). H-046 후속 점검에서도 `resumeDecision=KEEP_FROZEN`이 재확인되었고, 배치별 `SEED_TIMESTAMP` 분리로 감사 추적성 공백은 해소됐다. 다음 실행 라운드는 H-047로 고정되었다. H-024는 Frozen/Backlog를 유지한다.
 - fallback-warning 용어 가드레일: `fallback-warning`은 output parsing fallback 경고를 의미하며, 라우팅 fallback과 구분한다(SoT: `docs/OBSERVABILITY_FALLBACK_WARNING.md`).
-- 핵심 리스크: parser 과매칭 직접 리스크는 H-041에서 해소됐지만, 비정형 출력 변형 패턴에서의 회귀 가능성은 지속 모니터링이 필요하다. 또한 fallback-warning 트랙은 H-045 재집계에서도 `INSUFFICIENT_SAMPLE_RATIO=0.8571`/`SUFFICIENT_DAYS=2` 미충족으로 `KEEP_FROZEN` 상태가 이어지고 있고, 본 배치 direct/chain가 동일 timestamp 산출물을 공유해 배치별 감사 추적성 보강이 H-046 후속 과제로 남아 있다.
+- 핵심 리스크: parser 과매칭 직접 리스크는 H-041에서 해소됐지만, 비정형 출력 변형 패턴에서의 회귀 가능성은 지속 모니터링이 필요하다. 또한 fallback-warning 트랙은 H-046 재집계에서도 `INSUFFICIENT_SAMPLE_RATIO=0.8571`/`SUFFICIENT_DAYS=2` 미충족으로 `KEEP_FROZEN` 상태가 이어지고 있다. H-046에서 배치별 감사 추적성은 보강됐지만, 동일 날짜 집중 실행만으로는 `SUFFICIENT_DAYS`/`INSUFFICIENT_SAMPLE_RATIO` 개선 폭이 제한적이어서 H-047에서 일별 분산 시딩 검증이 필요하다.
 - 운영 정책: 3스레드 체계(메인 제어 + 리뷰 전담 + 실행 전담), 라운드별 stateless 운영
 
 ## 완료된 작업
@@ -71,6 +71,7 @@ Primary Reference: `docs/PROJECT_OVERVIEW.md`
 - [x] H-043 fallback-warning `KEEP_FROZEN` resume readiness follow-up check(최신 게이트 재집계 + H-036~H-039/H-042/H-043 readiness 추세 비교 + `resumeDecision=KEEP_FROZEN` 유지, Main `Go`)
 - [x] H-044 fallback-warning `KEEP_FROZEN` resume readiness next check(최신 게이트 재집계 + H-036~H-039/H-042/H-043/H-044 readiness 추세 비교 + `resumeDecision=KEEP_FROZEN` 유지, Main `Go`)
 - [x] H-045 fallback-warning `KEEP_FROZEN` resume readiness follow-up check(최신 게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045 readiness 추세 비교 + `resumeDecision=KEEP_FROZEN` 유지, Main `Go`)
+- [x] H-046 fallback-warning `KEEP_FROZEN` resume readiness next check(최신 게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045/H-046 readiness 추세 비교 + 배치별 `SEED_TIMESTAMP` 분리 + `resumeDecision=KEEP_FROZEN` 유지, Main `Go`)
 
 ## 3스레드 운영 분배
 
@@ -117,8 +118,9 @@ Primary Reference: `docs/PROJECT_OVERVIEW.md`
 - [x] H-043 완료: fallback-warning `KEEP_FROZEN` resume readiness follow-up check(최신 시딩 누적/게이트 재집계 + H-036~H-039/H-042/H-043 추세 비교 + `resumeDecision=KEEP_FROZEN` 유지)
 - [x] H-044 완료: fallback-warning `KEEP_FROZEN` resume readiness next check(최신 시딩 누적/게이트 재집계 + H-036~H-039/H-042/H-043/H-044 추세 비교 + `resumeDecision=KEEP_FROZEN` 유지)
 - [x] H-045 완료: fallback-warning `KEEP_FROZEN` resume readiness follow-up check(최신 시딩 누적/게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045 추세 비교 + `resumeDecision=KEEP_FROZEN` 유지)
-- [~] H-046 예정: fallback-warning `KEEP_FROZEN` resume readiness next check(최신 시딩 누적/게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045/H-046 추세 비교 + 배치별 `SEED_TIMESTAMP` 분리 + `RESUME_H024|KEEP_FROZEN` 재판정)
+- [x] H-046 완료: fallback-warning `KEEP_FROZEN` resume readiness next check(최신 시딩 누적/게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045/H-046 추세 비교 + 배치별 `SEED_TIMESTAMP` 분리 + `resumeDecision=KEEP_FROZEN` 유지, Main `Go`)
+- [~] H-047 예정: fallback-warning `KEEP_FROZEN` resume readiness follow-up check(최신 시딩 누적/게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045/H-046/H-047 추세 비교 + 일별 분산 시딩 검증 + `RESUME_H024|KEEP_FROZEN` 재판정)
 
 ## Frozen/Backlog
 - [ ] H-024 동결: fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정
-  사유: 트래픽/샘플 미충족(`LOW_TRAFFIC`, `CHAIN_COVERAGE_GAP`) 장기화 + H-045 기준 `KEEP_FROZEN` 유지 판정(`INSUFFICIENT_SAMPLE_RATIO=0.8571`, `SUFFICIENT_DAYS=2`, `executionGapDelta=0`, `chainShareGapDelta=0.00%p`, 최근 3일 평균 `parseEligibleRunCount=7.6667`)이 여전히 재개 기준에 못 미친다. 배치별 감사 추적성 보강은 H-046에서 이어가되, `RESUME_H024` 근거 확보 전까지 동결을 유지한다.
+  사유: 트래픽/샘플 미충족(`LOW_TRAFFIC`, `CHAIN_COVERAGE_GAP`) 장기화 + H-046 기준 `KEEP_FROZEN` 유지 판정(`INSUFFICIENT_SAMPLE_RATIO=0.8571`, `SUFFICIENT_DAYS=2`, `executionGapDelta=-23`, `chainShareGapDelta=0.00%p`, 최근 3일 평균 `parseEligibleRunCount=15.3333`)이 여전히 재개 기준에 못 미친다. 배치별 감사 추적성 보강은 H-046에서 해소됐지만, `RESUME_H024` 근거 확보 전까지는 일별 분산 실행 증거를 누적하며 동결을 유지한다.
