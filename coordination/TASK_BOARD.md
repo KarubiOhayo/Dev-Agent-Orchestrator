@@ -1,6 +1,6 @@
 # DevAgent Task Board
 
-Last Updated: 2026-03-10
+Last Updated: 2026-03-11
 Owner: Main Controller Thread
 Primary Reference: `docs/PROJECT_OVERVIEW.md`
 
@@ -8,9 +8,9 @@ Primary Reference: `docs/PROJECT_OVERVIEW.md`
 
 ## 현재 스냅샷
 - 목표: A(Context Engineering) 완성 후 C(Spec -> Code -> Doc) 체이닝 확장 안정화
-- 현재 상태: Spec -> Code -> Doc/Review 체이닝(1차) 운영 안정화 단계이며, H-009~H-046 라운드는 테스트 게이트 통과를 유지했다(H-035는 중간 `No-Go` 후 H-035.1 보완, H-040은 Main `Conditional Go`, H-041/H-042/H-043/H-044/H-045/H-046은 Main `Go`). H-046 후속 점검에서도 `resumeDecision=KEEP_FROZEN`이 재확인되었고, 배치별 `SEED_TIMESTAMP` 분리로 감사 추적성 공백은 해소됐다. 다음 실행 라운드는 H-047로 고정되었다. H-024는 Frozen/Backlog를 유지한다.
+- 현재 상태: Spec -> Code -> Doc/Review 체이닝(1차) 운영 안정화 단계이며, H-009~H-047 라운드는 테스트 게이트 통과를 유지했다(H-035는 중간 `No-Go` 후 H-035.1 보완, H-040은 Main `Conditional Go`, H-041/H-042/H-043/H-044/H-045/H-046/H-047은 Main `Go`). H-047에서 H-046와 다른 KST 날짜 증거를 추가 확보해 `INSUFFICIENT_SAMPLE_RATIO=0.7857`, `SUFFICIENT_DAYS=3`으로 일부 개선됐지만 `resumeDecision=KEEP_FROZEN`은 유지됐다. 다음 실행 라운드는 H-048로 고정되었고 H-024는 Frozen/Backlog를 유지한다.
 - fallback-warning 용어 가드레일: `fallback-warning`은 output parsing fallback 경고를 의미하며, 라우팅 fallback과 구분한다(SoT: `docs/OBSERVABILITY_FALLBACK_WARNING.md`).
-- 핵심 리스크: parser 과매칭 직접 리스크는 H-041에서 해소됐지만, 비정형 출력 변형 패턴에서의 회귀 가능성은 지속 모니터링이 필요하다. 또한 fallback-warning 트랙은 H-046 재집계에서도 `INSUFFICIENT_SAMPLE_RATIO=0.8571`/`SUFFICIENT_DAYS=2` 미충족으로 `KEEP_FROZEN` 상태가 이어지고 있다. H-046에서 배치별 감사 추적성은 보강됐지만, 동일 날짜 집중 실행만으로는 `SUFFICIENT_DAYS`/`INSUFFICIENT_SAMPLE_RATIO` 개선 폭이 제한적이어서 H-047에서 일별 분산 시딩 검증이 필요하다.
+- 핵심 리스크: parser 과매칭 직접 리스크는 H-041에서 해소됐지만, 비정형 출력 변형 패턴에서의 회귀 가능성은 지속 모니터링이 필요하다. 또한 fallback-warning 트랙은 H-047 재집계에서도 `INSUFFICIENT_SAMPLE_RATIO=0.7857`/`SUFFICIENT_DAYS=3` 미충족으로 `KEEP_FROZEN` 상태가 이어지고 있다. 최근 7일 `dailyCompliance=2/7`, 최근 3일 평균 전체 `parseEligibleRunCount=23.0000`으로 개선 신호는 있으나 기준(`>=32`)에는 아직 못 미치고, `requiredDistinctCompliantDays=4`가 남아 있어 H-048에서 신규 KST 날짜 증거 누적이 필요하다.
 - 운영 정책: 3스레드 체계(메인 제어 + 리뷰 전담 + 실행 전담), 라운드별 stateless 운영
 
 ## 완료된 작업
@@ -119,8 +119,9 @@ Primary Reference: `docs/PROJECT_OVERVIEW.md`
 - [x] H-044 완료: fallback-warning `KEEP_FROZEN` resume readiness next check(최신 시딩 누적/게이트 재집계 + H-036~H-039/H-042/H-043/H-044 추세 비교 + `resumeDecision=KEEP_FROZEN` 유지)
 - [x] H-045 완료: fallback-warning `KEEP_FROZEN` resume readiness follow-up check(최신 시딩 누적/게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045 추세 비교 + `resumeDecision=KEEP_FROZEN` 유지)
 - [x] H-046 완료: fallback-warning `KEEP_FROZEN` resume readiness next check(최신 시딩 누적/게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045/H-046 추세 비교 + 배치별 `SEED_TIMESTAMP` 분리 + `resumeDecision=KEEP_FROZEN` 유지, Main `Go`)
-- [~] H-047 예정: fallback-warning `KEEP_FROZEN` resume readiness follow-up check(최신 시딩 누적/게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045/H-046/H-047 추세 비교 + 일별 분산 시딩 검증 + `RESUME_H024|KEEP_FROZEN` 재판정)
+- [x] H-047 완료: fallback-warning `KEEP_FROZEN` resume readiness follow-up check(H-046와 다른 KST 날짜 증거 확보 + 최신 시딩 누적/게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045/H-046/H-047 추세 비교 + `resumeDecision=KEEP_FROZEN` 유지, Main `Go`)
+- [~] H-048 예정: fallback-warning `KEEP_FROZEN` resume readiness next check(최신 시딩 누적/게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045/H-046/H-047/H-048 추세 비교 + 신규 KST 날짜 증거 누적 + `requiredDistinctCompliantDays` 축소 검증 + `RESUME_H024|KEEP_FROZEN` 재판정)
 
 ## Frozen/Backlog
 - [ ] H-024 동결: fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정
-  사유: 트래픽/샘플 미충족(`LOW_TRAFFIC`, `CHAIN_COVERAGE_GAP`) 장기화 + H-046 기준 `KEEP_FROZEN` 유지 판정(`INSUFFICIENT_SAMPLE_RATIO=0.8571`, `SUFFICIENT_DAYS=2`, `executionGapDelta=-23`, `chainShareGapDelta=0.00%p`, 최근 3일 평균 `parseEligibleRunCount=15.3333`)이 여전히 재개 기준에 못 미친다. 배치별 감사 추적성 보강은 H-046에서 해소됐지만, `RESUME_H024` 근거 확보 전까지는 일별 분산 실행 증거를 누적하며 동결을 유지한다.
+  사유: 트래픽/샘플 미충족(`LOW_TRAFFIC`, `CHAIN_COVERAGE_GAP`) 장기화 + H-047 기준 `KEEP_FROZEN` 유지 판정(`INSUFFICIENT_SAMPLE_RATIO=0.7857`, `SUFFICIENT_DAYS=3`, `executionGapDelta=-46`, `chainShareGapDelta=0.00%p`, 최근 3일 평균 `parseEligibleRunCount=23.0000`)이 여전히 재개 기준에 못 미친다. H-047에서 다른 KST 날짜 증거를 추가해 개선은 확인됐지만, `requiredDistinctCompliantDays=4`가 남아 있어 `RESUME_H024` 근거 확보 전까지는 일별 분산 실행 증거를 계속 누적하며 동결을 유지한다.

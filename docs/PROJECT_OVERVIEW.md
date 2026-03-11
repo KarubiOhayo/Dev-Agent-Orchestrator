@@ -7,7 +7,7 @@
   - Issue -> Spec -> Code -> Doc 체이닝
   - PR Review/Refactor 자동화(후순위)
 
-## 2) 현재 구현 상태 (2026-03-10)
+## 2) 현재 구현 상태 (2026-03-11)
 - 완료:
   - 모델 라우팅 엔진 + 라우팅 API
   - 벤더 어댑터(OpenAI/Anthropic/Google) + fallback 실행
@@ -69,9 +69,10 @@
   - H-044 fallback-warning `KEEP_FROZEN` resume readiness next check 완료(fail-fast 반복 시딩 누적 + 최신 14일/7일 게이트 재집계 + H-036~H-039/H-042/H-043/H-044 readiness 추세 비교 + `resumeDecision=KEEP_FROZEN` 유지, Main `Go`)
   - H-045 fallback-warning `KEEP_FROZEN` resume readiness follow-up check 완료(fail-fast 반복 시딩 누적 + 최신 14일/7일 게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045 readiness 추세 비교 + `resumeDecision=KEEP_FROZEN` 유지, Main `Go`)
   - H-046 fallback-warning `KEEP_FROZEN` resume readiness next check 완료(배치별 `SEED_TIMESTAMP` 분리 + 최신 14일/7일 게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045/H-046 readiness 추세 비교 + `resumeDecision=KEEP_FROZEN` 유지, Main `Go`)
+  - H-047 fallback-warning `KEEP_FROZEN` resume readiness follow-up check 완료(H-046와 다른 KST 날짜 증거 확보 + 최신 14일/7일 게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045/H-046/H-047 readiness 추세 비교 + `resumeDecision=KEEP_FROZEN` 유지, Main `Go`)
   - apply/dry-run 파일 반영
 - 미완료:
-  - H-047 fallback-warning `KEEP_FROZEN` resume readiness follow-up check(최신 게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045/H-046/H-047 readiness 추세/신호 재검증 + 일별 분산 시딩 증빙/운영 계획 검증 + `RESUME_H024|KEEP_FROZEN` 재판정)
+  - H-048 fallback-warning `KEEP_FROZEN` resume readiness next check(최신 게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045/H-046/H-047/H-048 readiness 추세/신호 재검증 + 신규 KST 날짜 증거 누적 + `requiredDistinctCompliantDays` 축소 가능성 검증 + `RESUME_H024|KEEP_FROZEN` 재판정)
   - H-024 fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정(Frozen/Backlog, `RESUME_H024` 판정 근거 확보 시 재개)
   - fallback warning 임계치/알림 룰 보정안의 운영 적용 후 회귀 점검(지속 데이터 누적 필요)
 
@@ -139,13 +140,13 @@
 - fallback-warning 해석은 output parsing fallback 경고로 한정하며, 모델 라우팅 fallback과 구분해야 함(SoT: `docs/OBSERVABILITY_FALLBACK_WARNING.md`)
 - Code parser의 loose fallback 과매칭 직접 리스크는 H-041에서 차단되었으나, 비정형 출력 변형 패턴에 대한 회귀 모니터링은 지속 필요
 - fallback warning 임계치는 초기 기준값이므로 트래픽/모델 분포 변화 시 오탐/미탐 가능성이 있음
-- H-046에서 배치별 증빙 분리는 확보됐지만, 동일 날짜 집중 실행만으로는 `SUFFICIENT_DAYS`/`INSUFFICIENT_SAMPLE_RATIO` 개선 폭이 제한적일 수 있음
+- H-047에서 `INSUFFICIENT_SAMPLE_RATIO=0.7857`, `SUFFICIENT_DAYS=3`, 최근 3일 평균 전체 `parseEligibleRunCount=23.0000`으로 일부 개선됐지만, `requiredDistinctCompliantDays=4`가 남아 있어 신규 KST 날짜 증거 누적이 더 필요함
 - `files[]`/`document`/`review` 구조는 보정되지만 의미 품질 검증은 아직 제한적
 - `PARTIAL_SUCCESS` 사용 시 클라이언트가 `chainFailures`를 확인하지 않으면 체인 실패를 간과할 수 있음(가드레일은 opt-in)
 - CLI JSON 출력은 지원되지만, 옵션 파싱 경계 케이스는 지속 회귀 점검 필요
 
 ## 8) 다음 우선순위
-1. H-047 fallback-warning `KEEP_FROZEN` resume readiness follow-up check(최신 시딩 누적 + 최신 14일/7일 게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045/H-046/H-047 readiness 추세 비교 + 일별 분산 시딩 검증 + `RESUME_H024|KEEP_FROZEN` 재판정)
+1. H-048 fallback-warning `KEEP_FROZEN` resume readiness next check(최신 시딩 누적 + 최신 14일/7일 게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045/H-046/H-047/H-048 readiness 추세 비교 + 신규 KST 날짜 증거 누적 + `requiredDistinctCompliantDays` 축소 검증 + `RESUME_H024|KEEP_FROZEN` 재판정)
 2. H-024 fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정(Frozen/Backlog, `RESUME_H024` 판정 근거 확보 시 재개)
 3. fallback warning 임계치/알림 룰 보정안의 운영 적용 후 회귀 점검(지속 데이터 누적 필요)
 

@@ -703,3 +703,19 @@
   - Main -> Executor 릴레이 `coordination/RELAYS/H-047-main-to-executor.md`를 생성해 입력/수용기준을 고정한다.
   - H-024는 `RESUME_H024` 근거(게이트 충족 + 신호 증거 누적) 확보 전까지 Frozen/Backlog를 유지한다.
   - `coordination/TASK_BOARD.md`, `docs/PROJECT_OVERVIEW.md`, `coordination/REPORTS/CURRENT_STATUS_2026-03-10.md`를 H-046 승인 + H-047 우선순위로 동기화한다.
+
+## D-061 H-047 승인(Go) 확정 및 H-048 후속 점검 정책
+- Date: 2026-03-11
+- Status: Approved (H-047 Close-out / H-048 Scope)
+- Decision:
+  - H-047 결과를 Main 최종 판단 `Go`로 승인한다.
+  - H-047 재집계 결과(`INSUFFICIENT_SAMPLE_RATIO=0.7857`, `SUFFICIENT_DAYS=3`, `executionGapDelta=-46`, `chainShareGapDelta=0.00%p`, 최근 3일 평균 전체 `parseEligibleRunCount=23.0000`, `requiredDistinctCompliantDays=4`)를 기준으로 `resumeDecision=KEEP_FROZEN`을 유지한다.
+  - 다음 실행 라운드는 H-048로 고정하고, 최신 시딩 누적/게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045/H-046/H-047/H-048 readiness 추세 비교로 `RESUME_H024|KEEP_FROZEN` 단일 판정을 재검증한다.
+  - H-048에서는 H-047 최신 증거일(`2026-03-10` KST)과 다른 KST 날짜 창에서 신규 compliant day 증거를 우선 확보해 `SUFFICIENT_DAYS`, `INSUFFICIENT_SAMPLE_RATIO`, `requiredDistinctCompliantDays` 개선 폭을 검증한다. 같은 라운드 안에서 다중 날짜 실행이 불가능하면 실제 제약과 잔여 최소 distinct compliant day 수를 결과 보고에 명시한다.
+  - H-048에서도 진단/direct/chain 배치별 `SEED_TIMESTAMP` 분리, fail-fast non-zero 보고, fallback-warning 운영 계약 필드(`signalRecoveryEvidenceLedger[]`, `evidenceAccumulationSummary[]`, `evidenceFreshnessSummary[]`) 및 임계치/알림 룰 수치(`0.05`, `0.15`, `+0.10p`, `0.10`) 고정 원칙을 유지한다.
+- Rationale: H-047에서 H-046 대비 게이트와 최근 3일 평균 모수는 개선됐고 다른 KST 날짜 증거도 추가 확보했지만, 최신 14일 게이트 4종 중 2종(`INSUFFICIENT_SAMPLE_RATIO`, `SUFFICIENT_DAYS`)이 여전히 미충족이며 최근 3일 평균 전체 모수(`23.0000`)도 기준(`>=32`)을 하회한다. 따라서 다음 레버리지는 신규 날짜 증거를 더 누적해 `requiredDistinctCompliantDays`를 줄이는 방향으로 좁혀진다.
+- Consequence:
+  - Main은 다음 실행 라운드를 `coordination/HANDOFFS/H-048-fallback-warning-keep-frozen-resume-readiness-next-check.md`로 확정한다.
+  - Main -> Executor 릴레이 `coordination/RELAYS/H-048-main-to-executor.md`를 생성해 입력/수용기준을 고정한다.
+  - H-024는 `RESUME_H024` 근거(게이트 충족 + 신호 증거 누적) 확보 전까지 Frozen/Backlog를 유지한다.
+  - `coordination/TASK_BOARD.md`, `docs/PROJECT_OVERVIEW.md`, `coordination/REPORTS/CURRENT_STATUS_2026-03-11.md`를 H-047 승인 + H-048 우선순위로 동기화한다.
