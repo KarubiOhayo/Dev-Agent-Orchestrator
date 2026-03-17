@@ -719,3 +719,19 @@
   - Main -> Executor 릴레이 `coordination/RELAYS/H-048-main-to-executor.md`를 생성해 입력/수용기준을 고정한다.
   - H-024는 `RESUME_H024` 근거(게이트 충족 + 신호 증거 누적) 확보 전까지 Frozen/Backlog를 유지한다.
   - `coordination/TASK_BOARD.md`, `docs/PROJECT_OVERVIEW.md`, `coordination/REPORTS/CURRENT_STATUS_2026-03-11.md`를 H-047 승인 + H-048 우선순위로 동기화한다.
+
+## D-062 H-048 승인 보류 및 H-049 조건부 후속 점검 준비
+- Date: 2026-03-17
+- Status: Approved (H-048 Hold / H-049 Conditional Scope)
+- Decision:
+  - H-048 결과는 Main 승인 게이트 입력 중 `result + 테스트` 근거만 충족했고, `coordination/REPORTS/H-048-review.md` 및 `coordination/RELAYS/H-048-review-to-main.md`가 미도착이므로 Main 최종 판단은 `보류(Hold)`로 둔다.
+  - H-048 Executor 결과의 개선 신호(`INSUFFICIENT_SAMPLE_RATIO=0.7143`, `SUFFICIENT_DAYS=4`, `executionGapDelta=-69`, 최근 3일 평균 전체 `parseEligibleRunCount=30.6667`, `requiredDistinctCompliantDays=3`)는 운영 문서에 반영하되, Review 입력 전까지 승인/병합/최종 close-out 근거로 사용하지 않는다.
+  - 다음 실행 라운드는 H-049로 조건부 선고정하되, 실제 착수는 H-048 review 권고가 `Go` 또는 수용 가능한 `Conditional Go`로 확정된 뒤에만 허용한다.
+  - H-049에서는 H-048 최신 증거일(`2026-03-11` KST)과 다른 KST 날짜 창의 신규 compliant day 증거를 우선 확보하고, 최신 14일/7일 게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045/H-046/H-047/H-048/H-049 readiness 추세 비교로 `RESUME_H024|KEEP_FROZEN` 단일 판정을 다시 검증한다.
+  - fallback-warning 운영 계약 필드(`signalRecoveryEvidenceLedger[]`, `evidenceAccumulationSummary[]`, `evidenceFreshnessSummary[]`) 및 임계치/알림 룰 수치(`0.05`, `0.15`, `+0.10p`, `0.10`), `INSUFFICIENT_SAMPLE` 제외 규칙은 계속 고정한다.
+- Rationale: Main 최종 판단은 `테스트 통과 + result + review` 3종 입력이 모두 필요하다. H-048 result만으로도 지표 개선은 확인되지만, Review-Control 입력이 비어 있는 상태에서 `Go`를 주면 운영 승인 게이트를 우회하게 된다. 다만 지표가 기준선에 근접했고(`parseEligibleRunCount=30.6667`), 추가 distinct compliant day 필요치도 `3`으로 줄어들어 다음 실행 준비 자체를 늦출 이유는 작다.
+- Consequence:
+  - Main은 조건부 handoff `coordination/HANDOFFS/H-049-fallback-warning-keep-frozen-resume-readiness-followup-check.md`를 생성한다.
+  - Main -> Executor 릴레이 `coordination/RELAYS/H-049-main-to-executor.md`를 생성하되, H-048 review gate 충족 전에는 착수 금지 조건을 명시한다.
+  - H-024는 `RESUME_H024` 근거 확보 전까지 Frozen/Backlog를 유지한다.
+  - `coordination/TASK_BOARD.md`, `docs/PROJECT_OVERVIEW.md`, `coordination/REPORTS/CURRENT_STATUS_2026-03-17.md`를 H-048 보류 + H-049 조건부 우선순위로 동기화한다.
