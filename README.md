@@ -114,6 +114,6 @@ chmod +x ./devagent
 
 ## Current Limits And Next Focus
 
-- 현재 저장소의 핵심 orchestration 기능은 정리되어 있지만, 외부 공개용 portfolio copy, case study, demo walkthrough, evidence export bundle은 아직 후속 작업입니다.
+- 현재 저장소의 핵심 orchestration 기능과 외부 공개용 README entrypoint / portfolio case study foundation은 정리됐지만, 남은 후속 작업은 demo / showcase walkthrough, evidence / report export bundle, 필요한 최소 polishing입니다.
 - 출력 파싱 안전성과 체인 실패 가드레일은 보강되어 있지만, 생성 내용의 의미 품질 평가는 여전히 운영 관점에서 계속 점검해야 합니다.
 - `PARTIAL_SUCCESS`를 사용하는 소비자는 성공 응답만 믿지 말고 `chainFailures[]`를 함께 확인해야 합니다.
