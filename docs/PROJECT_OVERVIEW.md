@@ -71,9 +71,9 @@
   - H-046 fallback-warning `KEEP_FROZEN` resume readiness next check 완료(배치별 `SEED_TIMESTAMP` 분리 + 최신 14일/7일 게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045/H-046 readiness 추세 비교 + `resumeDecision=KEEP_FROZEN` 유지, Main `Go`)
   - H-047 fallback-warning `KEEP_FROZEN` resume readiness follow-up check 완료(H-046와 다른 KST 날짜 증거 확보 + 최신 14일/7일 게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045/H-046/H-047 readiness 추세 비교 + `resumeDecision=KEEP_FROZEN` 유지, Main `Go`)
   - H-048 fallback-warning `KEEP_FROZEN` resume readiness next check close-out 완료(`2026-03-11` KST 신규 증거 확보 + 최신 게이트/추세 재집계 + Review `Go` + Main `Go`, parked reference 유지)
+  - H-050 README / project positioning foundation 완료(root `README.md` 신설 + capability snapshot / quickstart / docs map / current limits 반영, Main `Go`)
   - apply/dry-run 파일 반영
 - 미완료:
-  - README / project positioning 정리
   - portfolio copy / case study 초안 정리
   - demo / showcase walkthrough 패키징
   - evidence / report export 묶음 정리
@@ -144,7 +144,7 @@
   - Code run 결과(`codeRunId`, `codeOutput`, `codeFiles`) 기반 리뷰 JSON 생성
 
 ## 7) 현재 운영 리스크
-- 외부 공개용 README / positioning / case study / demo narrative / evidence export가 아직 한 묶음으로 정리되지 않았다.
+- 외부 공개용 portfolio copy / case study / demo narrative / evidence export가 아직 한 묶음으로 정리되지 않았다.
 - 모델 출력 비정형 시 fallback 비율이 상승할 수 있음
 - fallback-warning 해석은 output parsing fallback 경고로 한정하며, 모델 라우팅 fallback과 구분해야 함(SoT: `docs/OBSERVABILITY_FALLBACK_WARNING.md`)
 - Code parser의 loose fallback 과매칭 직접 리스크는 H-041에서 차단되었고, fallback-warning 트랙 자체는 `coordination/PARKING_LOT.md` 기준 parked 상태다. 명시적 resume 신호 없이는 현재 blocker로 취급하지 않는다.
@@ -153,10 +153,9 @@
 - CLI JSON 출력은 지원되지만, 옵션 파싱 경계 케이스는 지속 회귀 점검 필요
 
 ## 8) 다음 우선순위
-1. README / project positioning 정리 (H-050)
-2. portfolio copy + case study 초안 정리
-3. demo / showcase walkthrough와 quickstart 패키징
-4. evidence / report export bundle 정리
+1. portfolio copy + case study 초안 정리 (H-051)
+2. demo / showcase walkthrough와 quickstart 패키징
+3. evidence / report export bundle 정리
 
 ## 9) 라운드 시작 체크 (Stateless)
 1. `docs/PROJECT_OVERVIEW.md` 읽기

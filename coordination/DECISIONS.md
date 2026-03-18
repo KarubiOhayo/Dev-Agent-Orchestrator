@@ -763,3 +763,17 @@
   - Main은 `coordination/HANDOFFS/H-050-readme-project-positioning-foundation.md`를 생성한다.
   - Main -> Executor 릴레이 `coordination/RELAYS/H-050-main-to-executor.md`를 생성해 범위/게이트/주의사항을 고정한다.
   - `coordination/TASK_BOARD.md`, `docs/PROJECT_OVERVIEW.md`, `coordination/REPORTS/CURRENT_STATUS_2026-03-18.md`를 H-048 승인 + H-050 우선순위 기준으로 동기화한다.
+
+## D-065 H-050 승인(Go) 확정 및 H-051 portfolio copy / case study foundation 착수
+- Date: 2026-03-18
+- Status: Approved (H-050 Close-out / H-051 Scope)
+- Decision:
+  - `coordination/REPORTS/H-050-result.md`, `coordination/REPORTS/H-050-review.md`, `coordination/RELAYS/H-050-review-to-main.md`를 대조한 결과 H-050은 Main 최종 판단 `Go`로 승인한다.
+  - root `README.md`는 H-050에서 foundation 역할을 충족했으므로, 다음 실행 라운드는 H-051로 고정하고 external-facing 두 번째 레이어인 `portfolio copy + case study` 초안을 정리한다.
+  - H-051 범위는 문서 작업에 한정한다. 기본 산출물은 `docs/portfolio-case-study.md` 신설이며, 필요 시 `README.md`에는 해당 case study로 이어지는 최소 링크만 추가한다.
+  - fallback-warning parked 정책(D-063)과 README에 고정된 현재 기능/한계 서사는 유지한다.
+- Rationale: H-050은 테스트 게이트(`./gradlew clean test --no-daemon` -> `BUILD SUCCESSFUL`)와 review 입력을 모두 충족했고, Review-Control도 신규 P1/P2/P3 없음 + `Go`를 권고했다. 이제 첫 화면 positioning은 확보됐지만, 외부 평가자/협업자에게 "왜 이 프로젝트가 흥미로운가"를 README보다 깊게 설명하는 case study 레이어가 비어 있어 portfolio package가 아직 분산되어 있다.
+- Consequence:
+  - Main은 `coordination/HANDOFFS/H-051-portfolio-copy-case-study-foundation.md`를 생성한다.
+  - Main -> Executor 릴레이 `coordination/RELAYS/H-051-main-to-executor.md`를 생성해 범위/게이트/주의사항을 고정한다.
+  - `coordination/TASK_BOARD.md`, `docs/PROJECT_OVERVIEW.md`, `coordination/REPORTS/CURRENT_STATUS_2026-03-18.md`를 H-050 승인 + H-051 우선순위 기준으로 동기화한다.
