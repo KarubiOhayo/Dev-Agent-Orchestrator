@@ -777,3 +777,18 @@
   - Main은 `coordination/HANDOFFS/H-051-portfolio-copy-case-study-foundation.md`를 생성한다.
   - Main -> Executor 릴레이 `coordination/RELAYS/H-051-main-to-executor.md`를 생성해 범위/게이트/주의사항을 고정한다.
   - `coordination/TASK_BOARD.md`, `docs/PROJECT_OVERVIEW.md`, `coordination/REPORTS/CURRENT_STATUS_2026-03-18.md`를 H-050 승인 + H-051 우선순위 기준으로 동기화한다.
+
+## D-066 H-051 승인 보류 및 H-052 README portfolio status alignment 착수
+- Date: 2026-03-18
+- Status: Approved (H-051 Hold / H-052 Scope)
+- Decision:
+  - `coordination/REPORTS/H-051-result.md`, `coordination/REPORTS/H-051-review.md`, `coordination/RELAYS/H-051-review-to-main.md`를 대조한 결과 H-051의 Main 최종 판단은 `보류(Hold)`로 둔다.
+  - 보류 사유는 `README.md`의 current-limits / next-focus 문구가 `docs/portfolio-case-study.md`를 이미 생성한 H-051 결과와 충돌해, external-facing portfolio package의 entrypoint와 second-layer narrative가 같은 상태를 말하지 못하기 때문이다.
+  - `docs/portfolio-case-study.md` 본문과 README docs-map 링크는 H-051의 유효 산출물로 유지한다. 후속 범위는 case study 재작성으로 넓히지 않고, README 상태 문구 정렬에 한정한다.
+  - 다음 실행 라운드는 H-052로 고정하고, root `README.md`의 entrypoint / current-limits / next-focus copy를 현재 상태에 맞게 정렬한다. H-052 범위는 문서 작업에 한정하며 코드/설정 변경은 포함하지 않는다.
+  - fallback-warning parked 정책(D-063)은 그대로 유지한다.
+- Rationale: H-051은 테스트 게이트(`./gradlew clean test --no-daemon` -> `BUILD SUCCESSFUL`)와 case study 본문 수용기준 대부분을 충족했고, Review-Control도 `Conditional Go`를 권고했다. 다만 외부 독자가 가장 먼저 읽는 README가 case study를 아직 후속 작업처럼 표기하면, 막 생성한 second-layer narrative의 존재를 README 스스로 약화시켜 portfolio package의 일관성이 무너진다. 짧고 제한된 README alignment 라운드가 가장 낮은 비용으로 이 불일치를 해소한다.
+- Consequence:
+  - Main은 `coordination/HANDOFFS/H-052-readme-portfolio-status-alignment.md`를 생성한다.
+  - Main -> Executor 릴레이 `coordination/RELAYS/H-052-main-to-executor.md`를 생성해 범위/게이트/주의사항을 고정한다.
+  - `coordination/TASK_BOARD.md`, `docs/PROJECT_OVERVIEW.md`, `coordination/REPORTS/CURRENT_STATUS_2026-03-18.md`를 H-051 보류 + H-052 우선순위 기준으로 동기화한다.

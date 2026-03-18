@@ -9,11 +9,11 @@ Parking Reference: `coordination/PARKING_LOT.md`
 
 ## 현재 스냅샷
 - 목표: 안정화된 orchestration 핵심을 외부에 설명 가능한 portfolio package로 정렬한다.
-- 현재 상태: Spec -> Code -> Doc/Review 체이닝과 parser safety 가드는 안정화 단계에 들어섰고, root `README.md` foundation도 확보됐다. active roadmap는 이제 portfolio copy / case study / demo / evidence export 정리에 집중한다.
-- 다음 고정 라운드: `H-051 portfolio copy / case study foundation`
+- 현재 상태: Spec -> Code -> Doc/Review 체이닝과 parser safety 가드는 안정화 단계에 들어섰고, root `README.md` foundation과 `docs/portfolio-case-study.md` second-layer narrative도 확보됐다. 다만 README current-limits 문구가 아직 case study를 후속 작업처럼 남겨 두어 Main close-out은 보류 상태이며, active roadmap는 먼저 entrypoint/status alignment를 정리한 뒤 demo / evidence export로 확장한다.
+- 다음 고정 라운드: `H-052 README portfolio status alignment`
 - fallback-warning 용어 가드레일: `fallback-warning`은 output parsing fallback 경고를 의미하며, 라우팅 fallback과 구분한다(SoT: `docs/OBSERVABILITY_FALLBACK_WARNING.md`).
 - parking 정책: fallback-warning 트랙(`H-024`, `H-049`, latest evidence `H-048`)은 `PARKED_UNLESS_EXPLICIT_RESUME` 상태다. 현재 스냅샷의 핵심 진행축, readiness blocker, 다음 라운드 고정 후보로 취급하지 않는다.
-- 핵심 리스크: 외부 공개용 설명 자산 중 README foundation은 정리됐지만, portfolio copy / case study / demo / evidence export 레이어는 아직 분산되어 있다. parser 과매칭 직접 리스크는 H-041에서 해소됐고, fallback-warning은 historical observability concern으로만 보존한다.
+- 핵심 리스크: README foundation과 case study narrative는 갖춰졌지만, entrypoint 상태 문구와 실제 문서 상태가 아직 완전히 정렬되지 않았고 demo / evidence export 레이어도 남아 있다. parser 과매칭 직접 리스크는 H-041에서 해소됐고, fallback-warning은 historical observability concern으로만 보존한다.
 - 운영 정책: 3스레드 체계(메인 제어 + 리뷰 전담 + 실행 전담), 라운드별 stateless 운영
 
 ## 완료된 작업
@@ -121,12 +121,12 @@ Parking Reference: `coordination/PARKING_LOT.md`
 10. 병합은 THREAD-A 최종 승인 이후에만 수행한다.
 
 ## Active Priorities
-- [ ] portfolio copy + case study 초안 정리 (`H-051`)
+- [ ] README entrypoint / current-limits status alignment (`H-052`)
 - [ ] demo / showcase walkthrough 패키징
 - [ ] evidence / report export bundle 정리
 
 ## Next Actions
-1. `H-051` handoff 기준으로 `docs/portfolio-case-study.md` 초안을 작성해 README 위의 두 번째 레이어가 되는 external-facing narrative를 정리한다.
+1. `H-052` handoff 기준으로 `README.md`의 current-limits / next-focus 문구를 H-051 결과에 맞게 정렬해 case study foundation이 이미 존재한다는 상태를 entrypoint에서도 일관되게 보여 준다.
 2. demo / showcase 흐름을 case study 서사와 연결해 walkthrough 패키지 입력을 만든다.
 3. result / review / relay 근거 중 외부 공유 가능한 evidence export 묶음을 정리한다.
 

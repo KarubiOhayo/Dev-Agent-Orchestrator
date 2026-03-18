@@ -74,7 +74,7 @@
   - H-050 README / project positioning foundation 완료(root `README.md` 신설 + capability snapshot / quickstart / docs map / current limits 반영, Main `Go`)
   - apply/dry-run 파일 반영
 - 미완료:
-  - portfolio copy / case study 초안 정리
+  - README entrypoint / case study 상태 정합화 close-out (`H-052`)
   - demo / showcase walkthrough 패키징
   - evidence / report export 묶음 정리
 
@@ -144,7 +144,7 @@
   - Code run 결과(`codeRunId`, `codeOutput`, `codeFiles`) 기반 리뷰 JSON 생성
 
 ## 7) 현재 운영 리스크
-- 외부 공개용 portfolio copy / case study / demo narrative / evidence export가 아직 한 묶음으로 정리되지 않았다.
+- 외부 공개용 case study foundation은 작성됐지만, README entrypoint 상태 문구와 demo narrative / evidence export bundle이 아직 한 묶음으로 정렬되지 않았다.
 - 모델 출력 비정형 시 fallback 비율이 상승할 수 있음
 - fallback-warning 해석은 output parsing fallback 경고로 한정하며, 모델 라우팅 fallback과 구분해야 함(SoT: `docs/OBSERVABILITY_FALLBACK_WARNING.md`)
 - Code parser의 loose fallback 과매칭 직접 리스크는 H-041에서 차단되었고, fallback-warning 트랙 자체는 `coordination/PARKING_LOT.md` 기준 parked 상태다. 명시적 resume 신호 없이는 현재 blocker로 취급하지 않는다.
@@ -153,7 +153,7 @@
 - CLI JSON 출력은 지원되지만, 옵션 파싱 경계 케이스는 지속 회귀 점검 필요
 
 ## 8) 다음 우선순위
-1. portfolio copy + case study 초안 정리 (H-051)
+1. README entrypoint / current-limits copy 정합화 close-out (H-052)
 2. demo / showcase walkthrough와 quickstart 패키징
 3. evidence / report export bundle 정리
 
