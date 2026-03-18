@@ -749,3 +749,17 @@
   - resume trigger가 없으면 다음 라운드 후보로 자동 승격되지 않는다.
   - 재개 시에는 H-024/H-049 기존 handoff/relay를 그대로 잇지 않고, 최신 근거를 다시 읽은 뒤 fresh handoff를 새로 생성해 시작한다.
   - `coordination/PARKING_LOT.md`, `coordination/TASK_BOARD.md`, `docs/PROJECT_OVERVIEW.md`, 최신 `coordination/REPORTS/CURRENT_STATUS_*.md`는 parked 상태를 기본 표면으로 반영한다.
+
+## D-064 H-048 승인(Go) 확정 및 H-050 README / positioning 착수
+- Date: 2026-03-18
+- Status: Approved (H-048 Close-out / H-050 Scope)
+- Decision:
+  - `coordination/REPORTS/H-048-result.md`, `coordination/REPORTS/H-048-review.md`, `coordination/RELAYS/H-048-review-to-main.md`를 대조한 결과 H-048은 Main 최종 판단 `Go`로 승인한다.
+  - H-048의 `resumeDecision=KEEP_FROZEN`과 D-063 parked 정책은 함께 유지한다. 따라서 H-049 handoff/relay는 historical reference로만 남고, current next-round 입력으로 재사용하지 않는다.
+  - 다음 실행 라운드는 H-050으로 고정하고, root `README.md`를 중심으로 project positioning, capability snapshot, quickstart, docs map을 한 장으로 정리한다.
+  - H-050 범위는 문서 작업에 한정하며 코드/설정 변경은 포함하지 않는다.
+- Rationale: H-048은 테스트 게이트(`./gradlew clean test --no-daemon` -> `BUILD SUCCESSFUL`)와 review 입력이 모두 도착했고, Review-Control도 신규 P1/P2/P3 없음 + `Go`를 권고했다. 동시에 D-063에 따라 parked fallback-warning 트랙은 다음 라운드 후보에서 제외되므로, active roadmap의 최우선 공백인 README / positioning 작업으로 전환하는 것이 문서와 우선순위에 가장 정합적이다.
+- Consequence:
+  - Main은 `coordination/HANDOFFS/H-050-readme-project-positioning-foundation.md`를 생성한다.
+  - Main -> Executor 릴레이 `coordination/RELAYS/H-050-main-to-executor.md`를 생성해 범위/게이트/주의사항을 고정한다.
+  - `coordination/TASK_BOARD.md`, `docs/PROJECT_OVERVIEW.md`, `coordination/REPORTS/CURRENT_STATUS_2026-03-18.md`를 H-048 승인 + H-050 우선순위 기준으로 동기화한다.

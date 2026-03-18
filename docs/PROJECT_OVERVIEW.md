@@ -70,6 +70,7 @@
   - H-045 fallback-warning `KEEP_FROZEN` resume readiness follow-up check 완료(fail-fast 반복 시딩 누적 + 최신 14일/7일 게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045 readiness 추세 비교 + `resumeDecision=KEEP_FROZEN` 유지, Main `Go`)
   - H-046 fallback-warning `KEEP_FROZEN` resume readiness next check 완료(배치별 `SEED_TIMESTAMP` 분리 + 최신 14일/7일 게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045/H-046 readiness 추세 비교 + `resumeDecision=KEEP_FROZEN` 유지, Main `Go`)
   - H-047 fallback-warning `KEEP_FROZEN` resume readiness follow-up check 완료(H-046와 다른 KST 날짜 증거 확보 + 최신 14일/7일 게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045/H-046/H-047 readiness 추세 비교 + `resumeDecision=KEEP_FROZEN` 유지, Main `Go`)
+  - H-048 fallback-warning `KEEP_FROZEN` resume readiness next check close-out 완료(`2026-03-11` KST 신규 증거 확보 + 최신 게이트/추세 재집계 + Review `Go` + Main `Go`, parked reference 유지)
   - apply/dry-run 파일 반영
 - 미완료:
   - README / project positioning 정리
@@ -152,7 +153,7 @@
 - CLI JSON 출력은 지원되지만, 옵션 파싱 경계 케이스는 지속 회귀 점검 필요
 
 ## 8) 다음 우선순위
-1. README / project positioning 정리
+1. README / project positioning 정리 (H-050)
 2. portfolio copy + case study 초안 정리
 3. demo / showcase walkthrough와 quickstart 패키징
 4. evidence / report export bundle 정리
