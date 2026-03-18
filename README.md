@@ -105,6 +105,7 @@ chmod +x ./devagent
 
 ## Docs Map
 
+- [Portfolio case study](docs/portfolio-case-study.md)
 - [CLI quickstart](docs/cli-quickstart.md)
 - [Code Agent API](docs/code-agent-api.md)
 - [Model routing policy](docs/model-routing-policy.md)
