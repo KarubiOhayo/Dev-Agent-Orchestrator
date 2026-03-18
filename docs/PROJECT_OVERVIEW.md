@@ -7,7 +7,7 @@
   - Issue -> Spec -> Code -> Doc 체이닝
   - PR Review/Refactor 자동화(후순위)
 
-## 2) 현재 구현 상태 (2026-03-17)
+## 2) 현재 구현 상태 (2026-03-18)
 - 완료:
   - 모델 라우팅 엔진 + 라우팅 API
   - 벤더 어댑터(OpenAI/Anthropic/Google) + fallback 실행
@@ -72,10 +72,15 @@
   - H-047 fallback-warning `KEEP_FROZEN` resume readiness follow-up check 완료(H-046와 다른 KST 날짜 증거 확보 + 최신 14일/7일 게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045/H-046/H-047 readiness 추세 비교 + `resumeDecision=KEEP_FROZEN` 유지, Main `Go`)
   - apply/dry-run 파일 반영
 - 미완료:
-  - H-048 fallback-warning `KEEP_FROZEN` resume readiness next check close-out 대기(Executor 결과는 제출됐지만 `coordination/REPORTS/H-048-review.md`, `coordination/RELAYS/H-048-review-to-main.md` 미도착으로 Main 승인 보류)
-  - H-049 fallback-warning `KEEP_FROZEN` resume readiness follow-up check(조건부 handoff 준비 완료, H-048 review `Go` 확인 후 다음 가용 KST 날짜 창에서 실행)
-  - H-024 fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정(Frozen/Backlog, `RESUME_H024` 판정 근거 확보 시 재개)
-  - fallback warning 임계치/알림 룰 보정안의 운영 적용 후 회귀 점검(지속 데이터 누적 필요)
+  - README / project positioning 정리
+  - portfolio copy / case study 초안 정리
+  - demo / showcase walkthrough 패키징
+  - evidence / report export 묶음 정리
+
+### Parked Work
+- `fallback-warning` 관측 트랙(`H-024`, `H-049`, latest evidence `H-048`)은 `coordination/PARKING_LOT.md` 기준 `PARKED_UNLESS_EXPLICIT_RESUME` 상태다.
+- 이 트랙은 현재 제품 완성도나 portfolio readiness의 핵심 blocker가 아니며, `explicit resume required` 상태로 관리한다.
+- historical thresholds, ledger, result/review/relay는 그대로 보존하고, 재개가 필요하면 stale handoff를 잇지 않고 fresh handoff를 새로 만든다.
 
 ## 3) 핵심 아키텍처
 - `api/`: 엔드포인트
@@ -105,6 +110,7 @@
   - 세션 기억 대신 `coordination` 문서를 단일 소스 오브 트루스로 사용
 - 상세 규칙:
   - `coordination/TASK_BOARD.md`
+  - `coordination/PARKING_LOT.md`
   - `coordination/DECISIONS.md`
   - `coordination/PROMPTS/main-controller.md`
   - `coordination/PROMPTS/review-controller.md`
@@ -137,26 +143,27 @@
   - Code run 결과(`codeRunId`, `codeOutput`, `codeFiles`) 기반 리뷰 JSON 생성
 
 ## 7) 현재 운영 리스크
+- 외부 공개용 README / positioning / case study / demo narrative / evidence export가 아직 한 묶음으로 정리되지 않았다.
 - 모델 출력 비정형 시 fallback 비율이 상승할 수 있음
 - fallback-warning 해석은 output parsing fallback 경고로 한정하며, 모델 라우팅 fallback과 구분해야 함(SoT: `docs/OBSERVABILITY_FALLBACK_WARNING.md`)
-- Code parser의 loose fallback 과매칭 직접 리스크는 H-041에서 차단되었으나, 비정형 출력 변형 패턴에 대한 회귀 모니터링은 지속 필요
-- fallback warning 임계치는 초기 기준값이므로 트래픽/모델 분포 변화 시 오탐/미탐 가능성이 있음
-- H-048 Executor 결과(`2026-03-11` KST) 기준 `INSUFFICIENT_SAMPLE_RATIO=0.7143`, `SUFFICIENT_DAYS=4`, 최근 3일 평균 전체 `parseEligibleRunCount=30.6667`, `requiredDistinctCompliantDays=3`으로 추가 개선됐지만, Review 입력 미도착으로 Main 승인 보류 상태이며 재개 게이트 2종은 여전히 미충족임
+- Code parser의 loose fallback 과매칭 직접 리스크는 H-041에서 차단되었고, fallback-warning 트랙 자체는 `coordination/PARKING_LOT.md` 기준 parked 상태다. 명시적 resume 신호 없이는 현재 blocker로 취급하지 않는다.
 - `files[]`/`document`/`review` 구조는 보정되지만 의미 품질 검증은 아직 제한적
 - `PARTIAL_SUCCESS` 사용 시 클라이언트가 `chainFailures`를 확인하지 않으면 체인 실패를 간과할 수 있음(가드레일은 opt-in)
 - CLI JSON 출력은 지원되지만, 옵션 파싱 경계 케이스는 지속 회귀 점검 필요
 
 ## 8) 다음 우선순위
-1. H-048 close-out pending review(`coordination/REPORTS/H-048-review.md`, `coordination/RELAYS/H-048-review-to-main.md` 확보 후 Main 재판단)
-2. H-049 fallback-warning `KEEP_FROZEN` resume readiness follow-up check(조건부 handoff: 최신 시딩 누적 + 최신 14일/7일 게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045/H-046/H-047/H-048/H-049 readiness 추세 비교 + 신규 KST 날짜 증거 누적 + `requiredDistinctCompliantDays` 추가 축소 검증 + `RESUME_H024|KEEP_FROZEN` 재판정)
-3. H-024 fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정(Frozen/Backlog, `RESUME_H024` 판정 근거 확보 시 재개)
+1. README / project positioning 정리
+2. portfolio copy + case study 초안 정리
+3. demo / showcase walkthrough와 quickstart 패키징
+4. evidence / report export bundle 정리
 
 ## 9) 라운드 시작 체크 (Stateless)
 1. `docs/PROJECT_OVERVIEW.md` 읽기
 2. `coordination/TASK_BOARD.md` 최신 상태 확인
-3. `coordination/DECISIONS.md` 충돌 여부 확인
-4. 대상 handoff/result/review 문서 1개씩 확정
-5. Main -> Executor/Review 지시 분리 전달
+3. `coordination/PARKING_LOT.md` parked 상태 확인
+4. `coordination/DECISIONS.md` 충돌 여부 확인
+5. 대상 handoff/result/review 문서 1개씩 확정
+6. Main -> Executor/Review 지시 분리 전달
 
 ## 10) 참고 평가 문서
 - 초기 설계 대비 현재 상태 점검(2026-02-13):

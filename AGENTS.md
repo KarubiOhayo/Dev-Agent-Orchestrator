@@ -32,8 +32,14 @@
 - 최소 재로딩 기준:
   - `docs/PROJECT_OVERVIEW.md`
   - `coordination/TASK_BOARD.md`
+  - `coordination/PARKING_LOT.md`
   - `coordination/DECISIONS.md`
   - 대상 라운드의 `coordination/REPORTS/*` 및 `coordination/RELAYS/*`
+
+## 2.1) Parked work 해석
+
+- `PARKED` 상태 트랙은 명시적 resume 요청 없이는 계획/제안/후속 handoff 대상에서 제외한다.
+- Stateless reload 시 parked work는 "후순위"가 아니라 "기본 제외"로 해석한다.
 
 ## 3) H-XXX Placeholder 해석 규칙
 

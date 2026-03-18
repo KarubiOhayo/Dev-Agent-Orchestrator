@@ -735,3 +735,17 @@
   - Main -> Executor 릴레이 `coordination/RELAYS/H-049-main-to-executor.md`를 생성하되, H-048 review gate 충족 전에는 착수 금지 조건을 명시한다.
   - H-024는 `RESUME_H024` 근거 확보 전까지 Frozen/Backlog를 유지한다.
   - `coordination/TASK_BOARD.md`, `docs/PROJECT_OVERVIEW.md`, `coordination/REPORTS/CURRENT_STATUS_2026-03-17.md`를 H-048 보류 + H-049 조건부 우선순위로 동기화한다.
+
+## D-063 fallback-warning parking lot policy
+- Date: 2026-03-18
+- Status: Approved
+- Decision:
+  - fallback-warning 트랙(`H-024`, `H-049`, 관련 resume-readiness follow-up)은 기본 상태를 `PARKED_UNLESS_EXPLICIT_RESUME`로 전환한다.
+  - `PARKED` 작업은 current snapshot, active priorities, 다음 라운드 후보, portfolio readiness/blocker 분류, pre-fixed handoff 제안에서 기본 제외한다.
+  - 재개는 명시적 사용자 요청, 실제 parser fallback-warning 회귀/incident, release/demo/portfolio 직접 blocker 확인 때만 허용한다.
+- Rationale: fallback-warning 트랙의 historical/observability 가치는 유지되지만, 이를 계속 active roadmap에 올려두면 포트폴리오 readiness 같은 더 큰 외부 가치 작업을 밀어내고 stale handoff를 다시 쓰게 만들기 쉽다.
+- Consequence:
+  - fallback-warning은 historical/observability concern으로 보존되지만 active roadmap에서는 제외된다.
+  - resume trigger가 없으면 다음 라운드 후보로 자동 승격되지 않는다.
+  - 재개 시에는 H-024/H-049 기존 handoff/relay를 그대로 잇지 않고, 최신 근거를 다시 읽은 뒤 fresh handoff를 새로 생성해 시작한다.
+  - `coordination/PARKING_LOT.md`, `coordination/TASK_BOARD.md`, `docs/PROJECT_OVERVIEW.md`, 최신 `coordination/REPORTS/CURRENT_STATUS_*.md`는 parked 상태를 기본 표면으로 반영한다.

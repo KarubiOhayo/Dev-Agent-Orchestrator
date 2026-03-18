@@ -908,6 +908,8 @@ curl -X POST http://localhost:8080/api/agents/spec/generate \
 - `parseEligibleRunCount < 20`의 `INSUFFICIENT_SAMPLE` 제외 규칙을 유지한다.
 - 이벤트 정의(`*_OUTPUT_FALLBACK_WARNING`)와 모수 정의(직접 호출 + 체인 호출 포함)는 변경하지 않는다.
 
+> 참고: 아래 H-024/H-029 이후 fallback-warning 운영 기록은 historical reference다. active roadmap에서는 `coordination/PARKING_LOT.md` 기준 `PARKED_UNLESS_EXPLICIT_RESUME`로 다루며, `nextCheckTrigger`/`우선 액션` 문구는 당시 판단 기록으로만 본다.
+
 ### H-029 H-024 동결 트랙 재개 조건 점검 (최신 14일/7일 재평가)
 
 - 실행일(KST):
@@ -1616,14 +1618,14 @@ SEED_FAIL_FAST=true \
 - 판정 근거:
   - 시딩으로 `executionGapDelta=-5`, `chainShareGapDelta=-60.00%p` 개선 신호와 fresh 체인 이벤트 증거가 확보되었다.
   - 그러나 게이트 4개 중 `INSUFFICIENT_SAMPLE_RATIO`, `SUFFICIENT_DAYS` 2개 미충족(`1.00`, `0`)이 유지되어 재개 조건에 도달하지 못했다.
-  - 따라서 H-024 재개는 보류하되, 동일 워크로드를 반복 실행해 `parseEligibleRunCount >= 20` 충족 일수를 누적한다.
+  - 따라서 당시 운영 판단은 H-024 재개 보류였고, 동일 워크로드 반복 실행으로 `parseEligibleRunCount >= 20` 충족 일수를 누적하는 것이었다.
 - `unmetReadinessSignals`:
   - `INSUFFICIENT_SAMPLE_RATIO` (`1.00 > 0.50`)
   - `SUFFICIENT_DAYS` (`0 < 7`)
 - `nextCheckTrigger`:
   - 필수 충족 조건: `집계 성공 >= 10`, `INSUFFICIENT_SAMPLE <= 0.50`, `집계 불가 < 3`, `샘플 충분 일수 >= 7`
   - 다음 점검 시점: `2026-02-21 09:00 KST`
-  - 우선 액션: `scripts/seed-fallback-warning-workload.sh` 반복 실행으로 fresh runId/체인 이벤트 누적
+  - 당시 우선 액션: `scripts/seed-fallback-warning-workload.sh` 반복 실행으로 fresh runId/체인 이벤트 누적
 
 - `KEEP_FROZEN` 상태에서는 기존 계약 필드(`signalRecoveryEvidenceLedger[]`, `evidenceAccumulationSummary[]`, `evidenceFreshnessSummary[]`, `recoveryActionTracking[]`, `recoveryActionCompletionRate`, `blockedActionCount`)를 유지하고 신규 필드는 추가하지 않는다.
 

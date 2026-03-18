@@ -1,5 +1,7 @@
 # H-024 fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정
 
+> 보존용 메모: 이 파일은 historical reference다. fallback-warning 트랙이 parked인 동안에는 그대로 실행/재사용하지 말고, 명시적 resume trigger 확인 후 fresh handoff로 다시 시작한다.
+
 Owner: WT-24 (`codex/h024-fallback-warning-recovery-action-baseline-governance`)
 Priority: Highest
 

@@ -1,5 +1,7 @@
 # [H-024] Main -> Executor Relay Prompt
 
+> 보존용 메모: 이 릴레이는 historical reference다. fallback-warning 트랙이 parked인 동안에는 current next-round 입력으로 사용하지 말고, 명시적 resume trigger 확인 후 fresh handoff와 새 relay를 만든다.
+
 ## 라운드 정보
 - 대상 handoff: `coordination/HANDOFFS/H-024-fallback-warning-recovery-action-baseline-governance.md`
 - 참고 result(있으면): `coordination/REPORTS/H-023-result.md`

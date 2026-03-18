@@ -32,4 +32,5 @@
 
 ## 현재 트랙과의 연결
 - H-041 우선순위는 parser safety(`LOOSE_JSON_FALLBACK` 안전화)와 apply 실증 증빙 확보다.
-- H-039/H-024 fallback-warning 트랙은 H-041 종료 후 재개한다.
+- fallback-warning 트랙(`H-024`, `H-049`, latest evidence `H-048`)은 현재 `coordination/PARKING_LOT.md` 기준 `PARKED_UNLESS_EXPLICIT_RESUME` 상태다.
+- 재개는 명시적 사용자 요청, 실제 parser fallback-warning 회귀/incident, release/demo/portfolio 직접 blocker 확인 때만 허용한다.

@@ -1,5 +1,7 @@
 # Current Status Report (2026-03-17)
 
+> 보존용 메모: 이 보고서는 2026-03-17 시점 snapshot이다. 최신 planning surface는 `coordination/REPORTS/CURRENT_STATUS_2026-03-18.md`와 `coordination/PARKING_LOT.md`를 따르며, fallback-warning 트랙은 현재 parked 상태다.
+
 ## 요약
 - H-048(fallback-warning `KEEP_FROZEN` resume readiness next check) 라운드의 Main 판단은 **보류(Hold)** 이다.
 - `coordination/REPORTS/H-048-result.md` 기준으로 H-048은 `INSUFFICIENT_SAMPLE_RATIO=0.7143`, `SUFFICIENT_DAYS=4`, `executionGapDelta=-69`, 최근 3일 평균 전체 `parseEligibleRunCount=30.6667`, `requiredDistinctCompliantDays=3`까지 개선됐다.

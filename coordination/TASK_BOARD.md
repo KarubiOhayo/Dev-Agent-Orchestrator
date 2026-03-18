@@ -1,16 +1,18 @@
 # DevAgent Task Board
 
-Last Updated: 2026-03-17
+Last Updated: 2026-03-18
 Owner: Main Controller Thread
 Primary Reference: `docs/PROJECT_OVERVIEW.md`
+Parking Reference: `coordination/PARKING_LOT.md`
 
 > 해석 규칙: 문서의 `H-XXX` 표기는 placeholder입니다. 실제 실행 시에는 대상 라운드의 최신 실제 파일명(예: `H-006-*`)으로 치환해 사용합니다.
 
 ## 현재 스냅샷
-- 목표: A(Context Engineering) 완성 후 C(Spec -> Code -> Doc) 체이닝 확장 안정화
-- 현재 상태: Spec -> Code -> Doc/Review 체이닝(1차) 운영 안정화 단계이며, H-009~H-047 라운드는 테스트 게이트 통과를 유지했다(H-035는 중간 `No-Go` 후 H-035.1 보완, H-040은 Main `Conditional Go`, H-041/H-042/H-043/H-044/H-045/H-046/H-047은 Main `Go`). H-048 Executor 결과(`2026-03-11` KST)는 `INSUFFICIENT_SAMPLE_RATIO=0.7143`, `SUFFICIENT_DAYS=4`, 최근 3일 평균 전체 `parseEligibleRunCount=30.6667`, `requiredDistinctCompliantDays=3`으로 추가 개선을 보여줬지만, `coordination/REPORTS/H-048-review.md`와 `coordination/RELAYS/H-048-review-to-main.md`가 아직 없어 Main 판단은 보류 상태다. H-049는 조건부 후속 handoff로 선고정했고, H-024는 Frozen/Backlog를 유지한다.
+- 목표: 안정화된 orchestration 핵심을 외부에 설명 가능한 portfolio package로 정렬한다.
+- 현재 상태: Spec -> Code -> Doc/Review 체이닝과 parser safety 가드는 안정화 단계에 들어섰고, active roadmap는 README / positioning / case study / demo / evidence export 정리에 집중한다.
 - fallback-warning 용어 가드레일: `fallback-warning`은 output parsing fallback 경고를 의미하며, 라우팅 fallback과 구분한다(SoT: `docs/OBSERVABILITY_FALLBACK_WARNING.md`).
-- 핵심 리스크: parser 과매칭 직접 리스크는 H-041에서 해소됐지만, 비정형 출력 변형 패턴에서의 회귀 가능성은 지속 모니터링이 필요하다. 또한 fallback-warning 트랙은 H-048 Executor 결과 기준으로도 `INSUFFICIENT_SAMPLE_RATIO=0.7143`/`SUFFICIENT_DAYS=4` 미충족이라 `KEEP_FROZEN` 상태가 이어지고 있고, 최근 3일 평균 전체 `parseEligibleRunCount=30.6667`이 기준(`>=32`)에 근접했지만 아직 미달이다. 여기에 H-048 review gate 미완료가 겹쳐 있어, 승인 보류 해소와 신규 KST 날짜 증거 누적을 함께 관리해야 한다.
+- parking 정책: fallback-warning 트랙(`H-024`, `H-049`, latest evidence `H-048`)은 `PARKED_UNLESS_EXPLICIT_RESUME` 상태다. 현재 스냅샷의 핵심 진행축, readiness blocker, 다음 라운드 고정 후보로 취급하지 않는다.
+- 핵심 리스크: 외부 공개용 설명 자산(README / positioning / case study / demo / evidence export)이 아직 분산되어 있다. parser 과매칭 직접 리스크는 H-041에서 해소됐고, fallback-warning은 historical observability concern으로만 보존한다.
 - 운영 정책: 3스레드 체계(메인 제어 + 리뷰 전담 + 실행 전담), 라운드별 stateless 운영
 
 ## 완료된 작업
@@ -79,7 +81,7 @@ Primary Reference: `docs/PROJECT_OVERVIEW.md`
 - Branch: `main` 또는 `codex/control-readonly`
 - 역할: 라운드 계획, handoff 확정, 승인/보류 최종 판단, 문서 상태 동기화
 - 제약: 코드 수정/커밋 금지, 상세 코드리뷰는 THREAD-R에 위임
-- 입력: `PROJECT_OVERVIEW`, `TASK_BOARD`, `DECISIONS`, `REPORTS/H-XXX-result.md`, `REPORTS/H-XXX-review.md`, `RELAYS/H-XXX-review-to-main.md`
+- 입력: `PROJECT_OVERVIEW`, `TASK_BOARD`, `PARKING_LOT`, `DECISIONS`, `REPORTS/H-XXX-result.md`, `REPORTS/H-XXX-review.md`, `RELAYS/H-XXX-review-to-main.md`
 - 산출: 다음 라운드 지시문, `RELAYS/H-00N-main-to-executor.md`, 상태 문서 갱신, Go/No-Go 결정
 
 ### THREAD-R REVIEW-CONTROL (읽기 전용)
@@ -100,29 +102,32 @@ Primary Reference: `docs/PROJECT_OVERVIEW.md`
 - 라운드 실행/검토 가이드는 `.agents/skills/` 스킬 문서로 표준화한다.
 - 릴레이는 `Main -> Executor -> Review -> Main` 3종을 사용한다.
 - Automations는 Plan A(report-only)로 운영하며 자동 파일수정/커밋/PR을 금지한다.
+- `coordination/PARKING_LOT.md`의 `PARKED` 항목은 명시적 resume trigger 없이는 계획/제안/후속 handoff에서 제외한다.
 
 ## 진행 규칙
-1. 모든 스레드는 라운드 시작 시 문서 입력을 다시 로드하는 stateless 원칙을 따른다.
-2. THREAD-A는 상세 코드리뷰를 직접 수행하지 않고 THREAD-R 리뷰 리포트를 승인 판단의 근거로 사용한다.
-3. THREAD-A는 다음 라운드 시작 시 handoff 확정 직후 `coordination/RELAYS/H-00N-main-to-executor.md`를 생성한다.
-4. THREAD-B는 handoff 범위만 구현하고 테스트를 통과시킨 뒤 결과 리포트를 제출한다.
-5. THREAD-B는 결과 리포트 제출 직후 `coordination/RELAYS/H-XXX-executor-to-review.md`를 자동 생성해 THREAD-R 입력으로 전달한다.
-6. THREAD-R은 결과 리포트와 실제 변경 코드를 대조해 review 리포트를 제출한다.
-7. THREAD-R은 리뷰 완료 직후 `coordination/RELAYS/H-XXX-review-to-main.md`를 자동 생성해 THREAD-A 입력으로 전달한다.
-8. 공통 파일(`application.yml`, 공용 모델, 빌드 설정) 변경은 THREAD-A 사전 승인 후 진행한다.
-9. 병합은 THREAD-A 최종 승인 이후에만 수행한다.
+1. 모든 스레드는 라운드 시작 시 `PROJECT_OVERVIEW`, `TASK_BOARD`, `PARKING_LOT`, `DECISIONS`를 다시 로드하는 stateless 원칙을 따른다.
+2. `PARKED` 항목은 명시적 resume trigger 없이는 제안/우선순위/후속 handoff 후보에 올리지 않는다.
+3. THREAD-A는 상세 코드리뷰를 직접 수행하지 않고 THREAD-R 리뷰 리포트를 승인 판단의 근거로 사용한다.
+4. THREAD-A는 다음 라운드 시작 시 handoff 확정 직후 `coordination/RELAYS/H-00N-main-to-executor.md`를 생성한다.
+5. THREAD-B는 handoff 범위만 구현하고 테스트를 통과시킨 뒤 결과 리포트를 제출한다.
+6. THREAD-B는 결과 리포트 제출 직후 `coordination/RELAYS/H-XXX-executor-to-review.md`를 자동 생성해 THREAD-R 입력으로 전달한다.
+7. THREAD-R은 결과 리포트와 실제 변경 코드를 대조해 review 리포트를 제출한다.
+8. THREAD-R은 리뷰 완료 직후 `coordination/RELAYS/H-XXX-review-to-main.md`를 자동 생성해 THREAD-A 입력으로 전달한다.
+9. 공통 파일(`application.yml`, 공용 모델, 빌드 설정) 변경은 THREAD-A 사전 승인 후 진행한다.
+10. 병합은 THREAD-A 최종 승인 이후에만 수행한다.
 
-## 현재 우선순위
-- [x] H-041 완료: code-output parser safety guard + apply verification(`LOOSE_JSON_FALLBACK` 과매칭 차단 + writable `writtenFiles > 0` 실증 확보)
-- [x] H-042 완료: fallback-warning `KEEP_FROZEN` resume readiness next check(최신 시딩 누적/게이트 재집계 + H-036~H-039/H-042 추세 비교 + `resumeDecision=KEEP_FROZEN` 유지)
-- [x] H-043 완료: fallback-warning `KEEP_FROZEN` resume readiness follow-up check(최신 시딩 누적/게이트 재집계 + H-036~H-039/H-042/H-043 추세 비교 + `resumeDecision=KEEP_FROZEN` 유지)
-- [x] H-044 완료: fallback-warning `KEEP_FROZEN` resume readiness next check(최신 시딩 누적/게이트 재집계 + H-036~H-039/H-042/H-043/H-044 추세 비교 + `resumeDecision=KEEP_FROZEN` 유지)
-- [x] H-045 완료: fallback-warning `KEEP_FROZEN` resume readiness follow-up check(최신 시딩 누적/게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045 추세 비교 + `resumeDecision=KEEP_FROZEN` 유지)
-- [x] H-046 완료: fallback-warning `KEEP_FROZEN` resume readiness next check(최신 시딩 누적/게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045/H-046 추세 비교 + 배치별 `SEED_TIMESTAMP` 분리 + `resumeDecision=KEEP_FROZEN` 유지, Main `Go`)
-- [x] H-047 완료: fallback-warning `KEEP_FROZEN` resume readiness follow-up check(H-046와 다른 KST 날짜 증거 확보 + 최신 시딩 누적/게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045/H-046/H-047 추세 비교 + `resumeDecision=KEEP_FROZEN` 유지, Main `Go`)
-- [~] H-048 승인 보류: fallback-warning `KEEP_FROZEN` resume readiness next check close-out(`coordination/REPORTS/H-048-result.md`는 제출됐지만 `coordination/REPORTS/H-048-review.md`, `coordination/RELAYS/H-048-review-to-main.md` 대기)
-- [ ] H-049 조건부 예정: fallback-warning `KEEP_FROZEN` resume readiness follow-up check(H-048 review `Go` 확인 후 최신 시딩 누적/게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045/H-046/H-047/H-048/H-049 추세 비교 + 신규 KST 날짜 증거 누적 + `requiredDistinctCompliantDays` 추가 축소 검증 + `RESUME_H024|KEEP_FROZEN` 재판정)
+## Active Priorities
+- [ ] README / project positioning 정리
+- [ ] portfolio copy + case study 초안 정리
+- [ ] demo / showcase walkthrough 패키징
+- [ ] evidence / report export bundle 정리
 
-## Frozen/Backlog
-- [ ] H-024 동결: fallback warning 실행량 회복 액션 최소 이행률 하한선/증거 규약 고정
-  사유: 트래픽/샘플 미충족(`LOW_TRAFFIC`, `CHAIN_COVERAGE_GAP`) 장기화 + 최신 승인 기준 H-047 `KEEP_FROZEN` 유지 판정이 남아 있고, H-048 Executor 결과도 `INSUFFICIENT_SAMPLE_RATIO=0.7143`, `SUFFICIENT_DAYS=4`, `executionGapDelta=-69`, `chainShareGapDelta=0.00%p`, 최근 3일 평균 `parseEligibleRunCount=30.6667`, `requiredDistinctCompliantDays=3`으로 개선됐을 뿐 재개 기준에는 아직 못 미친다. H-048 review gate가 닫히기 전까지는 승인 판단을 보류하되, `RESUME_H024` 근거 확보 전까지 동결 유지 원칙은 바꾸지 않는다.
+## Next Actions
+1. 핵심 기능과 proof point를 외부 설명용 메시지로 재정렬한다.
+2. README / positioning 초안을 작성해 제품 가치와 차별점을 한 장으로 묶는다.
+3. demo / showcase 흐름과 case study 서사를 연결한다.
+4. result / review / relay 근거 중 외부 공유 가능한 evidence export 묶음을 정리한다.
+
+## Parking Lot
+- [ ] fallback-warning 트랙(`H-024`, `H-049`, latest evidence `H-048`)은 `PARKED_UNLESS_EXPLICIT_RESUME` 상태다. historical docs는 보존하되 active roadmap, current snapshot, readiness blocker, next-round 후보에서 기본 제외한다.
+- [ ] 재개 조건은 명시적 사용자 요청, 실제 parser fallback-warning 회귀/incident, release/demo/portfolio 직접 blocker 확인뿐이다. 재개 시에는 `coordination/PARKING_LOT.md`를 먼저 보고 fresh handoff를 새로 만든다.
