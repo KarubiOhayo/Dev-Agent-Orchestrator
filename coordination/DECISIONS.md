@@ -890,3 +890,18 @@
   - Main은 `coordination/HANDOFFS/H-058-proof-package-checklist-canonical-flow-alignment.md`를 생성한다.
   - Main -> Executor 릴레이 `coordination/RELAYS/H-058-main-to-executor.md`를 생성해 범위/게이트/주의사항을 고정한다.
   - `coordination/TASK_BOARD.md`, `docs/PROJECT_OVERVIEW.md`, `coordination/REPORTS/CURRENT_STATUS_2026-03-19.md`를 H-057 보류 + H-058 우선순위 기준으로 동기화한다.
+
+## D-073 H-058 승인(Go) 확정 및 H-059 portfolio case study follow-up path alignment 착수
+- Date: 2026-03-19
+- Status: Approved (H-058 Close-out / H-059 Scope)
+- Decision:
+  - `coordination/REPORTS/H-058-result.md`, `coordination/REPORTS/H-058-review.md`, `coordination/RELAYS/H-058-review-to-main.md`를 대조한 결과 H-058은 Main 최종 판단 `Go`로 승인한다.
+  - H-058으로 `docs/proof-package-delivery-checklist.md`와 `docs/evidence-report-export-bundle.md`의 sender-facing canonical flow, starter set send order, maintenance trigger 불일치는 해소됐다. H-057에서 유효 baseline으로 유지한 checklist foundation도 그대로 확정한다.
+  - 다음 실행 라운드는 H-059로 고정하고, 범위를 `docs/portfolio-case-study.md`의 follow-up path / next-step status alignment로 제한한다. 핵심은 case study가 sender-facing checklist를 post-walkthrough control doc로 직접 가리키고, evidence bundle을 detailed mapping / read-next reference로 구분하며, starter set/add-on package logic 자체가 아직 미완료인 것처럼 읽히지 않게 만드는 것이다.
+  - H-059는 docs-only close-out 라운드이며, 필요할 때만 `README.md`에 최소 링크/상태 문구 수준의 보조 정렬을 허용한다. checklist/evidence bundle canonical flow 재설계, 새 external-facing 문서, export 폴더/zip, screenshot, metrics, fabricated output 생성, parked fallback-warning 전면화는 포함하지 않는다.
+  - fallback-warning parked 정책(D-063)은 그대로 유지한다.
+- Rationale: H-058은 테스트 게이트(`./gradlew clean test --no-daemon` -> `BUILD SUCCESSFUL`)와 Review-Control `Go`를 모두 충족했고, H-057 보류 사유였던 canonical send order / cover-note / maintenance trigger 충돌을 짧은 docs-only 범위에서 해소했다. 남은 가장 가까운 drift는 second-layer narrative인 `docs/portfolio-case-study.md`가 sender-facing checklist를 직접 가리키지 않고 next-step copy도 proof package logic 자체가 아직 열린 것처럼 남겨 두고 있다는 점이며, 이를 최소 정렬한 뒤에야 외부-facing 문서군이 같은 branch 상태를 더 일관되게 말하게 된다.
+- Consequence:
+  - Main은 `coordination/HANDOFFS/H-059-portfolio-case-study-followup-path-alignment.md`를 생성한다.
+  - Main -> Executor 릴레이 `coordination/RELAYS/H-059-main-to-executor.md`를 생성해 범위/게이트/주의사항을 고정한다.
+  - `coordination/TASK_BOARD.md`, `docs/PROJECT_OVERVIEW.md`, `coordination/REPORTS/CURRENT_STATUS_2026-03-19.md`를 H-058 승인 + H-059 우선순위 기준으로 동기화한다.
