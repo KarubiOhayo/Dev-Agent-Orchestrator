@@ -20,14 +20,14 @@
 
 ## Default Send Package (`starter set`)
 
-첫 발송은 아래 4개만 보낸다.
+이 문서가 sender-facing canonical authority다. 실제 첫 발송은 아래 4개만 보내고, 보내기 직전 순서와 add-on 분기는 여기서 확정한다.
 
 1. [`README.md`](../README.md)
 2. [`docs/portfolio-case-study.md`](./portfolio-case-study.md)
 3. [`docs/demo-showcase-walkthrough.md`](./demo-showcase-walkthrough.md)
 4. [`docs/evidence-report-export-bundle.md`](./evidence-report-export-bundle.md)
 
-보내는 순서는 `README -> case study -> walkthrough -> evidence bundle`로 유지한다. 첫 메시지의 목적은 "전체를 다 보냈다"가 아니라 "이 저장소를 어떤 읽기 순서로 이해하면 되는지"를 잡아 주는 것이다.
+보내는 순서는 `README -> case study -> walkthrough -> evidence bundle`로 유지한다. 첫 메시지의 목적은 "전체를 다 보냈다"가 아니라 "이 저장소를 어떤 읽기 순서로 이해하면 되는지"를 잡아 주는 것이다. `docs/evidence-report-export-bundle.md`는 이 순서를 뒤집는 cover note가 아니라, 네 번째 문서이자 detailed mapping / read-next reference로만 취급한다.
 
 ## Add-On Decision Matrix
 
@@ -49,9 +49,9 @@
 
 ## Maintenance / Stale Check
 
-- 외부 발송 전에 [`docs/evidence-report-export-bundle.md`](./evidence-report-export-bundle.md)와 이 문서가 같은 package logic를 말하는지 본다.
+- 외부 발송 전에 [`docs/evidence-report-export-bundle.md`](./evidence-report-export-bundle.md)와 이 문서가 같은 starter set send order, add-on 역할, checklist authority를 말하는지 본다.
 - `CURRENT_STATUS` 날짜가 바뀌었으면 shareability 판단과 최신 테스트 근거 문구도 함께 다시 본다.
-- README / walkthrough / evidence bundle 중 하나라도 바뀌면 starter set 순서와 add-on 매핑이 여전히 맞는지 같은 라운드에서 함께 확인한다.
+- [`README.md`](../README.md), [`docs/portfolio-case-study.md`](./portfolio-case-study.md), [`docs/demo-showcase-walkthrough.md`](./demo-showcase-walkthrough.md), [`docs/evidence-report-export-bundle.md`](./evidence-report-export-bundle.md) 중 하나라도 바뀌면 starter set 순서와 add-on 매핑이 여전히 맞는지 같은 라운드에서 함께 확인한다.
 - 빠른 발송용으로는 이 문서를 먼저 보고, 자세한 묶음 설명이 필요할 때만 evidence bundle 문서로 내려간다.
 
 read next:
