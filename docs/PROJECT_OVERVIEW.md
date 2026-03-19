@@ -78,9 +78,9 @@
   - H-054 evidence / report export bundle packaging 완료(`docs/evidence-report-export-bundle.md` 신설 + README / case study / walkthrough 최소 연결 + Review `Go` + Main `Go`)
   - apply/dry-run 파일 반영
 - 미완료:
-  - external-facing proof package refinement (`H-055`)
-  - README -> case study -> walkthrough -> evidence bundle 내러티브 최소 polishing
-  - starter set / selective deep-dive / governance add-on 전달 가이드 다듬기
+  - external-facing proof package close-out alignment (`H-056`)
+  - starter set status copy / audit trail provenance 최소 정렬
+  - starter set / technical deep-dive / audit trail / governance add-on 전달 가이드 최종 정합화
 
 ### Parked Work
 - `fallback-warning` 관측 트랙(`H-024`, `H-049`, latest evidence `H-048`)은 `coordination/PARKING_LOT.md` 기준 `PARKED_UNLESS_EXPLICIT_RESUME` 상태다.
@@ -148,7 +148,7 @@
   - Code run 결과(`codeRunId`, `codeOutput`, `codeFiles`) 기반 리뷰 JSON 생성
 
 ## 7) 현재 운영 리스크
-- README entrypoint, portfolio case study, guided walkthrough, evidence bundle guide까지 정렬됐지만, 실제 외부 전달 시 starter set / selective add-on / governance evidence 경계와 cover messaging은 한 번 더 다듬을 여지가 있다.
+- H-055로 `docs/codex-ops-workflow.md` governance add-on 분류는 정리됐지만, 현재 branch 기준으로 `README.md` / `docs/portfolio-case-study.md`가 아직 proof package refinement를 pending처럼 말하고 `docs/evidence-report-export-bundle.md`의 audit trail provenance도 README review evidence 포함 범위와 미세하게 어긋나 있다.
 - 모델 출력 비정형 시 fallback 비율이 상승할 수 있음
 - fallback-warning 해석은 output parsing fallback 경고로 한정하며, 모델 라우팅 fallback과 구분해야 함(SoT: `docs/OBSERVABILITY_FALLBACK_WARNING.md`)
 - Code parser의 loose fallback 과매칭 직접 리스크는 H-041에서 차단되었고, fallback-warning 트랙 자체는 `coordination/PARKING_LOT.md` 기준 parked 상태다. 명시적 resume 신호 없이는 현재 blocker로 취급하지 않는다.
@@ -157,9 +157,9 @@
 - CLI JSON 출력은 지원되지만, 옵션 파싱 경계 케이스는 지속 회귀 점검 필요
 
 ## 8) 다음 우선순위
-1. external-facing proof package refinement (`H-055`)
-2. README -> case study -> walkthrough -> evidence bundle narrative 최소 polishing
-3. starter set / selective deep-dive / governance add-on 전달 가이드 다듬기
+1. external-facing proof package close-out alignment (`H-056`)
+2. starter set status copy / audit trail provenance 최소 정렬
+3. starter set / technical deep-dive / audit trail / governance add-on 전달 가이드 최종 정합화
 
 ## 9) 라운드 시작 체크 (Stateless)
 1. `docs/PROJECT_OVERVIEW.md` 읽기
