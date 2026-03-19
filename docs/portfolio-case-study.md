@@ -142,23 +142,24 @@ Executor 라운드의 승인 게이트는 항상 `./gradlew clean test --no-daem
 
 ## Current Limits And Next Steps
 
-현재 이 저장소는 orchestration foundation과 운영 규율, 그리고 기본 외부 공유용 starter set은 정리되어 있지만, narrative 밀도 조정과 shareability/redaction 판단 같은 마지막 close-out 단계는 남아 있습니다.
+현재 이 저장소는 orchestration foundation과 운영 규율, 그리고 기본 외부 공유용 starter set은 정리되어 있습니다. walkthrough 이후의 sender-facing follow-up path도 이제 [`docs/proof-package-delivery-checklist.md`](./proof-package-delivery-checklist.md)에서 먼저 순서와 add-on 분기를 고정하고, [`docs/evidence-report-export-bundle.md`](./evidence-report-export-bundle.md)를 starter set의 네 번째 문서이자 detailed mapping / read-next reference로 두는 방식으로 닫혀 있습니다. 남아 있는 일은 이 package logic 자체를 새로 만드는 것이 아니라, 실제 발송 직전 판단과 전달 밀도를 사람 기준으로 다듬는 마지막 close-out 단계입니다.
 
-- guided demo path는 [`docs/demo-showcase-walkthrough.md`](./demo-showcase-walkthrough.md)로, post-walkthrough evidence handoff path는 [`docs/evidence-report-export-bundle.md`](./evidence-report-export-bundle.md)로 정리되어 starter set은 바로 공유할 수 있지만, 문서 사이 설명 밀도와 전달 맥락별 polishing은 계속 다듬어야 합니다.
+- guided demo path는 [`docs/demo-showcase-walkthrough.md`](./demo-showcase-walkthrough.md)로 정리되어 있고, walkthrough 직후에는 먼저 [`docs/proof-package-delivery-checklist.md`](./proof-package-delivery-checklist.md)로 실제 발송 순서를 확인한 뒤 `README -> case study -> walkthrough -> evidence bundle` starter set을 보냅니다. [`docs/evidence-report-export-bundle.md`](./evidence-report-export-bundle.md)는 이 순서를 뒤집는 cover note가 아니라, 네 번째 문서에서 add-on 분기와 proof mapping을 이어 설명하는 reference입니다.
 - evidence bundle은 기존 source 문서를 큐레이션해 건네는 가이드이지, 별도 export 폴더나 새로운 metrics를 만들어 주는 산출물이 아닙니다. 공유 전에는 shareability/redaction 판단이 여전히 필요합니다.
 - parser safety와 체인 failure guardrail은 강화됐지만, 생성 결과의 의미 품질 평가는 계속 운영 이슈로 남아 있습니다.
 
 다음 packaging 우선순위는 아래 세 가지입니다.
 
-1. README -> case study -> demo/evidence로 이어지는 portfolio narrative 연결을 더 매끈하게 다듬기
-2. walkthrough와 evidence bundle 묶음을 바탕으로 starter set과 add-on 설명을 더 매끈하게 다듬기
+1. 실제 외부 발송 직전 shareability/redaction 판단을 사람 체크리스트 기준으로 안정적으로 수행하기
+2. sender의 맥락에 따라 starter set만 보낼지, add-on을 어디까지 붙일지 전달 밀도를 조절하기
 3. 생성 결과의 의미 품질 평가를 계속 운영 관점에서 점검하기
 
 ## Read Together
 
 - entrypoint overview: [`README.md`](../README.md)
+- sender-facing follow-up control doc: [`docs/proof-package-delivery-checklist.md`](./proof-package-delivery-checklist.md)
 - guided demo path: [`docs/demo-showcase-walkthrough.md`](./demo-showcase-walkthrough.md)
-- post-walkthrough evidence handoff: [`docs/evidence-report-export-bundle.md`](./evidence-report-export-bundle.md)
+- post-walkthrough detailed mapping / read-next reference: [`docs/evidence-report-export-bundle.md`](./evidence-report-export-bundle.md)
 - API and execution surface: [`docs/code-agent-api.md`](./code-agent-api.md)
 - routing policy: [`docs/model-routing-policy.md`](./model-routing-policy.md)
 - operating model: [`docs/codex-ops-workflow.md`](./codex-ops-workflow.md)
