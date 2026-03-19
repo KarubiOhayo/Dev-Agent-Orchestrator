@@ -144,19 +144,20 @@ Executor 라운드의 승인 게이트는 항상 `./gradlew clean test --no-daem
 
 현재 이 저장소는 orchestration foundation과 운영 규율은 잘 정리되어 있지만, 외부 공개용 packaging은 아직 진행 중입니다.
 
-- portfolio copy / case study는 이번 라운드에서 foundation을 만들지만, demo / showcase walkthrough는 아직 별도 패키지로 남아 있습니다.
+- portfolio copy / case study foundation 위에 guided demo path는 [`docs/demo-showcase-walkthrough.md`](./demo-showcase-walkthrough.md)로 정리됐지만, evidence / report export bundle은 아직 별도 패키지로 남아 있습니다.
 - evidence / report export bundle은 외부 공유 친화적인 형태로 아직 정리되지 않았습니다.
 - parser safety와 체인 failure guardrail은 강화됐지만, 생성 결과의 의미 품질 평가는 계속 운영 이슈로 남아 있습니다.
 
 다음 packaging 우선순위는 아래 세 가지입니다.
 
-1. case study를 기반으로 한 demo / showcase walkthrough 정리
-2. 외부 공유 가능한 evidence / report export bundle 구성
-3. README -> case study -> demo/evidence로 이어지는 portfolio narrative 연결 강화
+1. 외부 공유 가능한 evidence / report export bundle 구성
+2. README -> case study -> demo/evidence로 이어지는 portfolio narrative 연결 강화
+3. walkthrough와 evidence 묶음을 바탕으로 external-facing proof package를 더 다듬기
 
 ## Read Together
 
 - entrypoint overview: [`README.md`](../README.md)
+- guided demo path: [`docs/demo-showcase-walkthrough.md`](./demo-showcase-walkthrough.md)
 - API and execution surface: [`docs/code-agent-api.md`](./code-agent-api.md)
 - routing policy: [`docs/model-routing-policy.md`](./model-routing-policy.md)
 - operating model: [`docs/codex-ops-workflow.md`](./codex-ops-workflow.md)
