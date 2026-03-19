@@ -873,3 +873,20 @@
   - Main은 `coordination/HANDOFFS/H-057-proof-package-delivery-checklist-finalization.md`를 생성한다.
   - Main -> Executor 릴레이 `coordination/RELAYS/H-057-main-to-executor.md`를 생성해 범위/게이트/주의사항을 고정한다.
   - `coordination/TASK_BOARD.md`, `docs/PROJECT_OVERVIEW.md`, `coordination/REPORTS/CURRENT_STATUS_2026-03-19.md`를 H-056 승인 + H-057 우선순위 기준으로 동기화한다.
+
+## D-072 H-057 승인 보류 및 H-058 proof package checklist canonical flow alignment 착수
+- Date: 2026-03-19
+- Status: Approved (H-057 Hold / H-058 Scope)
+- Decision:
+  - `coordination/REPORTS/H-057-result.md`, `coordination/REPORTS/H-057-review.md`, `coordination/RELAYS/H-057-review-to-main.md`를 대조한 결과 H-057의 Main 최종 판단은 `보류(Hold)`로 둔다.
+  - 보류 사유는 `docs/proof-package-delivery-checklist.md`가 starter set 발송 순서를 `README -> case study -> walkthrough -> evidence bundle`로 고정한 반면, `docs/evidence-report-export-bundle.md`는 여전히 자기 자신을 starter set cover note처럼 설명해 sender-facing canonical flow가 하나로 고정되지 않았기 때문이다.
+  - 추가로 `docs/proof-package-delivery-checklist.md`의 maintenance / stale check에서 `docs/portfolio-case-study.md`가 빠져 있어 starter set 4문서 드리프트를 같은 라운드에서 다시 확인하는 기준이 누락됐다.
+  - H-057에서 만든 sender-facing checklist foundation 자체와 pre-send gate, add-on decision matrix, do-not-send guardrail은 유효 baseline으로 유지한다.
+  - 다음 실행 라운드는 H-058으로 고정하고, 범위를 `docs/proof-package-delivery-checklist.md`와 `docs/evidence-report-export-bundle.md`의 canonical send order / cover-note 역할 / maintenance trigger alignment로 제한한다. 기준 문서는 checklist로 고정하고, evidence bundle은 detailed mapping / read-next reference 역할로 정렬한다.
+  - H-058은 docs-only close-out 라운드이며 새 external-facing 문서, export 폴더/zip, screenshot, metrics, fabricated output 생성, parked fallback-warning 전면화는 포함하지 않는다.
+  - fallback-warning parked 정책(D-063)은 그대로 유지한다.
+- Rationale: H-057은 필요한 sender-facing checklist를 실제로 만들었고 테스트 게이트와 review 기본 구조도 충족했지만, 전달자가 "어느 문서가 첫 발송 canonical flow의 기준인가?"를 여전히 스스로 해석해야 한다면 checklist finalization의 목적이 완전히 닫히지 않는다. 남은 문제는 package logic 재설계가 아니라 두 문서의 역할과 drift trigger를 짧게 정렬하면 해소되는 수준이므로, 가장 낮은 비용의 docs-only follow-up으로 닫는 편이 적절하다.
+- Consequence:
+  - Main은 `coordination/HANDOFFS/H-058-proof-package-checklist-canonical-flow-alignment.md`를 생성한다.
+  - Main -> Executor 릴레이 `coordination/RELAYS/H-058-main-to-executor.md`를 생성해 범위/게이트/주의사항을 고정한다.
+  - `coordination/TASK_BOARD.md`, `docs/PROJECT_OVERVIEW.md`, `coordination/REPORTS/CURRENT_STATUS_2026-03-19.md`를 H-057 보류 + H-058 우선순위 기준으로 동기화한다.
