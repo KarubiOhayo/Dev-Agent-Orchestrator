@@ -824,3 +824,19 @@
   - Main은 `coordination/HANDOFFS/H-054-evidence-report-export-bundle-packaging.md`를 생성한다.
   - Main -> Executor 릴레이 `coordination/RELAYS/H-054-main-to-executor.md`를 생성해 범위/게이트/주의사항을 고정한다.
   - `coordination/TASK_BOARD.md`, `docs/PROJECT_OVERVIEW.md`, `coordination/REPORTS/CURRENT_STATUS_2026-03-19.md`를 H-053 승인 + H-054 우선순위 기준으로 동기화한다.
+
+## D-069 H-054 승인(Go) 확정 및 H-055 external-facing proof package refinement 착수
+- Date: 2026-03-19
+- Status: Approved (H-054 Close-out / H-055 Scope)
+- Decision:
+  - `coordination/REPORTS/H-054-result.md`, `coordination/REPORTS/H-054-review.md`, `coordination/RELAYS/H-054-review-to-main.md`를 대조한 결과 H-054는 Main 최종 판단 `Go`로 승인한다.
+  - H-054로 README -> case study -> walkthrough -> evidence bundle의 external-facing package guide가 확보됐으므로, portfolio package의 "읽기 + 따라가기 + demo 후 handoff" 레이어는 유효 상태로 유지한다.
+  - Review-Control의 유일한 open item(P3, `docs/codex-ops-workflow.md` export tier 분류 일관성)은 비차단 follow-up으로 관리하고 H-054 close-out을 막지 않는다.
+  - 다음 실행 라운드는 H-055로 고정하고, external-facing proof package refinement를 docs-only 범위에서 수행한다. 핵심 범위는 `docs/evidence-report-export-bundle.md`의 tier/use-order 일관화, starter set vs selective/gov add-on 경계 명확화, README/case study/walkthrough/evidence bundle의 minimal narrative polishing이다.
+  - H-055는 새 export 폴더/zip/live demo evidence/screenshot/metrics 생성을 포함하지 않는다. 필요한 수정은 기존 external-facing 문서 수준에 머문다.
+  - fallback-warning parked 정책(D-063)은 그대로 유지한다.
+- Rationale: H-054는 테스트 게이트(`./gradlew clean test --no-daemon` -> `BUILD SUCCESSFUL`)와 Review `Go`를 충족했고, 남은 리스크는 proof package의 부재가 아니라 사람이 실제로 어떤 묶음을 보내야 하는지에 대한 잔여 모호성이다. 이를 별도 docs-only polishing 라운드로 제한하면, 이미 닫힌 packaging 성과를 유지한 채 전달 일관성만 낮은 비용으로 끌어올릴 수 있다.
+- Consequence:
+  - Main은 `coordination/HANDOFFS/H-055-external-facing-proof-package-refinement.md`를 생성한다.
+  - Main -> Executor 릴레이 `coordination/RELAYS/H-055-main-to-executor.md`를 생성해 범위/게이트/주의사항을 고정한다.
+  - `coordination/TASK_BOARD.md`, `docs/PROJECT_OVERVIEW.md`, `coordination/REPORTS/CURRENT_STATUS_2026-03-19.md`를 H-054 승인 + H-055 우선순위 기준으로 동기화한다.
