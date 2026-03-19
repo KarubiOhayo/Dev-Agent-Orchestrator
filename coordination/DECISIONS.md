@@ -792,3 +792,19 @@
   - Main은 `coordination/HANDOFFS/H-052-readme-portfolio-status-alignment.md`를 생성한다.
   - Main -> Executor 릴레이 `coordination/RELAYS/H-052-main-to-executor.md`를 생성해 범위/게이트/주의사항을 고정한다.
   - `coordination/TASK_BOARD.md`, `docs/PROJECT_OVERVIEW.md`, `coordination/REPORTS/CURRENT_STATUS_2026-03-18.md`를 H-051 보류 + H-052 우선순위 기준으로 동기화한다.
+
+## D-067 H-052 승인(Go) 확정 및 H-053 demo / showcase walkthrough packaging 착수
+- Date: 2026-03-19
+- Status: Approved (H-052 Close-out / H-053 Scope)
+- Decision:
+  - `coordination/REPORTS/H-052-result.md`, `coordination/REPORTS/H-052-review.md`, `coordination/RELAYS/H-052-review-to-main.md`를 대조한 결과 H-052는 Main 최종 판단 `Go`로 승인한다.
+  - H-052로 README entrypoint의 current-limits / next-focus 문구가 `docs/portfolio-case-study.md` foundation과 정렬됐으므로, H-051의 case study 산출물은 유효 상태로 유지하고 별도 재작성 라운드는 열지 않는다.
+  - 다음 실행 라운드는 H-053으로 고정하고, 외부 평가자가 저장소를 "읽는 것"에서 "따라 해보는 것"으로 넘어갈 수 있도록 demo / showcase walkthrough 패키지를 문서로 정리한다.
+  - H-053 범위는 문서 작업에 한정한다. 기본 산출물은 `docs/demo-showcase-walkthrough.md`이며, 필요할 때만 `README.md` 또는 `docs/portfolio-case-study.md`에 최소 링크 수준의 연결을 허용한다.
+  - walkthrough는 현재 저장소에서 이미 지원되는 명령/문서/운영 규칙만 사용해 구성하고, 실행 결과를 꾸며 쓰지 말고 관찰 포인트와 기대 체크 항목 중심으로 설명한다.
+  - fallback-warning parked 정책(D-063)은 그대로 유지한다.
+- Rationale: H-052가 README와 case study의 상태 불일치를 해소하면서 external-facing entrypoint 정합성은 확보됐다. 이제 가장 큰 공백은 외부 독자가 실제 명령과 문서 표면을 어떤 순서로 따라가면 되는지 보여 주는 guided demo path 부재이며, 이 공백을 메우는 것이 evidence export bundle 전보다 portfolio readiness에 더 직접적이다.
+- Consequence:
+  - Main은 `coordination/HANDOFFS/H-053-demo-showcase-walkthrough-packaging.md`를 생성한다.
+  - Main -> Executor 릴레이 `coordination/RELAYS/H-053-main-to-executor.md`를 생성해 범위/게이트/주의사항을 고정한다.
+  - `coordination/TASK_BOARD.md`, `docs/PROJECT_OVERVIEW.md`, `coordination/REPORTS/CURRENT_STATUS_2026-03-19.md`를 H-052 승인 + H-053 우선순위 기준으로 동기화한다.

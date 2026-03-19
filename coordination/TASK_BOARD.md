@@ -1,6 +1,6 @@
 # DevAgent Task Board
 
-Last Updated: 2026-03-18
+Last Updated: 2026-03-19
 Owner: Main Controller Thread
 Primary Reference: `docs/PROJECT_OVERVIEW.md`
 Parking Reference: `coordination/PARKING_LOT.md`
@@ -9,11 +9,11 @@ Parking Reference: `coordination/PARKING_LOT.md`
 
 ## 현재 스냅샷
 - 목표: 안정화된 orchestration 핵심을 외부에 설명 가능한 portfolio package로 정렬한다.
-- 현재 상태: Spec -> Code -> Doc/Review 체이닝과 parser safety 가드는 안정화 단계에 들어섰고, root `README.md` foundation과 `docs/portfolio-case-study.md` second-layer narrative도 확보됐다. 다만 README current-limits 문구가 아직 case study를 후속 작업처럼 남겨 두어 Main close-out은 보류 상태이며, active roadmap는 먼저 entrypoint/status alignment를 정리한 뒤 demo / evidence export로 확장한다.
-- 다음 고정 라운드: `H-052 README portfolio status alignment`
+- 현재 상태: Spec -> Code -> Doc/Review 체이닝과 parser safety 가드는 안정화 단계에 들어섰고, root `README.md` foundation과 `docs/portfolio-case-study.md` second-layer narrative, README status alignment close-out까지 완료됐다. active roadmap는 이제 외부 평가자가 바로 따라갈 수 있는 demo / showcase walkthrough를 먼저 패키징한 뒤 evidence / report export로 확장한다.
+- 다음 고정 라운드: `H-053 demo / showcase walkthrough packaging`
 - fallback-warning 용어 가드레일: `fallback-warning`은 output parsing fallback 경고를 의미하며, 라우팅 fallback과 구분한다(SoT: `docs/OBSERVABILITY_FALLBACK_WARNING.md`).
 - parking 정책: fallback-warning 트랙(`H-024`, `H-049`, latest evidence `H-048`)은 `PARKED_UNLESS_EXPLICIT_RESUME` 상태다. 현재 스냅샷의 핵심 진행축, readiness blocker, 다음 라운드 고정 후보로 취급하지 않는다.
-- 핵심 리스크: README foundation과 case study narrative는 갖춰졌지만, entrypoint 상태 문구와 실제 문서 상태가 아직 완전히 정렬되지 않았고 demo / evidence export 레이어도 남아 있다. parser 과매칭 직접 리스크는 H-041에서 해소됐고, fallback-warning은 historical observability concern으로만 보존한다.
+- 핵심 리스크: README entrypoint와 case study foundation은 정렬됐지만, 이를 외부 데모 흐름으로 재사용할 guided walkthrough와 evidence / report export 레이어가 아직 없다. parser 과매칭 직접 리스크는 H-041에서 해소됐고, fallback-warning은 historical observability concern으로만 보존한다.
 - 운영 정책: 3스레드 체계(메인 제어 + 리뷰 전담 + 실행 전담), 라운드별 stateless 운영
 
 ## 완료된 작업
@@ -78,6 +78,8 @@ Parking Reference: `coordination/PARKING_LOT.md`
 - [x] H-047 fallback-warning `KEEP_FROZEN` resume readiness follow-up check(H-046와 다른 KST 날짜 증거 확보 + 최신 게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045/H-046/H-047 readiness 추세 비교 + `resumeDecision=KEEP_FROZEN` 유지, Main `Go`)
 - [x] H-048 fallback-warning `KEEP_FROZEN` resume readiness next check(`2026-03-11` KST 신규 증거 확보 + 최신 게이트/추세 재집계 + Review `Go`, Main `Go`, parked reference 유지)
 - [x] H-050 README / project positioning foundation(root `README.md` 신설 + capability snapshot / quickstart / docs map / current limits 정리, Main `Go`)
+- [x] H-051 portfolio copy / case study foundation(`docs/portfolio-case-study.md` 신설 + README case study 링크 추가, status alignment close-out은 H-052에서 반영)
+- [x] H-052 README portfolio status alignment(current-limits / next-focus를 case study foundation 존재와 정렬, Review `Go`, Main `Go`)
 
 ## 3스레드 운영 분배
 
@@ -121,14 +123,14 @@ Parking Reference: `coordination/PARKING_LOT.md`
 10. 병합은 THREAD-A 최종 승인 이후에만 수행한다.
 
 ## Active Priorities
-- [ ] README entrypoint / current-limits status alignment (`H-052`)
-- [ ] demo / showcase walkthrough 패키징
+- [ ] demo / showcase walkthrough 패키징 (`H-053`)
 - [ ] evidence / report export bundle 정리
+- [ ] README -> case study -> demo/evidence narrative 최소 polishing
 
 ## Next Actions
-1. `H-052` handoff 기준으로 `README.md`의 current-limits / next-focus 문구를 H-051 결과에 맞게 정렬해 case study foundation이 이미 존재한다는 상태를 entrypoint에서도 일관되게 보여 준다.
-2. demo / showcase 흐름을 case study 서사와 연결해 walkthrough 패키지 입력을 만든다.
-3. result / review / relay 근거 중 외부 공유 가능한 evidence export 묶음을 정리한다.
+1. `H-053` handoff 기준으로 외부 평가자가 `README.md` -> `docs/portfolio-case-study.md` -> CLI/ops surface 순서로 따라갈 수 있는 `docs/demo-showcase-walkthrough.md` 패키지를 만든다.
+2. walkthrough 안에서 사용할 command path, 관찰 포인트, 안전 기본값(`apply=false`, `--fail-on-chain-failures`)을 현재 README/quickstart/API 문서와 정합되게 묶는다.
+3. result / review / relay 근거 중 외부 공유 가능한 evidence / report export bundle 후보를 다음 라운드 입력으로 정리한다.
 
 ## Parking Lot
 - [ ] fallback-warning 트랙(`H-024`, `H-049`, latest evidence `H-048`)은 `PARKED_UNLESS_EXPLICIT_RESUME` 상태다. historical docs는 보존하되 active roadmap, current snapshot, readiness blocker, next-round 후보에서 기본 제외한다.

@@ -7,7 +7,7 @@
   - Issue -> Spec -> Code -> Doc 체이닝
   - PR Review/Refactor 자동화(후순위)
 
-## 2) 현재 구현 상태 (2026-03-18)
+## 2) 현재 구현 상태 (2026-03-19)
 - 완료:
   - 모델 라우팅 엔진 + 라우팅 API
   - 벤더 어댑터(OpenAI/Anthropic/Google) + fallback 실행
@@ -72,11 +72,13 @@
   - H-047 fallback-warning `KEEP_FROZEN` resume readiness follow-up check 완료(H-046와 다른 KST 날짜 증거 확보 + 최신 14일/7일 게이트 재집계 + H-036~H-039/H-042/H-043/H-044/H-045/H-046/H-047 readiness 추세 비교 + `resumeDecision=KEEP_FROZEN` 유지, Main `Go`)
   - H-048 fallback-warning `KEEP_FROZEN` resume readiness next check close-out 완료(`2026-03-11` KST 신규 증거 확보 + 최신 게이트/추세 재집계 + Review `Go` + Main `Go`, parked reference 유지)
   - H-050 README / project positioning foundation 완료(root `README.md` 신설 + capability snapshot / quickstart / docs map / current limits 반영, Main `Go`)
+  - H-051 portfolio copy / case study foundation 산출 확보 완료(`docs/portfolio-case-study.md` 신설 + README case study 링크 반영, 상태 정합 follow-up은 H-052에서 close-out)
+  - H-052 README portfolio status alignment close-out 완료(current-limits / next-focus 문구를 case study foundation 존재와 정렬, Review `Go` + Main `Go`)
   - apply/dry-run 파일 반영
 - 미완료:
-  - README entrypoint / case study 상태 정합화 close-out (`H-052`)
-  - demo / showcase walkthrough 패키징
+  - demo / showcase walkthrough 패키징 (`H-053`)
   - evidence / report export 묶음 정리
+  - README -> case study -> demo/evidence 내러티브 최소 polishing
 
 ### Parked Work
 - `fallback-warning` 관측 트랙(`H-024`, `H-049`, latest evidence `H-048`)은 `coordination/PARKING_LOT.md` 기준 `PARKED_UNLESS_EXPLICIT_RESUME` 상태다.
@@ -144,7 +146,7 @@
   - Code run 결과(`codeRunId`, `codeOutput`, `codeFiles`) 기반 리뷰 JSON 생성
 
 ## 7) 현재 운영 리스크
-- 외부 공개용 case study foundation은 작성됐지만, README entrypoint 상태 문구와 demo narrative / evidence export bundle이 아직 한 묶음으로 정렬되지 않았다.
+- README entrypoint와 portfolio case study foundation 정렬은 완료됐지만, 외부 평가자가 바로 따라갈 수 있는 demo / showcase walkthrough 패키지와 evidence / report export bundle은 아직 비어 있다.
 - 모델 출력 비정형 시 fallback 비율이 상승할 수 있음
 - fallback-warning 해석은 output parsing fallback 경고로 한정하며, 모델 라우팅 fallback과 구분해야 함(SoT: `docs/OBSERVABILITY_FALLBACK_WARNING.md`)
 - Code parser의 loose fallback 과매칭 직접 리스크는 H-041에서 차단되었고, fallback-warning 트랙 자체는 `coordination/PARKING_LOT.md` 기준 parked 상태다. 명시적 resume 신호 없이는 현재 blocker로 취급하지 않는다.
@@ -153,9 +155,9 @@
 - CLI JSON 출력은 지원되지만, 옵션 파싱 경계 케이스는 지속 회귀 점검 필요
 
 ## 8) 다음 우선순위
-1. README entrypoint / current-limits copy 정합화 close-out (H-052)
-2. demo / showcase walkthrough와 quickstart 패키징
-3. evidence / report export bundle 정리
+1. demo / showcase walkthrough와 quickstart 패키징 (`H-053`)
+2. evidence / report export bundle 정리
+3. README -> case study -> demo/evidence narrative 최소 polishing
 
 ## 9) 라운드 시작 체크 (Stateless)
 1. `docs/PROJECT_OVERVIEW.md` 읽기
