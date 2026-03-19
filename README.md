@@ -107,6 +107,7 @@ chmod +x ./devagent
 
 - [Portfolio case study](docs/portfolio-case-study.md)
 - [Demo / showcase walkthrough](docs/demo-showcase-walkthrough.md)
+- [Evidence / report export bundle](docs/evidence-report-export-bundle.md)
 - [CLI quickstart](docs/cli-quickstart.md)
 - [Code Agent API](docs/code-agent-api.md)
 - [Model routing policy](docs/model-routing-policy.md)
@@ -115,6 +116,6 @@ chmod +x ./devagent
 
 ## Current Limits And Next Focus
 
-- 현재 저장소의 핵심 orchestration 기능과 외부 공개용 README entrypoint / portfolio case study / demo walkthrough는 정리됐지만, 남은 후속 작업은 evidence / report export bundle과 필요한 최소 polishing입니다.
+- 현재 저장소의 핵심 orchestration 기능과 외부 공개용 README entrypoint / portfolio case study / demo walkthrough / evidence bundle 가이드는 정리됐지만, 남은 후속 작업은 narrative polishing과 external-facing proof package refinement입니다.
 - 출력 파싱 안전성과 체인 실패 가드레일은 보강되어 있지만, 생성 내용의 의미 품질 평가는 여전히 운영 관점에서 계속 점검해야 합니다.
 - `PARTIAL_SUCCESS`를 사용하는 소비자는 성공 응답만 믿지 말고 `chainFailures[]`를 함께 확인해야 합니다.

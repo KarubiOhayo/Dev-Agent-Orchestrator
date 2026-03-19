@@ -133,6 +133,7 @@ API 키를 준비하지 않았거나 live call을 피하고 싶다면 아래 명
 
 - entrypoint overview: [`README.md`](../README.md)
 - second-layer narrative: [`docs/portfolio-case-study.md`](./portfolio-case-study.md)
+- post-walkthrough evidence handoff: [`docs/evidence-report-export-bundle.md`](./evidence-report-export-bundle.md)
 - CLI surface: [`docs/cli-quickstart.md`](./cli-quickstart.md)
 - API contract and guardrails: [`docs/code-agent-api.md`](./code-agent-api.md)
 - operating model: [`docs/codex-ops-workflow.md`](./codex-ops-workflow.md)
