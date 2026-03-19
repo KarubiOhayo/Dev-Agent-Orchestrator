@@ -74,11 +74,12 @@
   - H-050 README / project positioning foundation 완료(root `README.md` 신설 + capability snapshot / quickstart / docs map / current limits 반영, Main `Go`)
   - H-051 portfolio copy / case study foundation 산출 확보 완료(`docs/portfolio-case-study.md` 신설 + README case study 링크 반영, 상태 정합 follow-up은 H-052에서 close-out)
   - H-052 README portfolio status alignment close-out 완료(current-limits / next-focus 문구를 case study foundation 존재와 정렬, Review `Go` + Main `Go`)
+  - H-053 demo / showcase walkthrough packaging 완료(`docs/demo-showcase-walkthrough.md` 신설 + README / case study 최소 링크 정렬 + Review `Go` + Main `Go`)
   - apply/dry-run 파일 반영
 - 미완료:
-  - demo / showcase walkthrough 패키징 (`H-053`)
-  - evidence / report export 묶음 정리
+  - evidence / report export bundle 패키징 (`H-054`)
   - README -> case study -> demo/evidence 내러티브 최소 polishing
+  - walkthrough + evidence bundle 기반 external-facing proof package 다듬기
 
 ### Parked Work
 - `fallback-warning` 관측 트랙(`H-024`, `H-049`, latest evidence `H-048`)은 `coordination/PARKING_LOT.md` 기준 `PARKED_UNLESS_EXPLICIT_RESUME` 상태다.
@@ -146,7 +147,7 @@
   - Code run 결과(`codeRunId`, `codeOutput`, `codeFiles`) 기반 리뷰 JSON 생성
 
 ## 7) 현재 운영 리스크
-- README entrypoint와 portfolio case study foundation 정렬은 완료됐지만, 외부 평가자가 바로 따라갈 수 있는 demo / showcase walkthrough 패키지와 evidence / report export bundle은 아직 비어 있다.
+- README entrypoint, portfolio case study foundation, guided walkthrough 정렬은 완료됐지만, demo 직후 바로 건넬 evidence / report export bundle은 아직 비어 있다.
 - 모델 출력 비정형 시 fallback 비율이 상승할 수 있음
 - fallback-warning 해석은 output parsing fallback 경고로 한정하며, 모델 라우팅 fallback과 구분해야 함(SoT: `docs/OBSERVABILITY_FALLBACK_WARNING.md`)
 - Code parser의 loose fallback 과매칭 직접 리스크는 H-041에서 차단되었고, fallback-warning 트랙 자체는 `coordination/PARKING_LOT.md` 기준 parked 상태다. 명시적 resume 신호 없이는 현재 blocker로 취급하지 않는다.
@@ -155,9 +156,9 @@
 - CLI JSON 출력은 지원되지만, 옵션 파싱 경계 케이스는 지속 회귀 점검 필요
 
 ## 8) 다음 우선순위
-1. demo / showcase walkthrough와 quickstart 패키징 (`H-053`)
-2. evidence / report export bundle 정리
-3. README -> case study -> demo/evidence narrative 최소 polishing
+1. evidence / report export bundle 패키징 (`H-054`)
+2. README -> case study -> demo/evidence narrative 최소 polishing
+3. walkthrough + evidence bundle 기반 external-facing proof package 다듬기
 
 ## 9) 라운드 시작 체크 (Stateless)
 1. `docs/PROJECT_OVERVIEW.md` 읽기
