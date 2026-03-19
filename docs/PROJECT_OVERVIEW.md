@@ -76,11 +76,12 @@
   - H-052 README portfolio status alignment close-out 완료(current-limits / next-focus 문구를 case study foundation 존재와 정렬, Review `Go` + Main `Go`)
   - H-053 demo / showcase walkthrough packaging 완료(`docs/demo-showcase-walkthrough.md` 신설 + README / case study 최소 링크 정렬 + Review `Go` + Main `Go`)
   - H-054 evidence / report export bundle packaging 완료(`docs/evidence-report-export-bundle.md` 신설 + README / case study / walkthrough 최소 연결 + Review `Go` + Main `Go`)
+  - H-056 proof package close-out copy / provenance alignment 완료(starter set ready copy 정렬 + `coordination/REPORTS/H-050-review.md` audit trail provenance 반영 + Review `Go` + Main `Go`)
   - apply/dry-run 파일 반영
 - 미완료:
-  - external-facing proof package close-out alignment (`H-056`)
-  - starter set status copy / audit trail provenance 최소 정렬
-  - starter set / technical deep-dive / audit trail / governance add-on 전달 가이드 최종 정합화
+  - proof package delivery checklist finalization (`H-057`)
+  - shareability / redaction 발송 전 체크 최소 운영 문서화
+  - 생성 결과 의미 품질 운영 점검 지속
 
 ### Parked Work
 - `fallback-warning` 관측 트랙(`H-024`, `H-049`, latest evidence `H-048`)은 `coordination/PARKING_LOT.md` 기준 `PARKED_UNLESS_EXPLICIT_RESUME` 상태다.
@@ -148,7 +149,8 @@
   - Code run 결과(`codeRunId`, `codeOutput`, `codeFiles`) 기반 리뷰 JSON 생성
 
 ## 7) 현재 운영 리스크
-- H-055로 `docs/codex-ops-workflow.md` governance add-on 분류는 정리됐지만, 현재 branch 기준으로 `README.md` / `docs/portfolio-case-study.md`가 아직 proof package refinement를 pending처럼 말하고 `docs/evidence-report-export-bundle.md`의 audit trail provenance도 README review evidence 포함 범위와 미세하게 어긋나 있다.
+- H-056으로 starter set status copy와 audit trail provenance 불일치는 해소됐지만, 실제 발송자가 어떤 상황에 어느 add-on을 붙이고 어떤 redaction / stale check를 거쳐야 하는지 빠르게 확인할 짧은 sender-facing checklist는 아직 없다.
+- starter set은 공유 가능 상태지만, 실제 외부 발송 직전의 shareability / redaction 판단은 여전히 사람이 최종 확인해야 한다.
 - 모델 출력 비정형 시 fallback 비율이 상승할 수 있음
 - fallback-warning 해석은 output parsing fallback 경고로 한정하며, 모델 라우팅 fallback과 구분해야 함(SoT: `docs/OBSERVABILITY_FALLBACK_WARNING.md`)
 - Code parser의 loose fallback 과매칭 직접 리스크는 H-041에서 차단되었고, fallback-warning 트랙 자체는 `coordination/PARKING_LOT.md` 기준 parked 상태다. 명시적 resume 신호 없이는 현재 blocker로 취급하지 않는다.
@@ -157,9 +159,9 @@
 - CLI JSON 출력은 지원되지만, 옵션 파싱 경계 케이스는 지속 회귀 점검 필요
 
 ## 8) 다음 우선순위
-1. external-facing proof package close-out alignment (`H-056`)
-2. starter set status copy / audit trail provenance 최소 정렬
-3. starter set / technical deep-dive / audit trail / governance add-on 전달 가이드 최종 정합화
+1. proof package delivery checklist finalization (`H-057`)
+2. shareability / redaction 발송 전 체크 최소 운영 문서화
+3. 생성 결과 의미 품질 운영 점검 지속
 
 ## 9) 라운드 시작 체크 (Stateless)
 1. `docs/PROJECT_OVERVIEW.md` 읽기
