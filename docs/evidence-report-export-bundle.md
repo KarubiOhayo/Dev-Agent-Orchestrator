@@ -58,7 +58,7 @@ shareability note는 아래처럼 해석한다.
 | governance add-on | Operating model | [`docs/codex-ops-workflow.md`](./codex-ops-workflow.md) | Main/Executor/Review, stateless rounds, relay discipline, report-only automation 정책이 존재함 | External selective; 운영 방식과 책임 분리를 설명할 때만 붙인다 |
 | governance add-on | Current implementation/risk snapshot | [`docs/PROJECT_OVERVIEW.md`](./PROJECT_OVERVIEW.md), [`coordination/REPORTS/CURRENT_STATUS_2026-03-19.md`](../coordination/REPORTS/CURRENT_STATUS_2026-03-19.md) | 현재 구현 범위, active focus, 남은 리스크가 무엇인지 | Internal-first / excerpt; 날짜를 함께 보여 주고 stale 여부를 확인한다 |
 | governance add-on | Roadmap and decision discipline | [`coordination/TASK_BOARD.md`](../coordination/TASK_BOARD.md), [`coordination/DECISIONS.md`](../coordination/DECISIONS.md) | active roadmap, parked policy, 중요한 결정이 SoT 문서로 관리된다는 점 | Internal only unless governance review |
-| audit trail add-on | README packaging foundation proof | [`coordination/REPORTS/H-050-result.md`](../coordination/REPORTS/H-050-result.md) | README positioning/quickstart/docs map이 어떤 source 문서를 근거로 정리됐는지 | Internal-first / excerpt |
+| audit trail add-on | README packaging foundation proof | [`coordination/REPORTS/H-050-result.md`](../coordination/REPORTS/H-050-result.md), [`coordination/REPORTS/H-050-review.md`](../coordination/REPORTS/H-050-review.md) | README positioning/quickstart/docs map이 어떤 source 문서를 근거로 정리됐고, 그 packaging foundation이 review를 거쳐 승인 가능한 상태로 묶였는지 | Internal-first / excerpt |
 | audit trail add-on | Case study packaging proof | [`coordination/REPORTS/H-051-result.md`](../coordination/REPORTS/H-051-result.md), [`coordination/REPORTS/H-051-review.md`](../coordination/REPORTS/H-051-review.md) | case study narrative가 source 문서에 맞춰 작성됐고, overclaim/정합성 관점 리뷰를 거쳤는지 | Internal-first / excerpt |
 | audit trail add-on | README status alignment proof | [`coordination/REPORTS/H-052-result.md`](../coordination/REPORTS/H-052-result.md), [`coordination/REPORTS/H-052-review.md`](../coordination/REPORTS/H-052-review.md) | external-facing entrypoint의 현재 상태 문구가 실제 active roadmap와 맞춰졌는지 | Internal-first / excerpt |
 | audit trail add-on | Walkthrough packaging proof | [`coordination/REPORTS/H-053-result.md`](../coordination/REPORTS/H-053-result.md), [`coordination/REPORTS/H-053-review.md`](../coordination/REPORTS/H-053-review.md) | walkthrough의 명령/guardrail/관찰 포인트가 실제 README/CLI/API surface와 맞는지 | Internal-first / excerpt |
@@ -78,6 +78,7 @@ shareability note는 아래처럼 해석한다.
    - `docs/code-agent-api.md`
 3. `audit trail add-on`
    - `coordination/REPORTS/H-050-result.md`
+   - `coordination/REPORTS/H-050-review.md`
    - `coordination/REPORTS/H-051-result.md`
    - `coordination/REPORTS/H-051-review.md`
    - `coordination/REPORTS/H-052-result.md`
@@ -106,6 +107,7 @@ evidence-bundle/
     docs/code-agent-api.md
   02-audit-trail/
     coordination/REPORTS/H-050-result.md
+    coordination/REPORTS/H-050-review.md
     coordination/REPORTS/H-051-result.md
     coordination/REPORTS/H-051-review.md
     coordination/REPORTS/H-052-result.md

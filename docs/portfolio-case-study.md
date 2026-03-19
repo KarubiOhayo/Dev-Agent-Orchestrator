@@ -142,16 +142,16 @@ Executor 라운드의 승인 게이트는 항상 `./gradlew clean test --no-daem
 
 ## Current Limits And Next Steps
 
-현재 이 저장소는 orchestration foundation과 운영 규율은 잘 정리되어 있지만, 외부 공개용 packaging은 아직 다듬는 단계가 남아 있습니다.
+현재 이 저장소는 orchestration foundation과 운영 규율, 그리고 기본 외부 공유용 starter set은 정리되어 있지만, narrative 밀도 조정과 shareability/redaction 판단 같은 마지막 close-out 단계는 남아 있습니다.
 
-- guided demo path는 [`docs/demo-showcase-walkthrough.md`](./demo-showcase-walkthrough.md)로, post-walkthrough evidence handoff path는 [`docs/evidence-report-export-bundle.md`](./evidence-report-export-bundle.md)로 정리됐지만, 외부 공유용 proof package의 최종 묶음과 설명 밀도는 계속 다듬어야 합니다.
+- guided demo path는 [`docs/demo-showcase-walkthrough.md`](./demo-showcase-walkthrough.md)로, post-walkthrough evidence handoff path는 [`docs/evidence-report-export-bundle.md`](./evidence-report-export-bundle.md)로 정리되어 starter set은 바로 공유할 수 있지만, 문서 사이 설명 밀도와 전달 맥락별 polishing은 계속 다듬어야 합니다.
 - evidence bundle은 기존 source 문서를 큐레이션해 건네는 가이드이지, 별도 export 폴더나 새로운 metrics를 만들어 주는 산출물이 아닙니다. 공유 전에는 shareability/redaction 판단이 여전히 필요합니다.
 - parser safety와 체인 failure guardrail은 강화됐지만, 생성 결과의 의미 품질 평가는 계속 운영 이슈로 남아 있습니다.
 
 다음 packaging 우선순위는 아래 세 가지입니다.
 
 1. README -> case study -> demo/evidence로 이어지는 portfolio narrative 연결을 더 매끈하게 다듬기
-2. walkthrough와 evidence bundle 묶음을 바탕으로 external-facing proof package를 더 다듬기
+2. walkthrough와 evidence bundle 묶음을 바탕으로 starter set과 add-on 설명을 더 매끈하게 다듬기
 3. 생성 결과의 의미 품질 평가를 계속 운영 관점에서 점검하기
 
 ## Read Together
