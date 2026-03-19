@@ -14,14 +14,14 @@
 
 ## Bundle Contents Overview
 
-이 bundle은 아래 4개 층으로 나눈다.
+이 bundle은 아래 4개 묶음으로 고정한다. 핵심은 "한 번에 다 보내기"가 아니라, starter set을 먼저 보내고 질문 종류에 따라 add-on을 하나씩 붙이는 것이다.
 
-| Layer | 기본 포함 항목 | 이 층이 증명하는 것 |
-|---|---|---|
-| narrative docs | [`README.md`](../README.md), [`docs/portfolio-case-study.md`](./portfolio-case-study.md), 이 문서 | 저장소가 무엇이고 왜 orchestration layer 관점에서 의미가 있는지 |
-| demo companion | [`docs/demo-showcase-walkthrough.md`](./demo-showcase-walkthrough.md), [`docs/cli-quickstart.md`](./cli-quickstart.md), [`docs/code-agent-api.md`](./code-agent-api.md) | 어떤 순서로 읽고 어떤 명령/계약/guardrail을 확인하면 되는지 |
-| proof artifacts | `H-050`~`H-053` result/review/relay 일부 | README, case study, walkthrough가 즉흥 copy가 아니라 실제 source 대조와 리뷰를 거쳐 만들어졌는지 |
-| ops/governance evidence | [`docs/codex-ops-workflow.md`](./codex-ops-workflow.md), [`docs/PROJECT_OVERVIEW.md`](./PROJECT_OVERVIEW.md), `coordination` SoT 일부 | 3-thread, stateless round, report-only automation, active roadmap/limits가 어떻게 관리되는지 |
+| Bundle | 기본 포함 항목 | 언제 추가하는가 | 이 묶음이 증명하는 것 |
+|---|---|---|---|
+| starter set | 이 문서, [`README.md`](../README.md), [`docs/portfolio-case-study.md`](./portfolio-case-study.md), [`docs/demo-showcase-walkthrough.md`](./demo-showcase-walkthrough.md) | 첫 follow-up 메일/메시지에서 기본으로 보낸다 | 저장소가 무엇이고, 왜 orchestration layer 관점에서 의미가 있으며, 어떤 순서로 읽어야 하는지 |
+| technical deep-dive add-on | [`docs/cli-quickstart.md`](./cli-quickstart.md), [`docs/code-agent-api.md`](./code-agent-api.md) | 상대가 CLI/API surface, 재현 경로, guardrail을 더 보고 싶어 할 때 | 실제 명령 표면, 응답 계약, safe default, chain failure visibility가 문서화돼 있음 |
+| audit trail add-on | `H-050`~`H-053` result/review/relay 일부 | "이 narrative가 실제 source 대조와 리뷰를 거쳤는가?"라는 질문이 나올 때 | README, case study, walkthrough가 즉흥 copy가 아니라 라운드 결과물과 리뷰를 통해 다듬어졌음 |
+| governance add-on | [`docs/codex-ops-workflow.md`](./codex-ops-workflow.md), [`docs/PROJECT_OVERVIEW.md`](./PROJECT_OVERVIEW.md), `coordination` SoT 일부 | 운영 방식, 책임 분리, 승인 흐름, active roadmap를 묻는 경우 | 3-thread, stateless round, report-only automation, active roadmap/limits가 어떻게 관리되는지 |
 
 기본 외부 공유 세트는 보통 아래 4개면 충분하다.
 
@@ -30,7 +30,13 @@
 3. [`docs/portfolio-case-study.md`](./portfolio-case-study.md)
 4. [`docs/demo-showcase-walkthrough.md`](./demo-showcase-walkthrough.md)
 
-기술 검토가 더 깊어지면 demo companion을 추가하고, "이 서사가 실제 검토/운영 근거를 거쳤는가?"라는 질문이 나오면 proof artifacts와 ops/governance evidence를 선택 첨부한다.
+빠른 판단용으로는 아래 순서를 기억하면 된다.
+
+| 상대 질문 | 추가할 묶음 | 이유 |
+|---|---|---|
+| "실제로 어떤 명령/API 표면이 있나요?" | technical deep-dive add-on | CLI/API surface와 guardrail을 바로 보여 줄 수 있다 |
+| "이 문서들이 실제 근거와 리뷰를 거쳤나요?" | audit trail add-on | 결과 보고서와 review/relay가 narrative의 provenance를 보여 준다 |
+| "이걸 어떤 운영 모델로 통제하나요?" | governance add-on | 역할 분리, 승인 게이트, SoT 문서 체계를 설명할 수 있다 |
 
 ## Source-Of-Truth Mapping
 
@@ -41,21 +47,22 @@ shareability note는 아래처럼 해석한다.
 - `Internal-first / excerpt`: 먼저 요약해서 설명하고, 상대가 audit trail을 원할 때만 전체 파일이나 필요한 일부를 보낸다.
 - `Internal only unless governance review`: 거버넌스 검토나 프로세스 질문이 있을 때만 제한적으로 꺼낸다.
 
-| Bundle item | Source file | What it proves | Shareability note |
-|---|---|---|---|
-| Project entrypoint | [`README.md`](../README.md) | 이 저장소가 무엇을 하는지, 현재 capability/quickstart/docs map이 무엇인지 | External default |
-| Second-layer narrative | [`docs/portfolio-case-study.md`](./portfolio-case-study.md) | 왜 orchestration layer가 필요한지, 복잡성을 어떻게 통제하는지, 어떤 limits가 남아 있는지 | External default |
-| Guided demo path | [`docs/demo-showcase-walkthrough.md`](./demo-showcase-walkthrough.md) | demo를 어떤 순서로 진행하고 무엇을 관찰해야 하는지, 과장 없이 무엇을 말해야 하는지 | External default |
-| CLI surface and guardrail examples | [`docs/cli-quickstart.md`](./cli-quickstart.md) | dry-run/apply, `PARTIAL_SUCCESS`, `--fail-on-chain-failures`, JSON output 같은 실제 CLI 표면이 존재함 | External selective; 기본은 `generate/spec`, guardrail, JSON 출력 섹션 위주로 공유하고, historical seeding appendix는 요청이 있을 때만 보여 준다 |
-| API contract and safety surface | [`docs/code-agent-api.md`](./code-agent-api.md) | `apply=false`, `files[]`, `chainFailures[]`, fallback warning 이벤트, 공통 오류 계약 같은 API 레벨 guardrail이 문서화돼 있음 | External selective; overview, response fields, chain failure policy 위주로 안내하고 parked fallback-warning history를 대표 proof처럼 전면화하지 않는다 |
-| Operating model | [`docs/codex-ops-workflow.md`](./codex-ops-workflow.md) | Main/Executor/Review, stateless rounds, relay discipline, report-only automation 정책이 존재함 | External selective |
-| Current implementation/risk snapshot | [`docs/PROJECT_OVERVIEW.md`](./PROJECT_OVERVIEW.md), [`coordination/REPORTS/CURRENT_STATUS_2026-03-19.md`](../coordination/REPORTS/CURRENT_STATUS_2026-03-19.md) | 현재 구현 범위, active focus, 남은 리스크가 무엇인지 | Internal-first / excerpt; 날짜를 함께 보여 주고 stale 여부를 확인한다 |
-| Roadmap and decision discipline | [`coordination/TASK_BOARD.md`](../coordination/TASK_BOARD.md), [`coordination/DECISIONS.md`](../coordination/DECISIONS.md) | active roadmap, parked policy, 중요한 결정이 SoT 문서로 관리된다는 점 | Internal only unless governance review |
-| README packaging foundation proof | [`coordination/REPORTS/H-050-result.md`](../coordination/REPORTS/H-050-result.md) | README positioning/quickstart/docs map이 어떤 source 문서를 근거로 정리됐는지 | Internal-first / excerpt |
-| Case study packaging proof | [`coordination/REPORTS/H-051-result.md`](../coordination/REPORTS/H-051-result.md), [`coordination/REPORTS/H-051-review.md`](../coordination/REPORTS/H-051-review.md) | case study narrative가 source 문서에 맞춰 작성됐고, overclaim/정합성 관점 리뷰를 거쳤는지 | Internal-first / excerpt |
-| README status alignment proof | [`coordination/REPORTS/H-052-result.md`](../coordination/REPORTS/H-052-result.md), [`coordination/REPORTS/H-052-review.md`](../coordination/REPORTS/H-052-review.md) | external-facing entrypoint의 현재 상태 문구가 실제 active roadmap와 맞춰졌는지 | Internal-first / excerpt |
-| Walkthrough packaging proof | [`coordination/REPORTS/H-053-result.md`](../coordination/REPORTS/H-053-result.md), [`coordination/REPORTS/H-053-review.md`](../coordination/REPORTS/H-053-review.md) | walkthrough의 명령/guardrail/관찰 포인트가 실제 README/CLI/API surface와 맞는지 | Internal-first / excerpt |
-| Review-to-approval handoff proof | [`coordination/RELAYS/H-053-review-to-main.md`](../coordination/RELAYS/H-053-review-to-main.md) | review 결과가 Main 판단 입력으로 전달되는 governance 루프가 실제로 동작함 | Internal only unless governance review |
+| Bundle | Bundle item | Source file | What it proves | Shareability note |
+|---|---|---|---|---|
+| starter set | Project entrypoint | [`README.md`](../README.md) | 이 저장소가 무엇을 하는지, 현재 capability/quickstart/docs map이 무엇인지 | External default |
+| starter set | Second-layer narrative | [`docs/portfolio-case-study.md`](./portfolio-case-study.md) | 왜 orchestration layer가 필요한지, 복잡성을 어떻게 통제하는지, 어떤 limits가 남아 있는지 | External default |
+| starter set | Guided demo path | [`docs/demo-showcase-walkthrough.md`](./demo-showcase-walkthrough.md) | demo를 어떤 순서로 진행하고 무엇을 관찰해야 하는지, 과장 없이 무엇을 말해야 하는지 | External default |
+| starter set | Bundle cover note | [이 문서](./evidence-report-export-bundle.md) | 첫 follow-up에서 무엇을 먼저 보내고, 질문에 따라 어떤 add-on을 붙일지 | External default |
+| technical deep-dive add-on | CLI surface and guardrail examples | [`docs/cli-quickstart.md`](./cli-quickstart.md) | dry-run/apply, `PARTIAL_SUCCESS`, `--fail-on-chain-failures`, JSON output 같은 실제 CLI 표면이 존재함 | External selective; 기본은 `generate/spec`, guardrail, JSON 출력 섹션 위주로 공유하고, historical seeding appendix는 요청이 있을 때만 보여 준다 |
+| technical deep-dive add-on | API contract and safety surface | [`docs/code-agent-api.md`](./code-agent-api.md) | `apply=false`, `files[]`, `chainFailures[]`, fallback warning 이벤트, 공통 오류 계약 같은 API 레벨 guardrail이 문서화돼 있음 | External selective; overview, response fields, chain failure policy 위주로 안내하고 parked fallback-warning history를 대표 proof처럼 전면화하지 않는다 |
+| governance add-on | Operating model | [`docs/codex-ops-workflow.md`](./codex-ops-workflow.md) | Main/Executor/Review, stateless rounds, relay discipline, report-only automation 정책이 존재함 | External selective; 운영 방식과 책임 분리를 설명할 때만 붙인다 |
+| governance add-on | Current implementation/risk snapshot | [`docs/PROJECT_OVERVIEW.md`](./PROJECT_OVERVIEW.md), [`coordination/REPORTS/CURRENT_STATUS_2026-03-19.md`](../coordination/REPORTS/CURRENT_STATUS_2026-03-19.md) | 현재 구현 범위, active focus, 남은 리스크가 무엇인지 | Internal-first / excerpt; 날짜를 함께 보여 주고 stale 여부를 확인한다 |
+| governance add-on | Roadmap and decision discipline | [`coordination/TASK_BOARD.md`](../coordination/TASK_BOARD.md), [`coordination/DECISIONS.md`](../coordination/DECISIONS.md) | active roadmap, parked policy, 중요한 결정이 SoT 문서로 관리된다는 점 | Internal only unless governance review |
+| audit trail add-on | README packaging foundation proof | [`coordination/REPORTS/H-050-result.md`](../coordination/REPORTS/H-050-result.md) | README positioning/quickstart/docs map이 어떤 source 문서를 근거로 정리됐는지 | Internal-first / excerpt |
+| audit trail add-on | Case study packaging proof | [`coordination/REPORTS/H-051-result.md`](../coordination/REPORTS/H-051-result.md), [`coordination/REPORTS/H-051-review.md`](../coordination/REPORTS/H-051-review.md) | case study narrative가 source 문서에 맞춰 작성됐고, overclaim/정합성 관점 리뷰를 거쳤는지 | Internal-first / excerpt |
+| audit trail add-on | README status alignment proof | [`coordination/REPORTS/H-052-result.md`](../coordination/REPORTS/H-052-result.md), [`coordination/REPORTS/H-052-review.md`](../coordination/REPORTS/H-052-review.md) | external-facing entrypoint의 현재 상태 문구가 실제 active roadmap와 맞춰졌는지 | Internal-first / excerpt |
+| audit trail add-on | Walkthrough packaging proof | [`coordination/REPORTS/H-053-result.md`](../coordination/REPORTS/H-053-result.md), [`coordination/REPORTS/H-053-review.md`](../coordination/REPORTS/H-053-review.md) | walkthrough의 명령/guardrail/관찰 포인트가 실제 README/CLI/API surface와 맞는지 | Internal-first / excerpt |
+| audit trail add-on | Review-to-approval handoff proof | [`coordination/RELAYS/H-053-review-to-main.md`](../coordination/RELAYS/H-053-review-to-main.md) | review 결과가 Main 판단 입력으로 전달되는 governance 루프가 실제로 동작함 | Internal only unless governance review |
 
 ## Suggested Export Order / Folder Layout
 
@@ -69,7 +76,6 @@ shareability note는 아래처럼 해석한다.
 2. `technical deep-dive add-on`
    - `docs/cli-quickstart.md`
    - `docs/code-agent-api.md`
-   - `docs/codex-ops-workflow.md`
 3. `audit trail add-on`
    - `coordination/REPORTS/H-050-result.md`
    - `coordination/REPORTS/H-051-result.md`
@@ -80,6 +86,7 @@ shareability note는 아래처럼 해석한다.
    - `coordination/REPORTS/H-053-review.md`
    - `coordination/RELAYS/H-053-review-to-main.md`
 4. `governance add-on`
+   - `docs/codex-ops-workflow.md`
    - `docs/PROJECT_OVERVIEW.md`
    - `coordination/REPORTS/CURRENT_STATUS_2026-03-19.md`
    - `coordination/TASK_BOARD.md`
@@ -89,16 +96,15 @@ shareability note는 아래처럼 해석한다.
 
 ```text
 evidence-bundle/
-  00-cover/
-    README.md
+  00-starter-set/
     docs/evidence-report-export-bundle.md
-  01-narrative/
+    README.md
     docs/portfolio-case-study.md
-  02-demo-companion/
     docs/demo-showcase-walkthrough.md
+  01-technical-deep-dive/
     docs/cli-quickstart.md
     docs/code-agent-api.md
-  03-proof-artifacts/
+  02-audit-trail/
     coordination/REPORTS/H-050-result.md
     coordination/REPORTS/H-051-result.md
     coordination/REPORTS/H-051-review.md
@@ -107,7 +113,7 @@ evidence-bundle/
     coordination/REPORTS/H-053-result.md
     coordination/REPORTS/H-053-review.md
     coordination/RELAYS/H-053-review-to-main.md
-  04-governance/
+  03-governance/
     docs/codex-ops-workflow.md
     docs/PROJECT_OVERVIEW.md
     coordination/REPORTS/CURRENT_STATUS_2026-03-19.md
@@ -115,7 +121,7 @@ evidence-bundle/
     coordination/DECISIONS.md
 ```
 
-핵심은 "파일을 많이 보내는 것"이 아니라, starter set으로 설명을 끝내고 필요한 질문에 맞춰 deep-dive와 audit trail을 덧붙이는 순서를 지키는 것이다.
+핵심은 "파일을 많이 보내는 것"이 아니라, starter set으로 설명을 시작하고 필요한 질문에 맞춰 technical deep-dive, audit trail, governance add-on을 그 순서로 덧붙이는 것이다.
 
 ## Guardrails / Redaction / What Not To Include
 
@@ -132,9 +138,9 @@ evidence-bundle/
 
 1. walkthrough 중에는 [`README.md`](../README.md) -> [`docs/portfolio-case-study.md`](./portfolio-case-study.md) -> [`docs/demo-showcase-walkthrough.md`](./demo-showcase-walkthrough.md) 흐름으로 설명한다.
 2. 세션 직후에는 starter set만 먼저 보낸다. 이때 이 문서를 cover note처럼 사용해 "무엇을 먼저 읽고, 어떤 문서는 요청 시 추가되는지"를 알려 준다.
-3. 상대가 재현성/표면 계약을 묻기 시작하면 [`docs/cli-quickstart.md`](./cli-quickstart.md)와 [`docs/code-agent-api.md`](./code-agent-api.md)를 추가한다.
-4. 상대가 "이 narrative가 실제 리뷰와 운영 근거를 거쳤는가?"를 묻는다면 `H-050`~`H-053` result/review 세트를 audit trail로 추가한다.
-5. 상대가 운영 방식이나 책임 분리를 묻는다면 [`docs/codex-ops-workflow.md`](./codex-ops-workflow.md), [`docs/PROJECT_OVERVIEW.md`](./PROJECT_OVERVIEW.md), `CURRENT_STATUS`, `TASK_BOARD`, `DECISIONS`를 순서대로 선택 첨부한다.
+3. 상대가 재현성/표면 계약을 묻기 시작하면 technical deep-dive add-on으로 [`docs/cli-quickstart.md`](./cli-quickstart.md)와 [`docs/code-agent-api.md`](./code-agent-api.md)를 추가한다.
+4. 상대가 "이 narrative가 실제 리뷰와 운영 근거를 거쳤는가?"를 묻는다면 audit trail add-on으로 `H-050`~`H-053` result/review 세트를 추가한다.
+5. 상대가 운영 방식이나 책임 분리를 묻는다면 governance add-on으로 [`docs/codex-ops-workflow.md`](./codex-ops-workflow.md)부터 보내고, 필요 시 [`docs/PROJECT_OVERVIEW.md`](./PROJECT_OVERVIEW.md), `CURRENT_STATUS`, `TASK_BOARD`, `DECISIONS`를 그다음 순서로 선택 첨부한다.
 6. fallback-warning historical track은 직접 질문이 나오기 전에는 꺼내지 않는다. 꺼낼 때도 current roadmap가 아니라 parked governance example로 위치를 고정한다.
 
 ## Maintenance Checklist / Read Next
