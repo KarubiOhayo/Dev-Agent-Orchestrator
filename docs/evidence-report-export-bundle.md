@@ -12,6 +12,8 @@
   - 저장소 전체 history를 덤프하는 것이 아니라, 현재 narrative를 뒷받침하는 source 문서/결과 보고/리뷰/릴레이를 어떤 순서와 기준으로 건네야 하는지 고정한다
   - 존재하지 않는 실적, 외부 배포 상태, fabricated output, 새 metrics 없이 현재 저장소에 이미 있는 근거만 사용한다
 
+빠른 발송 판단만 필요하면 [`docs/proof-package-delivery-checklist.md`](./proof-package-delivery-checklist.md)를 먼저 보고, 이 문서는 상세 bundle mapping과 read-next reference로 사용한다.
+
 ## Bundle Contents Overview
 
 이 bundle은 아래 4개 묶음으로 고정한다. 핵심은 "한 번에 다 보내기"가 아니라, starter set을 먼저 보내고 질문 종류에 따라 add-on을 하나씩 붙이는 것이다.
@@ -155,6 +157,7 @@ evidence-bundle/
 
 read next:
 
+- [`docs/proof-package-delivery-checklist.md`](./proof-package-delivery-checklist.md)
 - [`README.md`](../README.md)
 - [`docs/portfolio-case-study.md`](./portfolio-case-study.md)
 - [`docs/demo-showcase-walkthrough.md`](./demo-showcase-walkthrough.md)

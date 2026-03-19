@@ -105,6 +105,7 @@ chmod +x ./devagent
 
 ## Docs Map
 
+- [Proof package delivery checklist](docs/proof-package-delivery-checklist.md)
 - [Portfolio case study](docs/portfolio-case-study.md)
 - [Demo / showcase walkthrough](docs/demo-showcase-walkthrough.md)
 - [Evidence / report export bundle](docs/evidence-report-export-bundle.md)
@@ -116,6 +117,6 @@ chmod +x ./devagent
 
 ## Current Limits And Next Focus
 
-- 현재 저장소의 핵심 orchestration 기능과 외부 공개용 starter set(README entrypoint / portfolio case study / demo walkthrough / evidence bundle guide)은 정리됐고, 남은 후속 작업은 narrative polishing과 shareability/redaction 판단 같은 마지막 close-out alignment입니다.
+- 현재 저장소의 핵심 orchestration 기능, 외부 공개용 starter set, 그리고 sender-facing [`proof package delivery checklist`](docs/proof-package-delivery-checklist.md)까지는 정리됐지만, 실제 외부 발송 직전의 shareability/redaction 최종 판단은 여전히 사람이 확인해야 합니다.
 - 출력 파싱 안전성과 체인 실패 가드레일은 보강되어 있지만, 생성 내용의 의미 품질 평가는 여전히 운영 관점에서 계속 점검해야 합니다.
 - `PARTIAL_SUCCESS`를 사용하는 소비자는 성공 응답만 믿지 말고 `chainFailures[]`를 함께 확인해야 합니다.
