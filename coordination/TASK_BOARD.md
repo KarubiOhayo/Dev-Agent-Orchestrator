@@ -1,6 +1,6 @@
 # DevAgent Task Board
 
-Last Updated: 2026-03-19
+Last Updated: 2026-03-20
 Owner: Main Controller Thread
 Primary Reference: `docs/PROJECT_OVERVIEW.md`
 Parking Reference: `coordination/PARKING_LOT.md`
@@ -9,11 +9,11 @@ Parking Reference: `coordination/PARKING_LOT.md`
 
 ## 현재 스냅샷
 - 목표: 안정화된 orchestration 핵심을 외부에 설명 가능한 portfolio package로 정렬한다.
-- 현재 상태: Spec -> Code -> Doc/Review 체이닝과 parser safety 가드는 안정화 단계에 들어섰고, root `README.md` foundation, `docs/portfolio-case-study.md` second-layer narrative, `docs/demo-showcase-walkthrough.md` guided demo path, `docs/proof-package-delivery-checklist.md` sender-facing control doc, `docs/evidence-report-export-bundle.md` handoff guide까지 proof package baseline이 닫혔다. H-058으로 checklist canonical authority, evidence bundle의 네 번째 문서/read-next 역할, starter set 4문서 drift trigger는 정렬됐지만, case study는 아직 이 follow-up path를 직접 가리키지 않고 next-step copy도 starter set/add-on polishing이 열린 과제처럼 남겨 두고 있다. immediate next gap은 second-layer narrative를 현재 canonical flow에 맞게 최소 정렬하는 것이다.
-- 다음 고정 라운드: `H-059 portfolio case study follow-up path alignment`
+- 현재 상태: Spec -> Code -> Doc/Review 체이닝과 parser safety 가드는 안정화 단계에 들어섰고, root `README.md` foundation, `docs/portfolio-case-study.md` second-layer narrative, `docs/demo-showcase-walkthrough.md` guided demo path, `docs/proof-package-delivery-checklist.md` sender-facing control doc, `docs/evidence-report-export-bundle.md` handoff guide까지 proof package baseline이 닫혔다. H-059로 case study도 walkthrough 이후 `proof-package-delivery-checklist -> evidence-report-export-bundle` follow-up path를 직접 가리키고 next-step copy를 현재 상태에 맞게 좁히도록 정렬됐다. immediate next gap은 sender-facing shareability/redaction 최종 판단을 checklist와 evidence bundle 사이에서 더 반복 가능하게 만드는 것이다.
+- 다음 고정 라운드: `H-060 sender-facing shareability / redaction final judgment hygiene`
 - fallback-warning 용어 가드레일: `fallback-warning`은 output parsing fallback 경고를 의미하며, 라우팅 fallback과 구분한다(SoT: `docs/OBSERVABILITY_FALLBACK_WARNING.md`).
 - parking 정책: fallback-warning 트랙(`H-024`, `H-049`, latest evidence `H-048`)은 `PARKED_UNLESS_EXPLICIT_RESUME` 상태다. 현재 스냅샷의 핵심 진행축, readiness blocker, 다음 라운드 고정 후보로 취급하지 않는다.
-- 핵심 리스크: sender-facing canonical flow 자체는 H-058에서 닫혔지만, `docs/portfolio-case-study.md`가 checklist를 follow-up control doc로 직접 가리키지 않아 second-layer narrative와 post-walkthrough handoff path 사이에 잔여 drift가 있다. shareability/redaction 최종 판단은 여전히 사람이 맡아야 하며, parser 과매칭 직접 리스크는 H-041에서 해소됐다.
+- 핵심 리스크: sender-facing canonical flow 자체는 H-059까지로 닫혔지만, 실제 발송 직전의 final judgment는 아직 checklist의 pre-send gate와 evidence bundle의 shareability taxonomy 사이에 나뉘어 있다. starter set / add-on을 지금 보내도 되는지, excerpt/redaction으로 낮춰야 하는지, 보류해야 하는지를 sender가 더 짧게 반복 판단할 수 있게 다듬을 필요가 있다. parser 과매칭 직접 리스크는 H-041에서 해소됐다.
 - 운영 정책: 3스레드 체계(메인 제어 + 리뷰 전담 + 실행 전담), 라운드별 stateless 운영
 
 ## 완료된 작업
@@ -85,6 +85,7 @@ Parking Reference: `coordination/PARKING_LOT.md`
 - [x] H-056 proof package close-out copy / provenance alignment(starter set ready copy 정렬 + `coordination/REPORTS/H-050-review.md` audit trail provenance 반영 + Review `Go`, Main `Go`)
 - [x] H-057 proof package delivery checklist foundation(`docs/proof-package-delivery-checklist.md` 신설 + pre-send gate / add-on matrix / do-not-send guardrail 정리, canonical send order / maintenance trigger close-out은 H-058에서 반영)
 - [x] H-058 proof package checklist canonical flow alignment(`docs/proof-package-delivery-checklist.md` canonical authority 고정 + `docs/evidence-report-export-bundle.md` 네 번째 문서/read-next reference 정렬 + starter set 4문서 drift check 복구, Review `Go`, Main `Go`)
+- [x] H-059 portfolio case study follow-up path alignment(`docs/portfolio-case-study.md` follow-up path / next-step copy 정렬 + Review `Go`, Main `Go`)
 
 ## 3스레드 운영 분배
 
@@ -128,14 +129,14 @@ Parking Reference: `coordination/PARKING_LOT.md`
 10. 병합은 THREAD-A 최종 승인 이후에만 수행한다.
 
 ## Active Priorities
-- [ ] portfolio case study follow-up path alignment (`H-059`)
-- [ ] sender-facing shareability / redaction final judgment hygiene
+- [ ] sender-facing shareability / redaction final judgment hygiene (`H-060`)
+- [ ] sender 맥락별 전달 밀도 조절
 - [ ] 생성 결과 의미 품질 운영 점검 지속
 
 ## Next Actions
-1. `docs/portfolio-case-study.md`가 sender-facing follow-up path를 `docs/proof-package-delivery-checklist.md` -> `docs/evidence-report-export-bundle.md` 순서로 직접 가리키고, checklist를 canonical control doc로 설명하도록 최소 정렬한다.
-2. case study의 `Current Limits And Next Steps`가 H-058 이후에도 starter set/add-on package logic 자체가 미완료인 것처럼 읽히지 않게 좁히고, 남은 작업을 shareability/redaction 최종 판단과 의미 품질 운영 점검으로 재고정한다.
-3. H-058에서 닫힌 checklist/evidence bundle canonical flow, parked fallback-warning 비전면화 원칙, docs-only 범위를 유지하고 새 export 폴더/zip/live evidence/screenshot/metrics 생성 없이 close-out alignment만 수행한다.
+1. `docs/proof-package-delivery-checklist.md`가 starter set / add-on 발송 직전의 final judgment를 `지금 보낸다`, `redact/excerpt 후 보낸다`, `이번 라운드에서는 보내지 않는다` 수준으로 더 짧게 반복 가능하게 설명하도록 정리한다.
+2. `docs/evidence-report-export-bundle.md`의 shareability note(`External default`, `External selective`, `Internal-first / excerpt`, `Internal only unless governance review`)와 add-on 안내가 checklist final judgment와 같은 행동 기준을 말하게 맞춘다.
+3. H-058/H-059에서 닫힌 canonical flow, starter set send order, parked fallback-warning 비전면화 원칙, docs-only 범위를 유지하고 새 artifact/export 폴더/zip/live evidence/screenshot/metrics는 만들지 않는다.
 
 ## Parking Lot
 - [ ] fallback-warning 트랙(`H-024`, `H-049`, latest evidence `H-048`)은 `PARKED_UNLESS_EXPLICIT_RESUME` 상태다. historical docs는 보존하되 active roadmap, current snapshot, readiness blocker, next-round 후보에서 기본 제외한다.

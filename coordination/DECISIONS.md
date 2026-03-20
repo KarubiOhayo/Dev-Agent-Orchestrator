@@ -905,3 +905,19 @@
   - Main은 `coordination/HANDOFFS/H-059-portfolio-case-study-followup-path-alignment.md`를 생성한다.
   - Main -> Executor 릴레이 `coordination/RELAYS/H-059-main-to-executor.md`를 생성해 범위/게이트/주의사항을 고정한다.
   - `coordination/TASK_BOARD.md`, `docs/PROJECT_OVERVIEW.md`, `coordination/REPORTS/CURRENT_STATUS_2026-03-19.md`를 H-058 승인 + H-059 우선순위 기준으로 동기화한다.
+
+## D-074 H-059 승인(Go) 확정 및 H-060 sender-facing shareability / redaction final judgment hygiene 착수
+- Date: 2026-03-20
+- Status: Approved (H-059 Close-out / H-060 Scope)
+- Decision:
+  - `coordination/REPORTS/H-059-result.md`, `coordination/REPORTS/H-059-review.md`, `coordination/RELAYS/H-059-review-to-main.md`를 대조한 결과 H-059는 Main 최종 판단 `Go`로 승인한다.
+  - H-059로 `docs/portfolio-case-study.md`까지 walkthrough 이후 `docs/proof-package-delivery-checklist.md` -> `docs/evidence-report-export-bundle.md` follow-up path를 직접 가리키게 됐고, second-layer narrative의 next-step copy도 shareability/redaction 최종 판단 중심으로 좁혀졌다. H-058에서 닫힌 checklist canonical authority와 evidence bundle의 네 번째 문서/read-next 역할도 그대로 유지한다.
+  - 다음 실행 라운드는 H-060으로 고정하고, 범위를 sender-facing shareability / redaction final judgment hygiene로 제한한다. 1차 수정면은 `docs/proof-package-delivery-checklist.md`, `docs/evidence-report-export-bundle.md`이며, 필요할 때만 `README.md`, `docs/portfolio-case-study.md`, `docs/demo-showcase-walkthrough.md`에 최소 링크/상태 문구 수준의 보조 정렬을 허용한다.
+  - H-060의 핵심은 starter set / add-on을 새로 설계하는 것이 아니라, 이미 있는 checklist pre-send gate와 evidence bundle의 shareability taxonomy를 sender가 마지막 발송 직전에 같은 행동 기준으로 해석하도록 맞추는 것이다. `send as-is`, `redact/excerpt`, `hold/skip` 성격의 최종 판단이 더 짧게 반복 가능해야 한다.
+  - H-060은 docs-only hygiene 라운드이며, canonical send order 재설계, 새 external-facing 문서, export 폴더/zip, screenshot, metrics, fabricated output 생성, parked fallback-warning 전면화는 포함하지 않는다.
+  - fallback-warning parked 정책(D-063)은 그대로 유지한다.
+- Rationale: H-059는 테스트 게이트(`./gradlew clean test --no-daemon` -> `BUILD SUCCESSFUL`)와 Review-Control `Go`를 충족했고, H-058 이후 남아 있던 case study follow-up path drift도 닫혔다. 남은 가장 직접적인 운영 리스크는 actual send/no-send/redaction 판단이 여전히 사람 책임이면서도 그 기준이 checklist와 evidence bundle에 분산돼 있다는 점이며, 이를 좁은 docs-only 라운드로 정리하는 편이 starter set 설계를 다시 열지 않으면서도 sender-facing 완성도를 높이는 가장 낮은 비용의 경로다.
+- Consequence:
+  - Main은 `coordination/HANDOFFS/H-060-sender-facing-shareability-redaction-final-judgment-hygiene.md`를 생성한다.
+  - Main -> Executor 릴레이 `coordination/RELAYS/H-060-main-to-executor.md`를 생성해 범위/게이트/주의사항을 고정한다.
+  - `coordination/TASK_BOARD.md`, `docs/PROJECT_OVERVIEW.md`, `coordination/REPORTS/CURRENT_STATUS_2026-03-20.md`를 H-059 승인 + H-060 우선순위 기준으로 동기화한다.

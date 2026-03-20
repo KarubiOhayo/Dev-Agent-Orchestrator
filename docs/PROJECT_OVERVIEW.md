@@ -7,7 +7,7 @@
   - Issue -> Spec -> Code -> Doc 체이닝
   - PR Review/Refactor 자동화(후순위)
 
-## 2) 현재 구현 상태 (2026-03-19)
+## 2) 현재 구현 상태 (2026-03-20)
 - 완료:
   - 모델 라우팅 엔진 + 라우팅 API
   - 벤더 어댑터(OpenAI/Anthropic/Google) + fallback 실행
@@ -79,10 +79,11 @@
   - H-056 proof package close-out copy / provenance alignment 완료(starter set ready copy 정렬 + `coordination/REPORTS/H-050-review.md` audit trail provenance 반영 + Review `Go` + Main `Go`)
   - H-057 proof package delivery checklist foundation 산출 확보 완료(`docs/proof-package-delivery-checklist.md` 신설 + pre-send gate / add-on matrix / do-not-send guardrail 정리, canonical send order / maintenance trigger close-out은 H-058에서 반영)
   - H-058 proof package checklist canonical flow alignment 완료(`docs/proof-package-delivery-checklist.md` canonical authority 고정 + `docs/evidence-report-export-bundle.md` 네 번째 문서/read-next reference 정렬 + starter set 4문서 drift check 복구, Review `Go` + Main `Go`)
+  - H-059 portfolio case study follow-up path alignment 완료(`docs/portfolio-case-study.md`가 checklist -> evidence bundle follow-up path를 직접 가리키도록 정렬 + next-step copy를 shareability/redaction 최종 판단 중심으로 축소, Review `Go` + Main `Go`)
   - apply/dry-run 파일 반영
 - 미완료:
-  - portfolio case study follow-up path alignment (`H-059`)
-  - sender-facing shareability / redaction final judgment hygiene
+  - sender-facing shareability / redaction final judgment hygiene (`H-060`)
+  - sender 맥락별 전달 밀도 조절
   - 생성 결과 의미 품질 운영 점검 지속
 
 ### Parked Work
@@ -151,8 +152,8 @@
   - Code run 결과(`codeRunId`, `codeOutput`, `codeFiles`) 기반 리뷰 JSON 생성
 
 ## 7) 현재 운영 리스크
-- H-058으로 `docs/proof-package-delivery-checklist.md`와 `docs/evidence-report-export-bundle.md`의 sender-facing canonical flow는 닫혔지만, `docs/portfolio-case-study.md`는 아직 sender-facing checklist를 post-walkthrough control doc로 직접 가리키지 않고 next-step copy도 starter set/add-on polishing이 열린 과제처럼 읽힌다. H-059에서 second-layer narrative를 현재 canonical flow에 맞게 최소 정렬해야 한다.
-- starter set은 공유 가능 상태지만, 실제 외부 발송 직전의 shareability / redaction 판단은 여전히 사람이 최종 확인해야 한다.
+- H-059로 `docs/portfolio-case-study.md`까지 sender-facing canonical follow-up path는 정렬됐지만, 실제 외부 발송 직전의 shareability / redaction 최종 판단과 excerpt/hold 기준은 아직 `docs/proof-package-delivery-checklist.md`와 `docs/evidence-report-export-bundle.md` 사이에 분산돼 있다. H-060에서 sender-facing final judgment hygiene를 더 명확히 고정해야 한다.
+- starter set은 공유 가능한 baseline이지만, audit trail / governance 자료는 여전히 selective / excerpt / internal-first 판단이 필요하다.
 - 모델 출력 비정형 시 fallback 비율이 상승할 수 있음
 - fallback-warning 해석은 output parsing fallback 경고로 한정하며, 모델 라우팅 fallback과 구분해야 함(SoT: `docs/OBSERVABILITY_FALLBACK_WARNING.md`)
 - Code parser의 loose fallback 과매칭 직접 리스크는 H-041에서 차단되었고, fallback-warning 트랙 자체는 `coordination/PARKING_LOT.md` 기준 parked 상태다. 명시적 resume 신호 없이는 현재 blocker로 취급하지 않는다.
@@ -161,8 +162,8 @@
 - CLI JSON 출력은 지원되지만, 옵션 파싱 경계 케이스는 지속 회귀 점검 필요
 
 ## 8) 다음 우선순위
-1. portfolio case study follow-up path alignment (`H-059`)
-2. sender-facing shareability / redaction final judgment hygiene
+1. sender-facing shareability / redaction final judgment hygiene (`H-060`)
+2. sender 맥락별 전달 밀도 조절
 3. 생성 결과 의미 품질 운영 점검 지속
 
 ## 9) 라운드 시작 체크 (Stateless)
